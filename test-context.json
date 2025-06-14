@@ -1,0 +1,7 @@
+{
+  "messages": [
+    {"role": "user", "content": "My name is John"},
+    {"role": "assistant", "content": "Hello John! Nice to meet you."},
+    {"role": "user", "content": "What is my name?"}
+  ]
+}
