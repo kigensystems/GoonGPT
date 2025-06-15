@@ -53,8 +53,25 @@ export async function handler(event, context) {
     console.log('API Token exists:', !!process.env.REPLICATE_API_TOKEN);
 
     // Replicate API call using correct format
+    // We need to get the latest version hash for mikeei/dolphin-2.9-llama3-70b-gguf
+    // First, let's try to get the model info to find the latest version
+    const modelResponse = await fetch('https://api.replicate.com/v1/models/mikeei/dolphin-2.9-llama3-70b-gguf', {
+      headers: {
+        'Authorization': `Token ${process.env.REPLICATE_API_TOKEN}`,
+      },
+    });
+    
+    if (!modelResponse.ok) {
+      throw new Error(`Failed to get model info: ${modelResponse.status}`);
+    }
+    
+    const modelData = await modelResponse.json();
+    const latestVersion = modelData.latest_version.id;
+    
+    console.log('Found latest version:', latestVersion);
+    
     const requestBody = {
-      model: "mikeei/dolphin-2.9-llama3-70b-gguf",
+      version: latestVersion,
       input: {
         prompt: fullPrompt,
         max_new_tokens: 2000,
