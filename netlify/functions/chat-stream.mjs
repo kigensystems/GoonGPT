@@ -22,7 +22,7 @@ export async function handler(event, context) {
   try {
     const { messages } = JSON.parse(event.body);
     
-    // Venice.AI API endpoint with streaming
+    // Venice.AI API endpoint without streaming for compatibility
     const response = await fetch('https://api.venice.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -34,7 +34,7 @@ export async function handler(event, context) {
         messages: messages,
         temperature: 0.7,
         max_tokens: 2000,
-        stream: true,
+        stream: false, // Disable streaming for easier handling
       }),
     });
 
@@ -43,26 +43,15 @@ export async function handler(event, context) {
       throw new Error(error.error?.message || 'Venice API error');
     }
 
-    // For Netlify Functions, we can't stream directly, so we'll collect the response
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullResponse = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      const chunk = decoder.decode(value);
-      fullResponse += chunk;
-    }
+    const result = await response.json();
 
     return {
       statusCode: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'text/plain',
+        'Content-Type': 'application/json',
       },
-      body: fullResponse,
+      body: JSON.stringify(result),
     };
   } catch (error) {
     console.error('Stream API error:', error);
