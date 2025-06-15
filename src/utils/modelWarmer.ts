@@ -2,7 +2,7 @@
 // Keeps Replicate models warm by making periodic lightweight requests
 
 class ModelWarmer {
-  private warmInterval: NodeJS.Timeout | null = null;
+  private warmInterval: ReturnType<typeof setInterval> | null = null;
   private isWarming = false;
 
   // Start warming models when app loads
