@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { replicateClient } from '../utils/replicateClient';
 
 export function ImageGenerator() {
@@ -34,7 +34,7 @@ export function ImageGenerator() {
       }
     } catch (error) {
       console.error('Failed to generate image:', error);
-      alert('Failed to generate image: ' + error.message);
+      alert('Failed to generate image: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setIsGenerating(false);
     }

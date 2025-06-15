@@ -8,7 +8,7 @@ interface ChatInterfaceProps {
   isLoading: boolean;
   onSendMessage: () => void;
   onKeyPress: (e: React.KeyboardEvent) => void;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
+  messagesEndRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function ChatInterface({

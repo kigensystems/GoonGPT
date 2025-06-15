@@ -28,7 +28,7 @@ export class ReplicateClient {
   
   constructor() {
     // Use Netlify dev server URL in development, relative path in production
-    this.baseUrl = import.meta.env.DEV ? 'http://localhost:8888' : '';
+    this.baseUrl = (import.meta as any).env?.DEV ? 'http://localhost:8888' : '';
   }
 
   // Chat completion using Dolphin uncensored model
@@ -80,7 +80,7 @@ export class ReplicateClient {
   }
 
   // Document analysis using Netlify function (placeholder for future implementation)
-  async analyzeDocument(file: File): Promise<any> {
+  async analyzeDocument(_file: File): Promise<any> {
     // TODO: Implement document analysis with Replicate models
     throw new Error('Document analysis not yet implemented');
   }

@@ -5,7 +5,7 @@ import { ImageGenerator } from './components/ImageGenerator'
 import { DocumentAnalyzer } from './components/DocumentAnalyzer'
 
 function App() {
-  const { messages, isLoading, error, sendMessage, clearMessages } = useChat();
+  const { messages, isLoading, error, sendMessage } = useChat();
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<'chat' | 'image' | 'document'>('chat');
