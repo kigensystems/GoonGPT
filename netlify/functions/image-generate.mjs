@@ -33,19 +33,23 @@ export async function handler(event, context) {
       throw new Error('Prompt is required');
     }
     
-    // Venice.AI Image API endpoint (OpenAI-compatible)
-    const response = await fetch('https://api.venice.ai/api/v1/images/generations', {
+    // Venice.AI native Image API endpoint
+    const response = await fetch('https://api.venice.ai/api/v1/image/generate', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.VENICE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'flux-pro',
+        model: 'flux-dev-uncensored',
         prompt: prompt,
-        size: size,
-        n: n,
-        response_format: 'url'
+        width: parseInt(size.split('x')[0]) || 1024,
+        height: parseInt(size.split('x')[1]) || 1024,
+        steps: 25,
+        cfg_scale: 7.5,
+        safe_mode: false,
+        return_binary: false,
+        hide_watermark: false
       }),
     });
 
@@ -56,10 +60,17 @@ export async function handler(event, context) {
       throw new Error(data.error?.message || 'Venice Image API error');
     }
 
+    // Convert Venice.AI response format to OpenAI-compatible format for frontend
+    const formattedResponse = {
+      data: data.images ? data.images.map(base64Image => ({
+        url: `data:image/png;base64,${base64Image}`
+      })) : []
+    };
+
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(data),
+      body: JSON.stringify(formattedResponse),
     };
   } catch (error) {
     console.error('Image generation error:', error);

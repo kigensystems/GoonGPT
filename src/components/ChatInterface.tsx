@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChatMessage } from '../utils/veniceClient';
+import { ChatMessage } from '../utils/replicateClient';
 
 interface ChatInterfaceProps {
   messages: ChatMessage[];

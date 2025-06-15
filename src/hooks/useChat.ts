@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { veniceClient, ChatMessage } from '../utils/veniceClient';
+import { replicateClient, ChatMessage } from '../utils/replicateClient';
 
 interface UseChatReturn {
   messages: ChatMessage[];
@@ -35,22 +35,16 @@ export function useChat(): UseChatReturn {
       };
       setMessages((prev) => [...prev, tempAssistantMessage]);
 
-      // Stream the response
-      let fullResponse = '';
-      await veniceClient.streamChatMessage(
-        [...messages, userMessage],
-        (chunk) => {
-          fullResponse += chunk;
-          setMessages((prev) => {
-            const newMessages = [...prev];
-            newMessages[newMessages.length - 1] = {
-              role: 'assistant',
-              content: fullResponse,
-            };
-            return newMessages;
-          });
-        }
-      );
+      // Get response from Replicate
+      const response = await replicateClient.sendMessage([...messages, userMessage]);
+      const assistantMessage = response.choices[0].message;
+      
+      // Update the last message with the full response
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        newMessages[newMessages.length - 1] = assistantMessage;
+        return newMessages;
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send message');
       // Remove the temporary message on error

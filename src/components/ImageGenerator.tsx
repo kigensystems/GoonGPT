@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { replicateClient } from '../utils/replicateClient';
 
 export function ImageGenerator() {
   const [prompt, setPrompt] = useState('');
@@ -9,12 +10,34 @@ export function ImageGenerator() {
     if (!prompt.trim() || isGenerating) return;
     
     setIsGenerating(true);
-    // TODO: Implement actual image generation
-    setTimeout(() => {
-      setGeneratedImages([...generatedImages, `https://via.placeholder.com/512x512?text=${encodeURIComponent(prompt)}`]);
+    try {
+      const result = await replicateClient.generateImage(prompt, 512, 512);
+      console.log('Image generation result:', result);
+      
+      if (result.success && result.imageUrl) {
+        const imageUrl = result.imageUrl;
+        console.log('Image URL received:', imageUrl.substring(0, 50) + '...');
+        console.log('Full result from Replicate:', result);
+        
+        // Debug: Try to create an image element to test if it loads
+        const testImg = new Image();
+        testImg.onload = () => console.log('✅ Image loaded successfully, dimensions:', testImg.width, 'x', testImg.height);
+        testImg.onerror = (e) => console.error('❌ Image failed to load:', e);
+        testImg.src = imageUrl;
+        
+        // Add the generated image to our collection
+        setGeneratedImages([...generatedImages, imageUrl]);
+        setPrompt('');
+      } else {
+        console.error('No image URL in response:', result);
+        alert('No image was generated. Please try again.');
+      }
+    } catch (error) {
+      console.error('Failed to generate image:', error);
+      alert('Failed to generate image: ' + error.message);
+    } finally {
       setIsGenerating(false);
-      setPrompt('');
-    }, 2000);
+    }
   };
 
   return (
@@ -51,8 +74,19 @@ export function ImageGenerator() {
                     src={img}
                     alt={`Generated ${index + 1}`}
                     className="w-full h-auto rounded-lg border border-accent/20 transition-all duration-150 group-hover:border-accent/50"
+                    onLoad={() => console.log(`Image ${index + 1} loaded successfully`)}
+                    onError={(e) => console.error(`Image ${index + 1} failed to load:`, e)}
+                    style={{ backgroundColor: '#1a1a1a', minHeight: '200px' }}
                   />
-                  <button className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 bg-bg-default/80 backdrop-blur p-2 rounded-lg border border-accent/30 hover:border-accent/50">
+                  <button 
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = img;
+                      link.download = `generated-image-${index + 1}.png`;
+                      link.click();
+                    }}
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 bg-bg-default/80 backdrop-blur p-2 rounded-lg border border-accent/30 hover:border-accent/50"
+                  >
                     <span className="text-accent text-xs font-mono">DOWNLOAD</span>
                   </button>
                 </div>

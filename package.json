@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "type": "module",
-  "description": "",
+  "description": "XposedAI - An entirely uncensored AI platform",
   "devDependencies": {
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
