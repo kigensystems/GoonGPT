@@ -72,10 +72,14 @@ export async function handler(event, context) {
 
     const prediction = await response.json();
     
-    // Poll for completion
+    // Poll for completion with timeout
     let result = prediction;
-    while (result.status === 'starting' || result.status === 'processing') {
+    let pollCount = 0;
+    const maxPolls = 20; // Max 20 seconds of polling
+    
+    while ((result.status === 'starting' || result.status === 'processing') && pollCount < maxPolls) {
       await new Promise(resolve => setTimeout(resolve, 1000));
+      pollCount++;
       
       const pollResponse = await fetch(`https://api.replicate.com/v1/predictions/${result.id}`, {
         headers: {
@@ -83,7 +87,15 @@ export async function handler(event, context) {
         },
       });
       
+      if (!pollResponse.ok) {
+        throw new Error(`Failed to poll prediction: ${pollResponse.status}`);
+      }
+      
       result = await pollResponse.json();
+    }
+    
+    if (pollCount >= maxPolls) {
+      throw new Error('Function timeout - model is taking too long to respond');
     }
 
     if (result.status === 'failed') {
@@ -91,7 +103,7 @@ export async function handler(event, context) {
     }
 
     // Format response to match OpenAI format
-    const responseText = result.output ? result.output.join('') : '';
+    const responseText = result.output ? (Array.isArray(result.output) ? result.output.join('') : result.output) : 'No response generated';
     
     return {
       statusCode: 200,
@@ -102,7 +114,10 @@ export async function handler(event, context) {
             role: 'assistant',
             content: responseText
           }
-        }]
+        }],
+        usage: {
+          total_tokens: responseText.length
+        }
       }),
     };
   } catch (error) {

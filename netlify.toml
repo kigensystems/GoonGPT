@@ -9,9 +9,22 @@
   port = 8888
   autoLaunch = true
 
+[functions]
+  # Directory for serverless functions
+  directory = "netlify/functions"
+  
+[functions."*"]
+  # 26 seconds timeout for Pro plan (maximum allowed)
+  timeout = 26
+
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
+
+[[redirects]]
+  from = "/vite.svg"
+  to = "/favicon.ico"
+  status = 200
