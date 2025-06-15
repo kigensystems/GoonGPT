@@ -50,32 +50,18 @@ export async function handler(event, context) {
     console.log('Built prompt:', contextPrompt.substring(0, 200) + '...');
     console.log('API Token exists:', !!process.env.REPLICATE_API_TOKEN);
 
-    // Replicate API call using correct format
-    // We need to get the latest version hash for mikeei/dolphin-2.9.1-llama3-8b-gguf
-    // First, let's try to get the model info to find the latest version
-    const modelResponse = await fetch('https://api.replicate.com/v1/models/mikeei/dolphin-2.9.1-llama3-8b-gguf', {
-      headers: {
-        'Authorization': `Token ${process.env.REPLICATE_API_TOKEN}`,
-      },
-    });
-    
-    if (!modelResponse.ok) {
-      throw new Error(`Failed to get model info: ${modelResponse.status}`);
-    }
-    
-    const modelData = await modelResponse.json();
-    const latestVersion = modelData.latest_version.id;
-    
-    console.log('Found latest version:', latestVersion);
+    // Try to use the model directly without fetching version first
+    // Use the model name format for simpler API call
+    console.log('Using model: mikeei/dolphin-2.9.1-llama3-8b-gguf');
     
     const requestBody = {
-      version: latestVersion,
+      version: "d074e3e36af3e7f7a84cc566071e4c080c1935a8d791cdd91ae23dc99b8edd52",
       input: {
         prompt: contextPrompt,
         system_prompt: systemPrompt,
         prompt_template: "<|im_start|>system\n{system_prompt}<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant",
-        max_new_tokens: 2000,
-        temperature: 0.7,
+        max_new_tokens: 1024,
+        temperature: 0.8,
         repeat_penalty: 1.1
       }
     };
@@ -99,13 +85,14 @@ export async function handler(event, context) {
 
     const prediction = await response.json();
     
-    // Poll for completion with timeout
+    // Poll for completion with shorter intervals and more aggressive timeout handling
     let result = prediction;
     let pollCount = 0;
-    const maxPolls = 24; // Max 24 seconds of polling (leave 2s buffer for Netlify Pro 26s timeout)
+    const maxPolls = 20; // Reduce max polls
+    const pollInterval = 750; // Reduce interval to 750ms
     
     while ((result.status === 'starting' || result.status === 'processing') && pollCount < maxPolls) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, pollInterval));
       pollCount++;
       
       console.log(`Polling ${pollCount}/${maxPolls}, status: ${result.status}`);
@@ -117,19 +104,42 @@ export async function handler(event, context) {
       });
       
       if (!pollResponse.ok) {
-        throw new Error(`Failed to poll prediction: ${pollResponse.status}`);
+        console.error(`Poll request failed: ${pollResponse.status}`);
+        // Try to continue rather than fail immediately
+        continue;
       }
       
       result = await pollResponse.json();
-      console.log(`Poll result: ${result.status}`);
+      console.log(`Poll result: ${result.status}`, result.error ? `Error: ${result.error}` : '');
+      
+      // If we get an error status, break out early
+      if (result.status === 'failed' || result.status === 'canceled') {
+        break;
+      }
     }
     
-    if (pollCount >= maxPolls) {
-      throw new Error('Function timeout - model is taking too long to respond');
+    if (pollCount >= maxPolls && (result.status === 'starting' || result.status === 'processing')) {
+      // Try to cancel the prediction before timing out
+      try {
+        await fetch(`https://api.replicate.com/v1/predictions/${result.id}/cancel`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Token ${process.env.REPLICATE_API_TOKEN}`,
+          },
+        });
+      } catch (e) {
+        console.log('Failed to cancel prediction:', e.message);
+      }
+      throw new Error('Model timeout - prediction taking too long. Try again.');
     }
 
     if (result.status === 'failed') {
-      throw new Error(result.error || 'Prediction failed');
+      console.error('Prediction failed:', result.error, result.logs);
+      throw new Error(result.error || 'Prediction failed - model may be overloaded');
+    }
+    
+    if (result.status === 'canceled') {
+      throw new Error('Prediction was canceled - model may be overloaded');
     }
 
     // Format response to match OpenAI format
