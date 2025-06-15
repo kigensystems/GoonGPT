@@ -72,11 +72,58 @@ export class ReplicateClient {
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const result = await response.json();
+      
+      // If we get a prediction ID, poll for completion
+      if (result.status === 'processing' && result.predictionId) {
+        console.log('Model is cold starting, polling for completion...');
+        return await this.pollForImageCompletion(result.predictionId);
+      }
+      
+      return result;
     } catch (error) {
       console.error('Error generating image:', error);
       throw error;
     }
+  }
+
+  // Poll for image completion
+  private async pollForImageCompletion(predictionId: string): Promise<any> {
+    const maxAttempts = 60; // 2 minutes max
+    let attempts = 0;
+    
+    while (attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+      attempts++;
+      
+      try {
+        const response = await fetch(`${this.baseUrl}/.netlify/functions/image-status?id=${predictionId}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to check status');
+        }
+        
+        const result = await response.json();
+        console.log(`Polling attempt ${attempts}/${maxAttempts}, status: ${result.status}`);
+        
+        if (result.status === 'succeeded' && result.output) {
+          return {
+            success: true,
+            imageUrl: result.output[0],
+            prompt: prompt
+          };
+        } else if (result.status === 'failed') {
+          throw new Error(result.error || 'Image generation failed');
+        }
+        
+        // Continue polling if still processing
+      } catch (error) {
+        console.error('Polling error:', error);
+        // Continue polling on error
+      }
+    }
+    
+    throw new Error('Image generation timed out after 2 minutes');
   }
 
   // Document analysis using Netlify function (placeholder for future implementation)

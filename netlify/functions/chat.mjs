@@ -2,6 +2,15 @@
 // Proxies requests to Replicate Dolphin model
 
 export async function handler(event, context) {
+  // Check for required environment variables
+  if (!process.env.REPLICATE_API_TOKEN) {
+    console.error('REPLICATE_API_TOKEN is not set');
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Server configuration error' }),
+    };
+  }
+  
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
