@@ -7,17 +7,23 @@ export default {
   theme: {
     extend: {
       colors: {
-        'bg-default': '#0D0F12',
-        'surface': '#1C1E22',
-        'text-primary': '#D1D5DB',
-        'text-accent': '#FF2D95',
-        'accent': '#FF2D95',
-        'muted': '#4B5563',
+        // Exact ChatGPT colors
+        'bg-main': '#212121',         // Main background
+        'bg-sidebar': '#171717',      // Sidebar background  
+        'surface': '#2f2f2f',         // Input background
+        'surface-hover': '#424242',   // Hover states
+        'border': '#424242',          // Borders
+        'text-primary': '#ffffff',    // Primary text
+        'text-secondary': '#d1d5db',  // Secondary text
+        'text-muted': '#9ca3af',      // Muted text
+        'accent': '#10a37f',          // Green accent (ChatGPT green)
+        'accent-hover': '#0d8f6e',    // Darker green
+        'button-primary': '#ffffff',  // White buttons
+        'button-text': '#0f0f0f',     // Dark text on white buttons
       },
       fontFamily: {
-        'mono': ['Fira Code', 'Source Code Pro', 'monospace'],
-        'sans': ['Inter', 'IBM Plex Sans', 'system-ui', 'sans-serif'],
-        'code': ['JetBrains Mono', 'monospace'],
+        'sans': ['OpenAI Sans', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        'mono': ['Söhne Mono', 'Monaco', 'Consolas', 'Courier New', 'monospace'],
       },
       animation: {
         'gradient': 'gradient 15s ease infinite',
