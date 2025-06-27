@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { replicateClient } from '../utils/replicateClient';
+import { imageClient } from '../utils/imageClient';
 
 export function ImageGenerator() {
   const [prompt, setPrompt] = useState('');
@@ -16,7 +16,7 @@ export function ImageGenerator() {
     
     setIsGenerating(true);
     try {
-      const result = await replicateClient.generateImage(prompt, width, height, {
+      const result = await imageClient.generateImage(prompt, width, height, {
         negative_prompt: negativePrompt,
         samples: samples,
         safety_checker: false, // Keep uncensored

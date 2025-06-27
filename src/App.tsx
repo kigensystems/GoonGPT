@@ -1,33 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { useChat } from './hooks/useChat'
-import { ChatInterface } from './components/ChatInterface'
 import { ImageGenerator } from './components/ImageGenerator'
-import { DocumentAnalyzer } from './components/DocumentAnalyzer'
 
 function App() {
-  const { messages, isLoading, error, sendMessage } = useChat();
-  const [inputValue, setInputValue] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<'chat' | 'image' | 'document'>('chat');
-
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const handleSendMessage = async () => {
-    if (inputValue.trim() && !isLoading) {
-      await sendMessage(inputValue);
-      setInputValue('');
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
 
   return (
     <div className="min-h-screen bg-bg-default overflow-hidden">
@@ -89,34 +62,14 @@ function App() {
       </div>
 
       {/* Navigation */}
-      <nav className="relative z-20 flex justify-between items-center px-8 py-6">
+      <nav className="relative z-20 flex justify-center items-center px-8 py-6">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-surface border border-surface rounded-lg flex items-center justify-center transition-all duration-150 ease-in-out hover:border-accent/30 group cursor-pointer">
             <span className="text-accent font-mono font-bold text-lg drop-shadow-[0_0_4px_rgba(255,45,149,0.5)] group-hover:drop-shadow-[0_0_6px_rgba(255,45,149,0.7)] transition-all duration-150">&gt;_</span>
           </div>
           <span className="text-text-primary font-mono font-semibold text-xl hover:text-accent transition-colors duration-150 ease-in-out cursor-pointer">
-            XposedAI
+            XposedAI • Image Generator
           </span>
-        </div>
-        <div className="flex items-center space-x-6">
-          <button 
-            onClick={() => setActiveTab('chat')}
-            className={`text-sm font-mono transition-colors duration-150 ${activeTab === 'chat' ? 'text-accent' : 'text-muted hover:text-text-primary'}`}
-          >
-            CHAT
-          </button>
-          <button 
-            onClick={() => setActiveTab('image')}
-            className={`text-sm font-mono transition-colors duration-150 ${activeTab === 'image' ? 'text-accent' : 'text-muted hover:text-text-primary'}`}
-          >
-            IMAGE
-          </button>
-          <button 
-            onClick={() => setActiveTab('document')}
-            className={`text-sm font-mono transition-colors duration-150 ${activeTab === 'document' ? 'text-accent' : 'text-muted hover:text-text-primary'}`}
-          >
-            DOCUMENT
-          </button>
         </div>
       </nav>
 
@@ -125,43 +78,20 @@ function App() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="text-accent font-code text-sm mb-4 opacity-60 drop-shadow-[0_0_4px_rgba(255,45,149,0.3)]">
-            &lt;{activeTab.toUpperCase()}.MODE&gt;
+            &lt;IMAGE.GENERATION&gt;
           </div>
           <h1 className="text-4xl md:text-6xl font-mono font-bold mb-4 leading-tight">
             <span className="text-text-primary">UNCENSORED</span>
             <span className="text-transparent bg-gradient-to-r from-accent via-pink-300 to-accent bg-clip-text animate-gradient bg-[length:200%_auto] drop-shadow-[0_0_4px_rgba(255,45,149,0.3)]"> AI</span>
           </h1>
           <p className="text-lg text-muted max-w-2xl mx-auto font-sans">
-            {activeTab === 'chat' && 'Experience AI without limits. Ask anything, explore everything.'}
-            {activeTab === 'image' && 'Generate any image you can imagine. No restrictions, no censorship.'}
-            {activeTab === 'document' && 'Analyze documents with uncensored AI intelligence.'}
+            Generate any image you can imagine. No restrictions, no censorship.
           </p>
         </div>
 
-        {/* Dynamic Content Based on Active Tab */}
+        {/* Image Generator */}
         <div className="w-full max-w-4xl flex-1 flex flex-col">
-          {activeTab === 'chat' && (
-            <ChatInterface
-              messages={messages}
-              inputValue={inputValue}
-              setInputValue={setInputValue}
-              isLoading={isLoading}
-              onSendMessage={handleSendMessage}
-              onKeyPress={handleKeyPress}
-              messagesEndRef={messagesEndRef}
-            />
-          )}
-
-          {activeTab === 'image' && <ImageGenerator />}
-          
-          {activeTab === 'document' && <DocumentAnalyzer />}
-
-          {/* Error Display */}
-          {error && activeTab === 'chat' && (
-            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-              <p className="text-red-400 font-mono text-sm">ERROR: {error}</p>
-            </div>
-          )}
+          <ImageGenerator />
         </div>
       </main>
     </div>
