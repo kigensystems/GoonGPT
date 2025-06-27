@@ -55,8 +55,20 @@ export class ReplicateClient {
     }
   }
 
-  // Image generation using FLUX uncensored model
-  async generateImage(prompt: string, width: number = 1024, height: number = 1024): Promise<any> {
+  // Image generation using ModelsLab API
+  async generateImage(
+    prompt: string, 
+    width: number = 1024, 
+    height: number = 1024,
+    options: {
+      negative_prompt?: string;
+      samples?: number;
+      safety_checker?: boolean;
+      seed?: number;
+      enhance_prompt?: boolean;
+      enhance_style?: string;
+    } = {}
+  ): Promise<any> {
     try {
       // Always use Netlify function for consistent behavior
       const response = await fetch(`${this.baseUrl}/.netlify/functions/image`, {
@@ -64,7 +76,12 @@ export class ReplicateClient {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt, width, height }),
+        body: JSON.stringify({ 
+          prompt, 
+          width, 
+          height,
+          ...options
+        }),
       });
 
       if (!response.ok) {
@@ -74,57 +91,21 @@ export class ReplicateClient {
 
       const result = await response.json();
       
-      // If we get a prediction ID, poll for completion
-      if (result.status === 'processing' && result.predictionId) {
-        console.log('Model is cold starting, polling for completion...');
-        return await this.pollForImageCompletion(result.predictionId);
+      // ModelsLab API provides instant responses, no polling needed
+      if (result.success) {
+        return result;
+      } else if (result.status === 'processing') {
+        // Handle rare cases where processing might be required
+        throw new Error(`Image is still processing. ETA: ${result.eta || 'unknown'} seconds`);
+      } else {
+        throw new Error(result.details || 'Image generation failed');
       }
-      
-      return result;
     } catch (error) {
       console.error('Error generating image:', error);
       throw error;
     }
   }
 
-  // Poll for image completion
-  private async pollForImageCompletion(predictionId: string): Promise<any> {
-    const maxAttempts = 60; // 2 minutes max
-    let attempts = 0;
-    
-    while (attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-      attempts++;
-      
-      try {
-        const response = await fetch(`${this.baseUrl}/.netlify/functions/image-status?id=${predictionId}`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to check status');
-        }
-        
-        const result = await response.json();
-        console.log(`Polling attempt ${attempts}/${maxAttempts}, status: ${result.status}`);
-        
-        if (result.status === 'succeeded' && result.output) {
-          return {
-            success: true,
-            imageUrl: result.output[0],
-            prompt: prompt
-          };
-        } else if (result.status === 'failed') {
-          throw new Error(result.error || 'Image generation failed');
-        }
-        
-        // Continue polling if still processing
-      } catch (error) {
-        console.error('Polling error:', error);
-        // Continue polling on error
-      }
-    }
-    
-    throw new Error('Image generation timed out after 2 minutes');
-  }
 
   // Document analysis using Netlify function (placeholder for future implementation)
   async analyzeDocument(_file: File): Promise<any> {

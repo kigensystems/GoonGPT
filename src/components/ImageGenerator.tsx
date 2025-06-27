@@ -3,6 +3,11 @@ import { replicateClient } from '../utils/replicateClient';
 
 export function ImageGenerator() {
   const [prompt, setPrompt] = useState('');
+  const [negativePrompt, setNegativePrompt] = useState('');
+  const [width, setWidth] = useState(512);
+  const [height, setHeight] = useState(512);
+  const [samples, setSamples] = useState(1);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
 
@@ -11,22 +16,20 @@ export function ImageGenerator() {
     
     setIsGenerating(true);
     try {
-      const result = await replicateClient.generateImage(prompt, 512, 512);
+      const result = await replicateClient.generateImage(prompt, width, height, {
+        negative_prompt: negativePrompt,
+        samples: samples,
+        safety_checker: false, // Keep uncensored
+        enhance_prompt: true
+      });
       console.log('Image generation result:', result);
       
       if (result.success && result.imageUrl) {
-        const imageUrl = result.imageUrl;
-        console.log('Image URL received:', imageUrl.substring(0, 50) + '...');
-        console.log('Full result from Replicate:', result);
+        const imageUrls = result.images || [result.imageUrl];
+        console.log('Image URLs received:', imageUrls.length, 'images');
         
-        // Debug: Try to create an image element to test if it loads
-        const testImg = new Image();
-        testImg.onload = () => console.log('✅ Image loaded successfully, dimensions:', testImg.width, 'x', testImg.height);
-        testImg.onerror = (e) => console.error('❌ Image failed to load:', e);
-        testImg.src = imageUrl;
-        
-        // Add the generated image to our collection
-        setGeneratedImages([...generatedImages, imageUrl]);
+        // Add all generated images to our collection
+        setGeneratedImages([...generatedImages, ...imageUrls]);
         setPrompt('');
       } else {
         console.error('No image URL in response:', result);
@@ -97,23 +100,94 @@ export function ImageGenerator() {
 
         {/* Input */}
         <div className="p-4 border-t border-surface">
-          <div className="flex space-x-3">
-            <div className="flex-1 relative">
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Describe the image you want to create... (no restrictions)"
-                className="w-full bg-bg-default border border-accent/30 rounded-lg px-4 py-3 text-text-primary placeholder-muted font-sans focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/30 transition-all duration-150 resize-none h-20"
-                disabled={isGenerating}
-              />
+          <div className="space-y-4">
+            <div className="flex space-x-3">
+              <div className="flex-1 relative">
+                <textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder="Describe the image you want to create... (no restrictions)"
+                  className="w-full bg-bg-default border border-accent/30 rounded-lg px-4 py-3 text-text-primary placeholder-muted font-sans focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/30 transition-all duration-150 resize-none h-20"
+                  disabled={isGenerating}
+                />
+              </div>
+              <button
+                onClick={handleGenerate}
+                disabled={isGenerating || !prompt.trim()}
+                className="px-6 py-3 bg-accent text-bg-default font-mono font-semibold rounded-lg hover:bg-accent/90 transition-all duration-150 ease-in-out transform hover:-translate-y-0.5 hover:drop-shadow-[0_0_8px_rgba(255,45,149,0.5)] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {isGenerating ? 'CREATING...' : '> GENERATE'}
+              </button>
             </div>
-            <button
-              onClick={handleGenerate}
-              disabled={isGenerating || !prompt.trim()}
-              className="px-6 py-3 bg-accent text-bg-default font-mono font-semibold rounded-lg hover:bg-accent/90 transition-all duration-150 ease-in-out transform hover:-translate-y-0.5 hover:drop-shadow-[0_0_8px_rgba(255,45,149,0.5)] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            >
-              {isGenerating ? 'CREATING...' : '> GENERATE'}
-            </button>
+            
+            {/* Advanced Options Toggle */}
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="flex items-center space-x-2 text-muted hover:text-text-primary transition-colors duration-150 font-mono text-sm"
+              >
+                <span>{showAdvanced ? '▼' : '▶'}</span>
+                <span>ADVANCED OPTIONS</span>
+              </button>
+              <div className="text-accent font-mono text-xs">
+                ModelsLab • ~3s generation
+              </div>
+            </div>
+            
+            {/* Advanced Options Panel */}
+            {showAdvanced && (
+              <div className="space-y-4 p-4 bg-bg-default/50 rounded-lg border border-accent/20">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-mono text-muted mb-2">Dimensions</label>
+                    <div className="flex space-x-2">
+                      <select
+                        value={`${width}x${height}`}
+                        onChange={(e) => {
+                          const [w, h] = e.target.value.split('x').map(Number);
+                          setWidth(w);
+                          setHeight(h);
+                        }}
+                        className="flex-1 bg-bg-default border border-accent/30 rounded px-3 py-2 text-text-primary font-mono text-sm focus:outline-none focus:border-accent/50"
+                        disabled={isGenerating}
+                      >
+                        <option value="512x512">512×512</option>
+                        <option value="768x768">768×768</option>
+                        <option value="1024x1024">1024×1024</option>
+                        <option value="1024x768">1024×768</option>
+                        <option value="768x1024">768×1024</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-mono text-muted mb-2">Images</label>
+                    <select
+                      value={samples}
+                      onChange={(e) => setSamples(Number(e.target.value))}
+                      className="w-full bg-bg-default border border-accent/30 rounded px-3 py-2 text-text-primary font-mono text-sm focus:outline-none focus:border-accent/50"
+                      disabled={isGenerating}
+                    >
+                      <option value={1}>1 image</option>
+                      <option value={2}>2 images</option>
+                      <option value={3}>3 images</option>
+                      <option value={4}>4 images</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-mono text-muted mb-2">Negative Prompt</label>
+                  <textarea
+                    value={negativePrompt}
+                    onChange={(e) => setNegativePrompt(e.target.value)}
+                    placeholder="What to avoid in the image... (e.g., blurry, low quality, distorted)"
+                    className="w-full bg-bg-default border border-accent/30 rounded-lg px-4 py-2 text-text-primary placeholder-muted font-sans focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/30 transition-all duration-150 resize-none h-16"
+                    disabled={isGenerating}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
