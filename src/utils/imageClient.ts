@@ -1,4 +1,4 @@
-// ModelsLab API Client for XposedAI
+// ModelsLab API Client for GoonGPT
 // All API calls go through Netlify Functions for security and CORS handling
 
 interface ImageGenerationResponse {
