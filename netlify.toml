@@ -23,6 +23,7 @@
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
+    Content-Security-Policy = "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https: blob:; connect-src 'self' https: wss:; frame-src https://phantom.app https://*.phantom.app; child-src https://phantom.app https://*.phantom.app;"
 
 [[redirects]]
   from = "/vite.svg"

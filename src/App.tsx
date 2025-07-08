@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import { imageClient } from './utils/imageClient'
 import { chatClient } from './utils/chatClient'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { PhantomWalletConnect } from './components/PhantomWalletConnect'
+import { UserRegistration } from './components/UserRegistration'
+import { UserProfile } from './components/UserProfile'
+import { FirefoxWarning } from './components/FirefoxWarning'
 
 interface Message {
   id: string
@@ -12,11 +17,15 @@ interface Message {
 
 type Mode = 'chat' | 'image'
 
-function App() {
+function AppContent() {
+  const { user, isAuthenticated, logout } = useAuth();
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [mode, setMode] = useState<Mode>('chat')
+  const [showRegistration, setShowRegistration] = useState(false)
+  const [registrationWallet, setRegistrationWallet] = useState('')
+  const [showProfile, setShowProfile] = useState(false)
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return
@@ -108,19 +117,64 @@ function App() {
         </div>
         
         <div className="flex items-center gap-3">
-          <button className="px-4 py-2 text-sm bg-button-primary text-button-text rounded-lg hover:opacity-90 transition-opacity font-medium">
-            Log in
-          </button>
-          <button className="px-4 py-2 text-sm bg-button-primary text-button-text rounded-lg hover:opacity-90 transition-opacity font-medium">
-            Sign up for free
-          </button>
-          <button className="p-2 hover:bg-surface rounded-lg transition-colors">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-            </svg>
-          </button>
+          {isAuthenticated && user ? (
+            <>
+              <button
+                onClick={() => setShowProfile(true)}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-surface rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                {user.profile_picture ? (
+                  <img
+                    src={user.profile_picture}
+                    alt={user.username}
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                    {user.username.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span className="text-white">{user.username}</span>
+              </button>
+              <button
+                onClick={logout}
+                className="px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                title="Logout"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <PhantomWalletConnect
+              onNeedRegistration={(wallet) => {
+                setRegistrationWallet(wallet);
+                setShowRegistration(true);
+              }}
+            />
+          )}
         </div>
       </header>
+
+      {/* Registration Modal */}
+      {showRegistration && (
+        <UserRegistration
+          walletAddress={registrationWallet}
+          onCancel={() => {
+            setShowRegistration(false);
+            setRegistrationWallet('');
+          }}
+        />
+      )}
+
+      {/* Profile Modal */}
+      {showProfile && (
+        <UserProfile
+          onClose={() => setShowProfile(false)}
+        />
+      )}
+
+      {/* Firefox Warning */}
+      <FirefoxWarning />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
@@ -365,6 +419,14 @@ function App() {
       </main>
     </div>
   )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
 }
 
 export default App
