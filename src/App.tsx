@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { PhantomWalletConnect } from './components/PhantomWalletConnect'
 import { UserRegistration } from './components/UserRegistration'
 import { ProfilePage } from './components/ProfilePage'
+import { PricingPage } from './components/PricingPage'
 import { FirefoxWarning } from './components/FirefoxWarning'
 
 interface Message {
@@ -25,7 +26,7 @@ function AppContent() {
   const [mode, setMode] = useState<Mode>('chat')
   const [showRegistration, setShowRegistration] = useState(false)
   const [registrationWallet, setRegistrationWallet] = useState('')
-  const [currentView, setCurrentView] = useState<'chat' | 'profile'>('chat')
+  const [currentView, setCurrentView] = useState<'chat' | 'profile' | 'pricing' | 'earn'>('chat')
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return
@@ -127,6 +128,42 @@ function AppContent() {
         </div>
         
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setCurrentView('pricing')}
+            className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
+          >
+            Pricing
+          </button>
+          <button
+            onClick={() => setCurrentView('earn')}
+            className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
+          >
+            Earn Tokens
+          </button>
+          <a
+            href="https://x.com/Goon_GPT"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center w-10 h-10 text-text-primary hover:text-accent transition-colors"
+            title="Follow us on X"
+          >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+          </a>
+          <a
+            href="https://dexscreener.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center w-10 h-10 hover:opacity-80 transition-opacity"
+            title="View on DexScreener"
+          >
+            <img 
+              src="/dex-screener-seeklogo.svg" 
+              alt="DexScreener" 
+              className="w-5 h-5"
+            />
+          </a>
           {isAuthenticated && user ? (
             <>
               <button
@@ -181,7 +218,121 @@ function AppContent() {
       {currentView === 'profile' && (
         <ProfilePage
           onBack={() => setCurrentView('chat')}
+          onNavigate={(view) => setCurrentView(view)}
         />
+      )}
+
+      {/* Pricing Page */}
+      {currentView === 'pricing' && (
+        <PricingPage
+          onBack={() => setCurrentView('chat')}
+          onNavigate={(view) => setCurrentView(view)}
+          onNeedRegistration={(wallet) => {
+            setRegistrationWallet(wallet);
+            setShowRegistration(true);
+          }}
+        />
+      )}
+
+      {/* Earn Tokens Page - Placeholder */}
+      {currentView === 'earn' && (
+        <div className="flex flex-col h-screen bg-bg-main text-text-primary">
+          <header className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setCurrentView('chat')}
+                className="hover:opacity-80 transition-opacity"
+              >
+                <img 
+                  src="/GoonGPT.svg" 
+                  alt="GoonGPT Logo" 
+                  className="h-12 w-auto"
+                />
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setCurrentView('pricing')}
+                className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
+              >
+                Pricing
+              </button>
+              <button
+                onClick={() => setCurrentView('earn')}
+                className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
+              >
+                Earn Tokens
+              </button>
+              <a
+                href="https://x.com/Goon_GPT"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 text-text-primary hover:text-accent transition-colors"
+                title="Follow us on X"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </a>
+              <a
+                href="https://dexscreener.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 hover:opacity-80 transition-opacity"
+                title="View on DexScreener"
+              >
+                <img 
+                  src="/dex-screener-seeklogo.svg" 
+                  alt="DexScreener" 
+                  className="w-5 h-5"
+                />
+              </a>
+              {isAuthenticated && user ? (
+                <>
+                  <button
+                    onClick={() => setCurrentView('profile')}
+                    className="flex items-center gap-2 px-3 py-2 text-sm bg-surface rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    {user.profile_picture ? (
+                      <img
+                        src={user.profile_picture}
+                        alt={user.username}
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                        {user.username.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-white">{user.username}</span>
+                  </button>
+                  <button
+                    onClick={logout}
+                    className="px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    title="Logout"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <PhantomWalletConnect
+                  onNeedRegistration={(wallet) => {
+                    setRegistrationWallet(wallet);
+                    setShowRegistration(true);
+                  }}
+                />
+              )}
+            </div>
+          </header>
+          
+          <main className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-3xl font-bold text-text-primary mb-4">Earn Tokens</h1>
+              <p className="text-text-secondary">Coming Soon...</p>
+            </div>
+          </main>
+        </div>
       )}
 
       {/* Firefox Warning */}
