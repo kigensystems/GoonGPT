@@ -1,0 +1,275 @@
+import React, { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+
+interface ProfilePageProps {
+  onBack: () => void;
+}
+
+export function ProfilePage({ onBack }: ProfilePageProps) {
+  const { user, session, updateUser } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [username, setUsername] = useState(user?.username || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [profilePicture, setProfilePicture] = useState(user?.profile_picture || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!user || !session) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const updates: any = {};
+      if (username !== user.username) updates.username = username;
+      if (email !== user.email) updates.email = email || null;
+      if (profilePicture !== user.profile_picture) updates.profile_picture = profilePicture || null;
+
+      if (Object.keys(updates).length === 0) {
+        setIsEditing(false);
+        return;
+      }
+
+      const response = await fetch('/.netlify/functions/update-profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.token}`
+        },
+        body: JSON.stringify(updates)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Update failed');
+      }
+
+      updateUser(data.user);
+      setIsEditing(false);
+    } catch (err) {
+      console.error('Update error:', err);
+      setError(err instanceof Error ? err.message : 'Update failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePicture(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-screen bg-bg-main text-text-primary">
+      {/* Header */}
+      <header className="flex items-center justify-between px-4 py-3 border-b border-border">
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={onBack}
+            className="hover:opacity-80 transition-opacity"
+          >
+            <img 
+              src="/GoonGPT.svg" 
+              alt="GoonGPT Logo" 
+              className="h-12 w-auto"
+            />
+          </button>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-semibold text-white">Profile Settings</h1>
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 px-3 py-2 text-sm bg-surface rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Chat
+          </button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-2xl mx-auto py-8 px-4">
+          <div className="bg-surface rounded-lg p-6">
+            {!isEditing ? (
+              <div className="space-y-6">
+                {/* Profile Header */}
+                <div className="flex items-center space-x-6">
+                  {user.profile_picture ? (
+                    <img
+                      src={user.profile_picture}
+                      alt={user.username}
+                      className="w-24 h-24 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full bg-accent flex items-center justify-center text-white text-3xl font-bold">
+                      {user.username.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <h2 className="text-2xl font-bold text-text-primary">{user.username}</h2>
+                    <p className="text-text-secondary text-sm font-mono mt-1">
+                      {user.wallet_address.slice(0, 12)}...{user.wallet_address.slice(-12)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Profile Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-text-secondary mb-1">
+                        Username
+                      </label>
+                      <div className="px-3 py-2 bg-bg-main rounded-lg text-text-primary">
+                        {user.username}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-text-secondary mb-1">
+                        Email
+                      </label>
+                      <div className="px-3 py-2 bg-bg-main rounded-lg text-text-primary">
+                        {user.email || 'Not provided'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-text-secondary mb-1">
+                        Wallet Address
+                      </label>
+                      <div className="px-3 py-2 bg-bg-main rounded-lg text-text-primary font-mono text-sm break-all">
+                        {user.wallet_address}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-text-secondary mb-1">
+                        Member Since
+                      </label>
+                      <div className="px-3 py-2 bg-bg-main rounded-lg text-text-primary">
+                        {new Date(user.created_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors font-medium"
+                  >
+                    Edit Profile
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-semibold text-text-primary">Edit Profile</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="edit-username" className="block text-sm font-medium text-text-secondary mb-1">
+                        Username
+                      </label>
+                      <input
+                        type="text"
+                        id="edit-username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="w-full px-3 py-2 bg-bg-main text-text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
+                        required
+                        pattern="[a-zA-Z0-9_]{3,20}"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="edit-email" className="block text-sm font-medium text-text-secondary mb-1">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        id="edit-email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full px-3 py-2 bg-bg-main text-text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="edit-profilePicture" className="block text-sm font-medium text-text-secondary mb-1">
+                      Profile Picture
+                    </label>
+                    <div className="flex items-center space-x-4">
+                      {profilePicture && (
+                        <img
+                          src={profilePicture}
+                          alt="Profile preview"
+                          className="w-16 h-16 rounded-full object-cover"
+                        />
+                      )}
+                      <input
+                        type="file"
+                        id="edit-profilePicture"
+                        accept="image/*"
+                        onChange={handleProfilePictureChange}
+                        className="flex-1 text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-white hover:file:bg-accent/90"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {error && (
+                  <p className="text-red-500 text-sm">{error}</p>
+                )}
+
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent/90 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors font-medium"
+                  >
+                    {isSubmitting ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditing(false);
+                      setUsername(user.username);
+                      setEmail(user.email || '');
+                      setProfilePicture(user.profile_picture || '');
+                      setError(null);
+                    }}
+                    disabled={isSubmitting}
+                    className="px-6 py-3 bg-surface border border-border text-text-primary rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

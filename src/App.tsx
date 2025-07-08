@@ -4,7 +4,7 @@ import { chatClient } from './utils/chatClient'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { PhantomWalletConnect } from './components/PhantomWalletConnect'
 import { UserRegistration } from './components/UserRegistration'
-import { UserProfile } from './components/UserProfile'
+import { ProfilePage } from './components/ProfilePage'
 import { FirefoxWarning } from './components/FirefoxWarning'
 
 interface Message {
@@ -25,7 +25,7 @@ function AppContent() {
   const [mode, setMode] = useState<Mode>('chat')
   const [showRegistration, setShowRegistration] = useState(false)
   const [registrationWallet, setRegistrationWallet] = useState('')
-  const [showProfile, setShowProfile] = useState(false)
+  const [currentView, setCurrentView] = useState<'chat' | 'profile'>('chat')
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return
@@ -106,21 +106,31 @@ function AppContent() {
 
   return (
     <div className="flex flex-col h-screen bg-bg-main text-text-primary">
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-border">
+      {/* Header - Only show when not on profile page */}
+      {currentView === 'chat' && (
+        <header className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <img 
-            src="/GoonGPT.svg" 
-            alt="GoonGPT Logo" 
-            className="h-12 w-auto"
-          />
+          <button 
+            onClick={() => {
+              setCurrentView('chat');
+              setMessages([]);
+              setInput('');
+            }}
+            className="hover:opacity-80 transition-opacity"
+          >
+            <img 
+              src="/GoonGPT.svg" 
+              alt="GoonGPT Logo" 
+              className="h-12 w-auto"
+            />
+          </button>
         </div>
         
         <div className="flex items-center gap-3">
           {isAuthenticated && user ? (
             <>
               <button
-                onClick={() => setShowProfile(true)}
+                onClick={() => setCurrentView('profile')}
                 className="flex items-center gap-2 px-3 py-2 text-sm bg-surface rounded-lg hover:bg-gray-700 transition-colors"
               >
                 {user.profile_picture ? (
@@ -154,6 +164,7 @@ function AppContent() {
           )}
         </div>
       </header>
+      )}
 
       {/* Registration Modal */}
       {showRegistration && (
@@ -166,18 +177,19 @@ function AppContent() {
         />
       )}
 
-      {/* Profile Modal */}
-      {showProfile && (
-        <UserProfile
-          onClose={() => setShowProfile(false)}
+      {/* Profile Page */}
+      {currentView === 'profile' && (
+        <ProfilePage
+          onBack={() => setCurrentView('chat')}
         />
       )}
 
       {/* Firefox Warning */}
       <FirefoxWarning />
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col">
+      {/* Main Content - Only show when not on profile page */}
+      {currentView === 'chat' && (
+        <main className="flex-1 flex flex-col">
         {messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center px-4">
             {/* Title and Subtitle */}
@@ -417,6 +429,7 @@ function AppContent() {
           By messaging GoonGPT, you agree to our <a href="#" className="underline hover:text-text-secondary">Terms</a> and have read our <a href="#" className="underline hover:text-text-secondary">Privacy Policy</a>. See <a href="#" className="underline hover:text-text-secondary">Cookie Preferences</a>.
         </div>
       </main>
+      )}
     </div>
   )
 }

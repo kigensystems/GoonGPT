@@ -62,16 +62,28 @@ export function UserRegistration({ walletAddress, onCancel }: UserRegistrationPr
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
-        <h2 className="text-2xl font-bold text-white mb-4">Complete Your Profile</h2>
-        <p className="text-gray-400 mb-6">
-          Connected wallet: <span className="text-purple-400 font-mono text-sm">{walletAddress.slice(0, 8)}...{walletAddress.slice(-8)}</span>
-        </p>
+    <div className="fixed inset-0 bg-bg-main bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-surface border border-border rounded-xl p-8 max-w-lg w-full shadow-2xl">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-text-primary">Complete Your Profile</h2>
+          <button
+            onClick={onCancel}
+            className="text-text-muted hover:text-text-primary transition-colors p-1"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="bg-bg-main rounded-lg p-4 mb-6">
+          <p className="text-text-secondary text-sm">
+            Connected wallet: <span className="text-accent font-mono">{walletAddress.slice(0, 12)}...{walletAddress.slice(-12)}</span>
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-1">
+            <label htmlFor="username" className="block text-sm font-medium text-text-secondary mb-2">
               Username *
             </label>
             <input
@@ -79,7 +91,7 @@ export function UserRegistration({ walletAddress, onCancel }: UserRegistrationPr
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-3 bg-bg-main text-text-primary rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-colors"
               placeholder="Enter username (3-20 characters)"
               required
               pattern="[a-zA-Z0-9_]{3,20}"
@@ -88,7 +100,7 @@ export function UserRegistration({ walletAddress, onCancel }: UserRegistrationPr
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-text-secondary mb-2">
               Email (optional)
             </label>
             <input
@@ -96,13 +108,13 @@ export function UserRegistration({ walletAddress, onCancel }: UserRegistrationPr
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-3 bg-bg-main text-text-primary rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-colors"
               placeholder="your@email.com"
             />
           </div>
 
           <div>
-            <label htmlFor="profilePicture" className="block text-sm font-medium text-gray-300 mb-1">
+            <label htmlFor="profilePicture" className="block text-sm font-medium text-text-secondary mb-2">
               Profile Picture (optional)
             </label>
             <div className="flex items-center space-x-4">
@@ -110,7 +122,7 @@ export function UserRegistration({ walletAddress, onCancel }: UserRegistrationPr
                 <img
                   src={profilePicture}
                   alt="Profile preview"
-                  className="w-16 h-16 rounded-full object-cover"
+                  className="w-16 h-16 rounded-full object-cover border-2 border-border"
                 />
               )}
               <input
@@ -118,20 +130,22 @@ export function UserRegistration({ walletAddress, onCancel }: UserRegistrationPr
                 id="profilePicture"
                 accept="image/*"
                 onChange={handleProfilePictureChange}
-                className="flex-1 text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700"
+                className="flex-1 text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-white hover:file:bg-accent/90 file:transition-colors"
               />
             </div>
           </div>
 
           {error && (
-            <p className="text-red-500 text-sm">{error}</p>
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
           )}
 
-          <div className="flex space-x-3 pt-4">
+          <div className="flex space-x-3 pt-6">
             <button
               type="submit"
               disabled={isSubmitting || !username.trim()}
-              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent/90 disabled:bg-text-muted disabled:cursor-not-allowed transition-colors font-medium"
             >
               {isSubmitting ? 'Creating Profile...' : 'Create Profile'}
             </button>
@@ -139,7 +153,7 @@ export function UserRegistration({ walletAddress, onCancel }: UserRegistrationPr
               type="button"
               onClick={onCancel}
               disabled={isSubmitting}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              className="px-6 py-3 bg-surface border border-border text-text-primary rounded-lg hover:bg-bg-main transition-colors font-medium"
             >
               Cancel
             </button>
