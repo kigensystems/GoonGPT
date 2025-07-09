@@ -50,12 +50,68 @@ export function VideoInput({
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        onImageUpload(reader.result as string)
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File size too large. Please select an image smaller than 10MB.')
+        return
       }
-      reader.readAsDataURL(file)
+
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+      if (!allowedTypes.includes(file.type)) {
+        alert('Invalid file type. Please select a JPEG, PNG, or WebP image.')
+        return
+      }
+
+      // Compress image before uploading
+      compressImage(file, 0.8, 1024, 1024)
+        .then(compressedDataUrl => {
+          onImageUpload(compressedDataUrl)
+        })
+        .catch(error => {
+          console.error('Error compressing image:', error)
+          // Fallback to original file if compression fails
+          const reader = new FileReader()
+          reader.onloadend = () => {
+            onImageUpload(reader.result as string)
+          }
+          reader.readAsDataURL(file)
+        })
     }
+  }
+
+  // Image compression utility
+  const compressImage = (file: File, quality: number = 0.8, maxWidth: number = 1024, maxHeight: number = 1024): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      const img = new Image()
+      
+      img.onload = () => {
+        // Calculate new dimensions
+        let { width, height } = img
+        
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height)
+          width *= ratio
+          height *= ratio
+        }
+        
+        // Set canvas size
+        canvas.width = width
+        canvas.height = height
+        
+        // Draw and compress
+        ctx?.drawImage(img, 0, 0, width, height)
+        
+        // Convert to base64 with compression
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality)
+        resolve(compressedDataUrl)
+      }
+      
+      img.onerror = reject
+      img.src = URL.createObjectURL(file)
+    })
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -107,7 +163,7 @@ export function VideoInput({
           <div className="pl-4">
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/jpg,image/png,image/webp"
               onChange={handleImageUpload}
               className="hidden"
               id="video-image-upload"

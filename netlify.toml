@@ -16,6 +16,8 @@
 [functions."*"]
   # 26 seconds timeout for Pro plan (maximum allowed)
   timeout = 26
+  # Increase body size limit to 50MB (maximum allowed)
+  body_size_limit = "50MB"
 
 [[headers]]
   for = "/*"
