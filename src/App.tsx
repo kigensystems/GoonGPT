@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { imageClient } from './utils/imageClient'
 import { chatClient } from './utils/chatClient'
 import { deepfakeClient } from './utils/deepfakeClient'
@@ -30,6 +30,11 @@ function AppContent() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  
+  // Debug: Log messages state changes
+  useEffect(() => {
+    console.log('App messages state changed:', messages.length, messages)
+  }, [messages])
   const [mode, setMode] = useState<Mode>('chat')
   const [showRegistration, setShowRegistration] = useState(false)
   const [registrationWallet, setRegistrationWallet] = useState('')
@@ -503,9 +508,9 @@ function AppContent() {
       {currentView === 'chat' && (
         <main className="flex-1 flex flex-col">
         {mode === 'video' && messages.length > 0 ? (
-          <VideoContainer isActive={true} />
+          <VideoContainer isActive={true} initialMessages={messages} onMessagesChange={setMessages} />
         ) : mode === 'chat' && messages.length > 0 ? (
-          <ChatContainer isActive={true} />
+          <ChatContainer isActive={true} initialMessages={messages} onMessagesChange={setMessages} />
         ) : messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center px-4">
             {/* Title and Subtitle */}

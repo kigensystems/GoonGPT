@@ -16,7 +16,13 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
-    open: true
+    open: true,
+    proxy: {
+      '/.netlify/functions': {
+        target: 'http://localhost:8888',
+        changeOrigin: true,
+      }
+    }
   },
   define: {
     global: 'globalThis',

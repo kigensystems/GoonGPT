@@ -52,10 +52,16 @@ export class VideoClient {
       const result = await response.json();
       console.log('Video client received:', result);
       
-      // Check if video is processing and needs polling
-      if (result.status === 'processing' && result.fetchUrl) {
-        // Poll for video completion
-        return await this.pollForVideo(result.fetchUrl, result.eta || 60);
+      // Check if video is processing and needs status checking
+      if (result.status === 'processing') {
+        // Use webhook-based status checking if track_id is available
+        if (result.track_id) {
+          return await this.checkVideoStatus(result.track_id, result.eta || 60);
+        }
+        // Fallback to polling if no track_id (for backward compatibility)
+        else if (result.fetchUrl) {
+          return await this.pollForVideo(result.fetchUrl, result.eta || 60);
+        }
       }
       
       // Return completed video
@@ -70,7 +76,77 @@ export class VideoClient {
     }
   }
 
-  // Poll for video completion
+  // Check video status using webhook-based tracking
+  private async checkVideoStatus(trackId: string, initialEta: number): Promise<any> {
+    const maxAttempts = 60; // Max 10 minutes of checking
+    const minInterval = 2000; // Min 2 seconds
+    const maxInterval = 15000; // Max 15 seconds
+    let currentInterval = minInterval;
+    
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        console.log(`Checking video status (attempt ${attempt + 1}/${maxAttempts})...`);
+        
+        const response = await fetch(`${this.baseUrl}/.netlify/functions/video-status?track_id=${trackId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          // If status not found, it might be too early or expired
+          if (response.status === 404) {
+            console.warn('Status not found, might be too early or expired');
+          } else {
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+          }
+        } else {
+          const result = await response.json();
+          console.log('Status check result:', result);
+
+          // Video completed successfully
+          if (result.status === 'success' && result.videoUrl) {
+            return {
+              success: true,
+              videoUrl: result.videoUrl,
+              prompt: '',
+              meta: { webhook_received: result.webhook_received }
+            };
+          }
+
+          // Video failed
+          if (result.status === 'error') {
+            throw new Error(result.error || 'Video generation failed');
+          }
+
+          // If we have a fetchUrl as fallback and webhook hasn't been received after 30 seconds
+          if (result.fetchUrl && !result.webhook_received && result.elapsed_seconds > 30) {
+            console.log('Webhook not received after 30 seconds, falling back to polling');
+            return await this.pollForVideo(result.fetchUrl, initialEta);
+          }
+        }
+
+        // Exponential backoff with jitter
+        currentInterval = Math.min(currentInterval * 1.5 + Math.random() * 1000, maxInterval);
+        
+        // Wait before next attempt
+        if (attempt < maxAttempts - 1) {
+          await new Promise(resolve => setTimeout(resolve, currentInterval));
+        }
+      } catch (error) {
+        console.error('Error checking video status:', error);
+        if (attempt === maxAttempts - 1) {
+          throw error;
+        }
+      }
+    }
+
+    throw new Error('Video generation timed out after 10 minutes');
+  }
+
+  // Poll for video completion (fallback method)
   private async pollForVideo(fetchUrl: string, initialEta: number): Promise<any> {
     const maxAttempts = 30; // Max 5 minutes of polling
     const pollInterval = 10000; // Poll every 10 seconds

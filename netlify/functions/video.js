@@ -45,6 +45,13 @@ export const handler = async (event, context) => {
       };
     }
 
+    // Generate unique track ID for this request
+    const track_id = `video_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    
+    // Construct webhook URL (will be the deployed function URL)
+    const siteUrl = process.env.URL || process.env.DEPLOY_URL || 'http://localhost:8888';
+    const webhookUrl = `${siteUrl}/.netlify/functions/webhooks/video-gen`;
+
     // Extract base64 data from data URL if present
     let processedImage = init_image;
     if (init_image.startsWith('data:')) {
@@ -68,7 +75,9 @@ export const handler = async (event, context) => {
         output_type: output_type || 'mp4',
         negative_prompt: negative_prompt || 'blurry, low quality, distorted, extra limbs, missing limbs, broken fingers, deformed, glitch, artifacts, unrealistic, low resolution, bad anatomy, duplicate, cropped, watermark, text, logo, jpeg artifacts, noisy, oversaturated, underexposed, overexposed, flicker, unstable motion, motion blur, stretched, mutated, out of frame, bad proportions',
         num_frames: num_frames || '81',
-        fps: fps || '16'
+        fps: fps || '16',
+        webhook: webhookUrl,
+        track_id: track_id
       }),
     });
 
@@ -89,13 +98,32 @@ export const handler = async (event, context) => {
 
     // Check if video is processing
     if (data.status === 'processing' && data.fetch_result) {
-      // Return processing status with fetch URL
+      // Store initial status in Netlify Blobs
+      const { getStore } = await import('@netlify/blobs');
+      const store = getStore('video-generation-status');
+      
+      await store.setJSON(track_id, {
+        id: data.id,
+        status: 'processing',
+        track_id,
+        eta: data.eta,
+        fetchUrl: data.fetch_result,
+        created_at: new Date().toISOString(),
+        webhook_url: webhookUrl
+      }, {
+        metadata: {
+          ttl: 3600 // 1 hour TTL
+        }
+      });
+
+      // Return processing status with track_id for webhook-based tracking
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
           success: true,
           status: 'processing',
+          track_id,
           fetchUrl: data.fetch_result,
           eta: data.eta,
           id: data.id,

@@ -6,6 +6,8 @@ import { Message } from './ChatMessage'
 
 interface VideoContainerProps {
   isActive: boolean
+  initialMessages?: Message[]
+  onMessagesChange?: (messages: Message[]) => void
 }
 
 interface VideoSettings {
@@ -14,9 +16,23 @@ interface VideoSettings {
   speed: 'slow' | 'normal' | 'fast'
 }
 
-export function VideoContainer({ isActive }: VideoContainerProps) {
-  const [messages, setMessages] = useState<Message[]>([])
+export function VideoContainer({ isActive, initialMessages = [], onMessagesChange }: VideoContainerProps) {
+  const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [isLoading, setIsLoading] = useState(false)
+  
+  // Helper function to update messages both locally and in parent
+  const updateMessages = (newMessages: Message[] | ((prev: Message[]) => Message[])) => {
+    if (typeof newMessages === 'function') {
+      setMessages(prev => {
+        const updated = newMessages(prev)
+        onMessagesChange?.(updated)
+        return updated
+      })
+    } else {
+      setMessages(newMessages)
+      onMessagesChange?.(newMessages)
+    }
+  }
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [videoSettings, setVideoSettings] = useState<VideoSettings>({
     quality: 'standard',
@@ -37,7 +53,7 @@ export function VideoContainer({ isActive }: VideoContainerProps) {
       timestamp: new Date()
     }
 
-    setMessages(prev => [...prev, userMessage])
+    updateMessages(prev => [...prev, userMessage])
     setIsLoading(true)
 
     try {
@@ -59,7 +75,7 @@ export function VideoContainer({ isActive }: VideoContainerProps) {
         content: 'Your video is being generated. This may take up to 60 seconds...',
         timestamp: new Date()
       }
-      setMessages(prev => [...prev, processingMessage])
+      updateMessages(prev => [...prev, processingMessage])
       
       const result = await videoClient.generateVideo(
         uploadedImage,
@@ -84,7 +100,7 @@ export function VideoContainer({ isActive }: VideoContainerProps) {
         videoUrl: result.videoUrl,
         timestamp: new Date()
       }
-      setMessages(prev => [...prev, assistantMessage])
+      updateMessages(prev => [...prev, assistantMessage])
       
       // Clear uploaded image after successful generation
       setUploadedImage(null)
@@ -95,7 +111,7 @@ export function VideoContainer({ isActive }: VideoContainerProps) {
         content: `Sorry, there was an error generating the video: ${error instanceof Error ? error.message : 'Unknown error'}. Please upload an image and describe the video you want.`,
         timestamp: new Date()
       }
-      setMessages(prev => [...prev, errorMessage])
+      updateMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }

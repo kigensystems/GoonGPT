@@ -86,18 +86,15 @@ export function VideoInput({
 
   const durationOptions = [
     { frames: 25, seconds: 1.5 },
-    { frames: 40, seconds: 2.5 },
     { frames: 48, seconds: 3.0 },
-    { frames: 64, seconds: 4.0 },
     { frames: 81, seconds: 5.0 },
-    { frames: 96, seconds: 6.0 },
     { frames: 120, seconds: 7.5 }
   ]
 
   const qualityOptions = [
-    { key: 'quick', label: 'Quick' },
+    { key: 'quick', label: 'Fast' },
     { key: 'standard', label: 'Standard' },
-    { key: 'high', label: 'High' }
+    { key: 'high', label: 'Quality' }
   ]
 
   return (
@@ -193,7 +190,7 @@ export function VideoInput({
         </div>
 
         {/* Bottom row with video controls */}
-        <div className="flex items-center gap-2 px-4 pb-3 pt-1">
+        <div className="flex items-center gap-3 px-4 pb-3 pt-1">
           {/* Duration */}
           <div className="relative">
             <button
@@ -201,18 +198,18 @@ export function VideoInput({
                 setShowDurationDropdown(!showDurationDropdown)
                 setShowQualityDropdown(false)
               }}
-              className="flex items-center gap-1 bg-surface/80 backdrop-blur-sm rounded-lg px-2 py-1 border border-border/20 hover:bg-surface transition-colors"
+              className="flex items-center gap-2 bg-surface/80 backdrop-blur-sm rounded-lg px-3 py-2 border border-border/20 hover:bg-surface transition-colors"
             >
-              <svg className="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-xs text-text-primary font-mono">
+              <span className="text-sm text-text-primary font-medium">
                 {getDurationInSeconds()}s
               </span>
             </button>
             
             {showDurationDropdown && (
-              <div className="absolute bottom-full right-0 mb-2 w-24 bg-surface border border-border/20 rounded-lg shadow-lg py-1 z-50">
+              <div className="absolute top-full left-0 mt-2 w-20 bg-surface border border-border/20 rounded-lg shadow-lg py-1 z-50">
                 {durationOptions.map(({ frames, seconds }) => (
                   <button
                     key={frames}
@@ -220,7 +217,7 @@ export function VideoInput({
                       setVideoDuration(frames)
                       setShowDurationDropdown(false)
                     }}
-                    className={`w-full text-left px-3 py-1 text-xs hover:bg-bg-main/50 transition-colors ${
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-bg-main/50 transition-colors ${
                       videoDuration === frames ? 'text-accent' : 'text-text-primary'
                     }`}
                   >
@@ -238,15 +235,18 @@ export function VideoInput({
                 setShowQualityDropdown(!showQualityDropdown)
                 setShowDurationDropdown(false)
               }}
-              className="flex items-center gap-1 bg-surface/80 backdrop-blur-sm rounded-lg px-2 py-1 border border-border/20 hover:bg-surface transition-colors"
+              className="flex items-center gap-2 bg-surface/80 backdrop-blur-sm rounded-lg px-3 py-2 border border-border/20 hover:bg-surface transition-colors"
             >
-              <span className="text-xs text-text-primary">
-                Quality: {qualityOptions.find(opt => opt.key === videoQuality)?.label}
+              <svg className="w-5 h-5 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100-4m0 4v2m0-6V4" />
+              </svg>
+              <span className="text-sm text-text-primary font-medium">
+                {qualityOptions.find(opt => opt.key === videoQuality)?.label}
               </span>
             </button>
             
             {showQualityDropdown && (
-              <div className="absolute bottom-full right-0 mb-2 w-24 bg-surface border border-border/20 rounded-lg shadow-lg py-1 z-50">
+              <div className="absolute top-full left-0 mt-2 w-28 bg-surface border border-border/20 rounded-lg shadow-lg py-1 z-50">
                 {qualityOptions.map(({ key, label }) => (
                   <button
                     key={key}
@@ -254,7 +254,7 @@ export function VideoInput({
                       setVideoQuality(key as any)
                       setShowQualityDropdown(false)
                     }}
-                    className={`w-full text-left px-3 py-1 text-xs hover:bg-bg-main/50 transition-colors ${
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-bg-main/50 transition-colors ${
                       videoQuality === key ? 'text-accent' : 'text-text-primary'
                     }`}
                   >
