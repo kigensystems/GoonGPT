@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 
 interface VideoInputProps {
-  value: string
-  onChange: (value: string) => void
-  onSend: () => void
+  value?: string
+  onChange?: (value: string) => void
+  onSend: (prompt: string) => void
   onImageUpload: (image: string | null) => void
   uploadedImage: string | null
   videoQuality: 'quick' | 'standard' | 'high'
@@ -16,8 +16,8 @@ interface VideoInputProps {
 }
 
 export function VideoInput({
-  value,
-  onChange,
+  value: externalValue,
+  onChange: externalOnChange,
   onSend,
   onImageUpload,
   uploadedImage,
@@ -29,10 +29,15 @@ export function VideoInput({
   setVideoFormat,
   isLoading
 }: VideoInputProps) {
+  const [internalValue, setInternalValue] = useState('')
   const [showDurationDropdown, setShowDurationDropdown] = useState(false)
   const [showQualityDropdown, setShowQualityDropdown] = useState(false)
   const [showFormatDropdown, setShowFormatDropdown] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Use external value if provided, otherwise use internal state
+  const value = externalValue !== undefined ? externalValue : internalValue
+  const onChange = externalOnChange || setInternalValue
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -62,7 +67,17 @@ export function VideoInput({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      onSend()
+      handleSend()
+    }
+  }
+
+  const handleSend = () => {
+    if (!value.trim() || isLoading || !uploadedImage) return
+    onSend(value)
+    if (externalOnChange) {
+      externalOnChange('')
+    } else {
+      setInternalValue('')
     }
   }
 
@@ -298,7 +313,7 @@ export function VideoInput({
 
           {/* Send Button */}
           <button
-            onClick={onSend}
+            onClick={handleSend}
             disabled={isLoading || !value.trim() || !uploadedImage}
             className="flex items-center justify-center w-8 h-8 bg-accent disabled:bg-surface disabled:opacity-50 rounded-full hover:bg-accent/90 transition-colors"
           >

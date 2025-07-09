@@ -147,4 +147,3 @@ export function ChatContainer({ isActive }: ChatContainerProps) {
   )
 }
 
-export { ChatContainer }
