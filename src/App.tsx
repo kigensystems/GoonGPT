@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { imageClient } from './utils/imageClient'
 import { chatClient } from './utils/chatClient'
 import { videoClient } from './utils/videoClient'
+import { deepfakeClient } from './utils/deepfakeClient'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { PhantomWalletConnect } from './components/PhantomWalletConnect'
 import { UserRegistration } from './components/UserRegistration'
@@ -9,6 +10,7 @@ import { ProfilePage } from './components/ProfilePage'
 import { PricingPage } from './components/PricingPage'
 import { FirefoxWarning } from './components/FirefoxWarning'
 import { VideoInput } from './components/VideoInput'
+import { DeepFakeInput } from './components/DeepFakeInput'
 
 interface Message {
   id: string
@@ -19,7 +21,7 @@ interface Message {
   videoUrl?: string
 }
 
-type Mode = 'chat' | 'image' | 'video'
+type Mode = 'chat' | 'image' | 'video' | 'deepfake'
 
 function AppContent() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -35,6 +37,9 @@ function AppContent() {
   const [videoDuration, setVideoDuration] = useState<number>(81)
   const [videoSpeed, setVideoSpeed] = useState<'slow' | 'normal' | 'fast'>('normal')
   const [videoFormat, setVideoFormat] = useState<'mp4' | 'gif'>('mp4')
+  // DeepFake states
+  const [deepfakeBaseImage, setDeepfakeBaseImage] = useState<string | null>(null)
+  const [deepfakeFaceImage, setDeepfakeFaceImage] = useState<string | null>(null)
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -48,6 +53,12 @@ function AppContent() {
   };
 
   const sendMessage = async () => {
+    if (mode === 'deepfake') {
+      // DeepFake doesn't use text input
+      sendDeepfake();
+      return;
+    }
+    
     if (!input.trim() || isLoading) return
     if (mode === 'video' && !uploadedImage) {
       alert('Please upload an image first for video generation');
@@ -189,6 +200,67 @@ function AppContent() {
       setIsLoading(false)
     }
   }
+
+  const sendDeepfake = async () => {
+    if (!deepfakeBaseImage || !deepfakeFaceImage) {
+      alert('Please upload both images for face swap');
+      return;
+    }
+
+    if (isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: 'Swapping faces...',
+      timestamp: new Date()
+    };
+
+    setMessages([...messages, userMessage]);
+    setIsLoading(true);
+
+    try {
+      // First show processing message
+      const processingMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Processing face swap. This may take up to 30 seconds...',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, processingMessage]);
+
+      const result = await deepfakeClient.singleFaceSwap(
+        deepfakeBaseImage,
+        deepfakeFaceImage,
+        { watermark: true }
+      );
+
+      console.log('DeepFake result:', result);
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        role: 'assistant',
+        content: 'Here is your face swap result:',
+        imageUrl: result.imageUrl,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+      
+      // Clear images after successful generation
+      setDeepfakeBaseImage(null);
+      setDeepfakeFaceImage(null);
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        role: 'assistant',
+        content: `Sorry, there was an error generating the face swap: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
+    
+    setIsLoading(false);
+  };
 
   return (
     <div className="flex flex-col h-screen bg-bg-main text-text-primary">
@@ -463,12 +535,29 @@ function AppContent() {
               >
                 Video
               </button>
+              <button
+                onClick={() => setMode('deepfake')}
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${
+                  mode === 'deepfake' ? 'bg-button-primary text-button-text' : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                DeepFake
+              </button>
             </div>
             
 
             {/* Chat Input */}
             <div className="w-full max-w-3xl mb-6">
-              {mode === 'video' ? (
+              {mode === 'deepfake' ? (
+                <DeepFakeInput
+                  onSend={sendDeepfake}
+                  baseImage={deepfakeBaseImage}
+                  faceImage={deepfakeFaceImage}
+                  onBaseImageUpload={setDeepfakeBaseImage}
+                  onFaceImageUpload={setDeepfakeFaceImage}
+                  isLoading={isLoading}
+                />
+              ) : mode === 'video' ? (
                 <VideoInput
                   value={input}
                   onChange={setInput}
@@ -682,11 +771,28 @@ function AppContent() {
                 >
                   Video
                 </button>
+                <button
+                  onClick={() => setMode('deepfake')}
+                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                    mode === 'deepfake' ? 'bg-button-primary text-button-text' : 'text-text-secondary hover:text-text-primary'
+                  }`}
+                >
+                  DeepFake
+                </button>
               </div>
               
 
               
-              {mode === 'video' ? (
+              {mode === 'deepfake' ? (
+                <DeepFakeInput
+                  onSend={sendDeepfake}
+                  baseImage={deepfakeBaseImage}
+                  faceImage={deepfakeFaceImage}
+                  onBaseImageUpload={setDeepfakeBaseImage}
+                  onFaceImageUpload={setDeepfakeFaceImage}
+                  isLoading={isLoading}
+                />
+              ) : mode === 'video' ? (
                 <VideoInput
                   value={input}
                   onChange={setInput}
