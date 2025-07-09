@@ -1,6 +1,7 @@
 import React from 'react';
 import { PhantomWalletConnect } from './PhantomWalletConnect';
 import { useAuth } from '../contexts/AuthContext';
+import { UserDropdown } from './UserDropdown';
 
 interface PricingPageProps {
   onBack: () => void;
@@ -65,32 +66,11 @@ export function PricingPage({ onBack, onNavigate, onNeedRegistration }: PricingP
             />
           </a>
           {isAuthenticated && user ? (
-            <>
-              <button
-                onClick={() => onNavigate('profile')}
-                className="flex items-center gap-2 px-3 py-2 text-sm bg-surface rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                {user.profile_picture ? (
-                  <img
-                    src={user.profile_picture}
-                    alt={user.username}
-                    className="w-6 h-6 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-bold">
-                    {user.username.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span className="text-white">{user.username}</span>
-              </button>
-              <button
-                onClick={logout}
-                className="px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                title="Logout"
-              >
-                Logout
-              </button>
-            </>
+            <UserDropdown 
+              user={user} 
+              onProfile={() => onNavigate('profile')}
+              onLogout={logout}
+            />
           ) : (
             <PhantomWalletConnect
               onNeedRegistration={(wallet) => onNeedRegistration?.(wallet)}
