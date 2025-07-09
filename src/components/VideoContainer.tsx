@@ -12,7 +12,6 @@ interface VideoSettings {
   quality: 'quick' | 'standard' | 'high'
   duration: number
   speed: 'slow' | 'normal' | 'fast'
-  format: 'mp4' | 'gif'
 }
 
 export function VideoContainer({ isActive }: VideoContainerProps) {
@@ -22,8 +21,7 @@ export function VideoContainer({ isActive }: VideoContainerProps) {
   const [videoSettings, setVideoSettings] = useState<VideoSettings>({
     quality: 'standard',
     duration: 81,
-    speed: 'normal',
-    format: 'mp4'
+    speed: 'normal'
   })
 
   const handleVideoGeneration = async (prompt: string) => {
@@ -72,7 +70,7 @@ export function VideoContainer({ isActive }: VideoContainerProps) {
             : 'blurry, low quality, distorted, extra limbs, missing limbs, broken fingers, deformed, glitch, artifacts, unrealistic, low resolution, bad anatomy, duplicate, cropped, watermark, text, logo, jpeg artifacts, noisy, oversaturated, underexposed, overexposed, flicker, unstable motion, motion blur, stretched, mutated, out of frame, bad proportions',
           num_frames: adjustedDuration.toString(),
           fps: fps,
-          output_type: videoSettings.format
+          output_type: 'mp4'
         }
       )
 
@@ -204,8 +202,6 @@ export function VideoContainer({ isActive }: VideoContainerProps) {
             setVideoQuality={(quality) => updateVideoSettings({ quality })}
             videoDuration={videoSettings.duration}
             setVideoDuration={(duration) => updateVideoSettings({ duration })}
-            videoFormat={videoSettings.format}
-            setVideoFormat={(format) => updateVideoSettings({ format })}
             isLoading={isLoading}
           />
         </div>

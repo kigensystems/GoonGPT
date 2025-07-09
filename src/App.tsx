@@ -41,7 +41,6 @@ function AppContent() {
   const [videoUploadedImage, setVideoUploadedImage] = useState<string | null>(null)
   const [videoQuality, setVideoQuality] = useState<'quick' | 'standard' | 'high'>('standard')
   const [videoDuration, setVideoDuration] = useState<number>(81)
-  const [videoFormat, setVideoFormat] = useState<'mp4' | 'gif'>('mp4')
 
 
   const sendMessage = async () => {
@@ -175,7 +174,7 @@ function AppContent() {
             : 'blurry, low quality, distorted, extra limbs, missing limbs, broken fingers, deformed, glitch, artifacts, unrealistic, low resolution, bad anatomy, duplicate, cropped, watermark, text, logo, jpeg artifacts, noisy, oversaturated, underexposed, overexposed, flicker, unstable motion, motion blur, stretched, mutated, out of frame, bad proportions',
           num_frames: videoDuration.toString(),
           fps: fps,
-          output_type: videoFormat
+          output_type: 'mp4'
         }
       )
 
@@ -576,8 +575,6 @@ function AppContent() {
                   setVideoQuality={setVideoQuality}
                   videoDuration={videoDuration}
                   setVideoDuration={setVideoDuration}
-                  videoFormat={videoFormat}
-                  setVideoFormat={setVideoFormat}
                   isLoading={isLoading}
                 />
               ) : (
