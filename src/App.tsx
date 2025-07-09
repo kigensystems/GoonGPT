@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { imageClient } from './utils/imageClient'
 import { chatClient } from './utils/chatClient'
 import { deepfakeClient } from './utils/deepfakeClient'
+import { videoClient } from './utils/videoClient'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { PhantomWalletConnect } from './components/PhantomWalletConnect'
 import { UserRegistration } from './components/UserRegistration'
@@ -37,10 +38,9 @@ function AppContent() {
   const [deepfakeBaseImage, setDeepfakeBaseImage] = useState<string | null>(null)
   const [deepfakeFaceImage, setDeepfakeFaceImage] = useState<string | null>(null)
   // Video states
-  const [videoInput, setVideoInput] = useState('')
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
+  const [videoUploadedImage, setVideoUploadedImage] = useState<string | null>(null)
   const [videoQuality, setVideoQuality] = useState<'quick' | 'standard' | 'high'>('standard')
-  const [videoDuration, setVideoDuration] = useState(81)
+  const [videoDuration, setVideoDuration] = useState<number>(81)
   const [videoFormat, setVideoFormat] = useState<'mp4' | 'gif'>('mp4')
 
 
@@ -48,6 +48,12 @@ function AppContent() {
     if (mode === 'deepfake') {
       // DeepFake doesn't use text input
       sendDeepfake();
+      return;
+    }
+    
+    if (mode === 'video') {
+      // Video doesn't use text input in welcome screen
+      sendVideo(input);
       return;
     }
     
@@ -127,20 +133,75 @@ function AppContent() {
     }
   }
 
-  const sendVideo = async () => {
-    if (!uploadedImage) {
-      alert('Please upload an image first for video generation');
-      return;
-    }
-    
-    if (!videoInput.trim()) {
-      alert('Please describe the video you want to create');
-      return;
+  const sendVideo = async (prompt: string) => {
+    if (!videoUploadedImage) {
+      alert('Please upload an image first for video generation')
+      return
     }
 
-    // Switch to VideoContainer for actual video generation
-    // For now, we'll let VideoContainer handle the generation
-    // This could be enhanced to start the generation process
+    if (!prompt.trim() || isLoading) return
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: prompt,
+      timestamp: new Date()
+    }
+
+    setMessages([...messages, userMessage])
+    setInput('')
+    setIsLoading(true)
+
+    try {
+      // Calculate FPS based on speed setting
+      const fps = '16' // Default to normal speed
+      
+      // First show processing message
+      const processingMessage: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: 'Your video is being generated. This may take up to 60 seconds...',
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, processingMessage])
+      
+      const result = await videoClient.generateVideo(
+        videoUploadedImage,
+        prompt,
+        {
+          negative_prompt: videoQuality === 'quick' 
+            ? 'blurry, low quality' 
+            : 'blurry, low quality, distorted, extra limbs, missing limbs, broken fingers, deformed, glitch, artifacts, unrealistic, low resolution, bad anatomy, duplicate, cropped, watermark, text, logo, jpeg artifacts, noisy, oversaturated, underexposed, overexposed, flicker, unstable motion, motion blur, stretched, mutated, out of frame, bad proportions',
+          num_frames: videoDuration.toString(),
+          fps: fps,
+          output_type: videoFormat
+        }
+      )
+
+      console.log('Video generation result:', result)
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Here is your generated video:',
+        videoUrl: result.videoUrl,
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, assistantMessage])
+      
+      // Clear uploaded image after successful generation
+      setVideoUploadedImage(null)
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `Sorry, there was an error generating the video: ${error instanceof Error ? error.message : 'Unknown error'}. Please upload an image and describe the video you want.`,
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const sendDeepfake = async () => {
@@ -441,7 +502,11 @@ function AppContent() {
       {/* Main Content - Only show when not on profile page */}
       {currentView === 'chat' && (
         <main className="flex-1 flex flex-col">
-        {messages.length === 0 && mode !== 'video' ? (
+        {mode === 'video' && messages.length > 0 ? (
+          <VideoContainer isActive={true} />
+        ) : mode === 'chat' && messages.length > 0 ? (
+          <ChatContainer isActive={true} />
+        ) : messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center px-4">
             {/* Title and Subtitle */}
             <div className="flex flex-col items-center mb-8">
@@ -471,7 +536,9 @@ function AppContent() {
               </button>
               <button
                 onClick={() => setMode('video')}
-                className="px-4 py-2 text-sm rounded-md transition-colors text-text-secondary hover:text-text-primary"
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${
+                  mode === 'video' ? 'bg-button-primary text-button-text' : 'text-text-secondary hover:text-text-primary'
+                }`}
               >
                 Video
               </button>
@@ -495,6 +562,21 @@ function AppContent() {
                   faceImage={deepfakeFaceImage}
                   onBaseImageUpload={setDeepfakeBaseImage}
                   onFaceImageUpload={setDeepfakeFaceImage}
+                  isLoading={isLoading}
+                />
+              ) : mode === 'video' ? (
+                <VideoInput
+                  value={input}
+                  onChange={setInput}
+                  onSend={sendVideo}
+                  onImageUpload={setVideoUploadedImage}
+                  uploadedImage={videoUploadedImage}
+                  videoQuality={videoQuality}
+                  setVideoQuality={setVideoQuality}
+                  videoDuration={videoDuration}
+                  setVideoDuration={setVideoDuration}
+                  videoFormat={videoFormat}
+                  setVideoFormat={setVideoFormat}
                   isLoading={isLoading}
                 />
               ) : (
@@ -530,48 +612,9 @@ function AppContent() {
             </div>
 
 
-            {/* Suggestion pills with icons */}
+            {/* Suggestion pills - mode-specific */}
             <div className="flex gap-2 flex-wrap justify-center">
-              {mode === 'chat' ? (
-                <>
-                  <button 
-                    onClick={() => setInput("Help me write something")}
-                    className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                    <span>Help me write</span>
-                  </button>
-                  <button 
-                    onClick={() => setInput("Analyze this data")}
-                    className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    <span>Analyze data</span>
-                  </button>
-                  <button 
-                    onClick={() => setInput("Write code for me")}
-                    className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                    </svg>
-                    <span>Code</span>
-                  </button>
-                  <button 
-                    onClick={() => setInput("Summarize this text")}
-                    className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span>Summarize text</span>
-                  </button>
-                </>
-              ) : (
+              {mode === 'image' && (
                 <>
                   <button 
                     onClick={() => setInput("Create a futuristic cyberpunk cityscape")}
@@ -611,108 +654,28 @@ function AppContent() {
                   </button>
                 </>
               )}
-              <button className="px-4 py-2 text-sm text-text-muted hover:text-text-secondary transition-colors">
-                More
-              </button>
-            </div>
-          </div>
-        ) : mode === 'video' ? (
-          <div className="flex-1 flex flex-col items-center justify-center px-4">
-            {/* Title and Subtitle */}
-            <div className="flex flex-col items-center mb-8">
-              <h1 className="text-5xl font-bold mb-4">GoonGPT</h1>
-              <p className="text-lg text-text-secondary text-center max-w-md">
-                Uncensored. Unfiltered. Entirely for free.
-              </p>
-            </div>
-            
-            {/* Mode Toggle */}
-            <div className="flex items-center gap-2 bg-surface rounded-lg p-1 mb-6">
-              <button
-                onClick={() => setMode('chat')}
-                className="px-4 py-2 text-sm rounded-md transition-colors text-text-secondary hover:text-text-primary"
-              >
-                Chat
-              </button>
-              <button
-                onClick={() => setMode('image')}
-                className="px-4 py-2 text-sm rounded-md transition-colors text-text-secondary hover:text-text-primary"
-              >
-                Image
-              </button>
-              <button
-                onClick={() => setMode('video')}
-                className="px-4 py-2 text-sm rounded-md transition-colors bg-button-primary text-button-text"
-              >
-                Video
-              </button>
-              <button
-                onClick={() => setMode('deepfake')}
-                className="px-4 py-2 text-sm rounded-md transition-colors text-text-secondary hover:text-text-primary"
-              >
-                DeepFake
-              </button>
-            </div>
-            
-            {/* Video Input */}
-            <div className="w-full max-w-3xl mb-6">
-              <VideoInput
-                value={videoInput}
-                onChange={setVideoInput}
-                onSend={sendVideo}
-                onImageUpload={setUploadedImage}
-                uploadedImage={uploadedImage}
-                videoQuality={videoQuality}
-                setVideoQuality={setVideoQuality}
-                videoDuration={videoDuration}
-                setVideoDuration={setVideoDuration}
-                videoFormat={videoFormat}
-                setVideoFormat={setVideoFormat}
-                isLoading={isLoading}
-              />
-            </div>
-
-            {/* Video Suggestion pills */}
-            <div className="flex gap-2 flex-wrap justify-center">
-              <button 
-                onClick={() => setVideoInput("Make this character dance")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
-              >
-                <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                </svg>
-                <span>Make them dance</span>
-              </button>
-              <button 
-                onClick={() => setVideoInput("Animate this person talking")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
-              >
-                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                <span>Make them talk</span>
-              </button>
-              <button 
-                onClick={() => setVideoInput("Add cinematic movement and effects")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
-              >
-                <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                <span>Cinematic effects</span>
-              </button>
-              <button 
-                onClick={() => setVideoInput("Create dramatic lighting changes")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
-              >
-                <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-                </svg>
-                <span>Dramatic lighting</span>
-              </button>
-              <button className="px-4 py-2 text-sm text-text-muted hover:text-text-secondary transition-colors">
-                More
-              </button>
+              {mode === 'video' && (
+                <>
+                  <button className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2">
+                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6h18v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h8" />
+                    </svg>
+                    <span>Upload an image to animate</span>
+                  </button>
+                </>
+              )}
+              {mode === 'deepfake' && (
+                <>
+                  <button className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2">
+                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span>Upload two images to swap faces</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         ) : mode === 'chat' ? (
@@ -780,36 +743,14 @@ function AppContent() {
           </div>
         )}
 
-        {/* Input Area for active chats */}
-        {messages.length > 0 && mode !== 'video' && (
+        {/* Input Area for image and deepfake modes */}
+        {messages.length > 0 && (mode === 'image' || mode === 'deepfake') && (
           <div className="border-t border-border">
             <div className="max-w-3xl mx-auto p-4">
-              {/* Mode Toggle for active chat */}
-              <div className="flex items-center gap-2 bg-surface rounded-lg p-1 mb-4 w-fit">
-                <button
-                  onClick={() => setMode('chat')}
-                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                    mode === 'chat' ? 'bg-button-primary text-button-text' : 'text-text-secondary hover:text-text-primary'
-                  }`}
-                >
-                  Chat
-                </button>
-                <button
-                  onClick={() => setMode('image')}
-                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                    mode === 'image' ? 'bg-button-primary text-button-text' : 'text-text-secondary hover:text-text-primary'
-                  }`}
-                >
-                  Image
-                </button>
-                <button
-                  onClick={() => setMode('deepfake')}
-                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                    mode === 'deepfake' ? 'bg-button-primary text-button-text' : 'text-text-secondary hover:text-text-primary'
-                  }`}
-                >
-                  DeepFake
-                </button>
+              {/* Mode indicator */}
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-sm text-text-secondary">Mode:</span>
+                <span className="text-sm text-accent font-medium capitalize">{mode}</span>
               </div>
               
 

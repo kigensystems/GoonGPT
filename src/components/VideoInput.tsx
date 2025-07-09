@@ -58,7 +58,6 @@ export function VideoInput({
       const reader = new FileReader()
       reader.onloadend = () => {
         onImageUpload(reader.result as string)
-        setShowImageUpload(false)
       }
       reader.readAsDataURL(file)
     }
