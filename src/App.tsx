@@ -11,6 +11,7 @@ import { PricingPage } from './components/PricingPage'
 import { FirefoxWarning } from './components/FirefoxWarning'
 import { VideoInput } from './components/VideoInput'
 import { DeepFakeInput } from './components/DeepFakeInput'
+import { ChatContainer } from './components/ChatContainer'
 
 interface Message {
   id: string
