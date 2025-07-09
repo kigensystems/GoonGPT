@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { imageClient } from './utils/imageClient'
 import { chatClient } from './utils/chatClient'
+import { videoClient } from './utils/videoClient'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { PhantomWalletConnect } from './components/PhantomWalletConnect'
 import { UserRegistration } from './components/UserRegistration'
 import { ProfilePage } from './components/ProfilePage'
 import { PricingPage } from './components/PricingPage'
 import { FirefoxWarning } from './components/FirefoxWarning'
+import { VideoInput } from './components/VideoInput'
 
 interface Message {
   id: string
@@ -14,9 +16,10 @@ interface Message {
   content: string
   timestamp: Date
   imageUrl?: string
+  videoUrl?: string
 }
 
-type Mode = 'chat' | 'image'
+type Mode = 'chat' | 'image' | 'video'
 
 function AppContent() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -27,9 +30,29 @@ function AppContent() {
   const [showRegistration, setShowRegistration] = useState(false)
   const [registrationWallet, setRegistrationWallet] = useState('')
   const [currentView, setCurrentView] = useState<'chat' | 'profile' | 'pricing' | 'earn'>('chat')
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
+  const [videoQuality, setVideoQuality] = useState<'quick' | 'standard' | 'high'>('standard')
+  const [videoDuration, setVideoDuration] = useState<number>(81)
+  const [videoSpeed, setVideoSpeed] = useState<'slow' | 'normal' | 'fast'>('normal')
+  const [videoFormat, setVideoFormat] = useState<'mp4' | 'gif'>('mp4')
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUploadedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return
+    if (mode === 'video' && !uploadedImage) {
+      alert('Please upload an image first for video generation');
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -73,6 +96,68 @@ function AppContent() {
         }
         setMessages(prev => [...prev, errorMessage])
       }
+    } else if (mode === 'video') {
+      try {
+        if (!uploadedImage) {
+          throw new Error('Please upload an image first');
+        }
+
+        // Calculate FPS based on speed setting
+        const fps = videoSpeed === 'slow' ? '8' : videoSpeed === 'normal' ? '16' : '24';
+        
+        // Adjust duration based on quality preset
+        let adjustedDuration = videoDuration;
+        if (videoQuality === 'quick') {
+          adjustedDuration = Math.min(videoDuration, 50); // Limit quick to ~3 seconds
+        } else if (videoQuality === 'high') {
+          adjustedDuration = Math.min(videoDuration, 81); // Standard max for high quality
+        }
+
+        // First show processing message
+        const processingMessage: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: 'Your video is being generated. This may take up to 60 seconds...',
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, processingMessage])
+        
+        const result = await videoClient.generateVideo(
+          uploadedImage,
+          input,
+          {
+            negative_prompt: videoQuality === 'quick' 
+              ? 'blurry, low quality' 
+              : 'blurry, low quality, distorted, extra limbs, missing limbs, broken fingers, deformed, glitch, artifacts, unrealistic, low resolution, bad anatomy, duplicate, cropped, watermark, text, logo, jpeg artifacts, noisy, oversaturated, underexposed, overexposed, flicker, unstable motion, motion blur, stretched, mutated, out of frame, bad proportions',
+            num_frames: adjustedDuration.toString(),
+            fps: fps,
+            output_type: videoFormat
+          }
+        )
+
+        console.log('Video generation result:', result);
+
+        // Update the processing message with the video
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: 'Here is your generated video:',
+          videoUrl: result.videoUrl,
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, assistantMessage])
+        // Clear uploaded image after successful generation
+        setUploadedImage(null);
+      } catch (error) {
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: `Sorry, there was an error generating the video: ${error instanceof Error ? error.message : 'Unknown error'}. Please upload an image and describe the video you want.`,
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, errorMessage])
+      }
+      setIsLoading(false)
     } else {
       // Real chat response using ModelsLab API
       try {
@@ -100,7 +185,7 @@ function AppContent() {
       setIsLoading(false)
     }
     
-    if (mode === 'image') {
+    if (mode === 'image' || mode === 'video') {
       setIsLoading(false)
     }
   }
@@ -110,19 +195,19 @@ function AppContent() {
       {/* Header - Only show when not on profile page */}
       {currentView === 'chat' && (
         <header className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button 
             onClick={() => {
               setCurrentView('chat');
               setMessages([]);
               setInput('');
             }}
-            className="hover:opacity-80 transition-opacity"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity px-2 py-1 rounded-lg"
           >
             <img 
-              src="/GoonGPT.svg" 
+              src="/GoonGPT-notext.png" 
               alt="GoonGPT Logo" 
-              className="h-12 w-auto"
+              className="h-14 w-auto"
             />
           </button>
         </div>
@@ -238,16 +323,17 @@ function AppContent() {
       {currentView === 'earn' && (
         <div className="flex flex-col h-screen bg-bg-main text-text-primary">
           <header className="flex items-center justify-between px-4 py-3 border-b border-border">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <button 
                 onClick={() => setCurrentView('chat')}
-                className="hover:opacity-80 transition-opacity"
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity px-2 py-1 rounded-lg"
               >
                 <img 
-                  src="/GoonGPT.svg" 
+                  src="/GoonGPT-notext.png" 
                   alt="GoonGPT Logo" 
-                  className="h-12 w-auto"
+                  className="h-16 w-auto"
                 />
+                <span className="text-xl font-bold text-text-primary">GoonGPT</span>
               </button>
             </div>
             
@@ -369,26 +455,53 @@ function AppContent() {
               >
                 Image
               </button>
+              <button
+                onClick={() => setMode('video')}
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${
+                  mode === 'video' ? 'bg-button-primary text-button-text' : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                Video
+              </button>
             </div>
             
+
             {/* Chat Input */}
             <div className="w-full max-w-3xl mb-6">
-              <div className="relative">
-                <input
-                  type="text"
+              {mode === 'video' ? (
+                <VideoInput
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault()
-                      sendMessage()
-                    }
-                  }}
-                  placeholder={mode === 'image' ? "Describe the image you want to generate" : "Ask anything"}
-                  className="w-full px-6 py-4 bg-surface rounded-3xl focus:outline-none focus:ring-2 focus:ring-accent placeholder-text-muted text-lg"
+                  onChange={setInput}
+                  onSend={sendMessage}
+                  onImageUpload={(image) => setUploadedImage(image)}
+                  uploadedImage={uploadedImage}
+                  videoQuality={videoQuality}
+                  setVideoQuality={setVideoQuality}
+                  videoDuration={videoDuration}
+                  setVideoDuration={setVideoDuration}
+                  videoFormat={videoFormat}
+                  setVideoFormat={setVideoFormat}
+                  isLoading={isLoading}
                 />
-              </div>
+              ) : (
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        sendMessage()
+                      }
+                    }}
+                    placeholder={mode === 'image' ? "Describe the image you want to generate" : "Ask anything"}
+                    className="w-full px-6 py-4 bg-surface rounded-3xl focus:outline-none focus:ring-2 focus:ring-accent placeholder-text-muted text-lg"
+                  />
+                </div>
+              )}
             </div>
+
 
             {/* Suggestion pills with icons */}
             <div className="flex gap-2 flex-wrap justify-center">
@@ -506,6 +619,13 @@ function AppContent() {
                             className="mt-4 rounded-lg max-w-md"
                           />
                         )}
+                        {message.videoUrl && (
+                          <video 
+                            src={message.videoUrl} 
+                            controls
+                            className="mt-4 rounded-lg max-w-md"
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -554,23 +674,50 @@ function AppContent() {
                 >
                   Image
                 </button>
+                <button
+                  onClick={() => setMode('video')}
+                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                    mode === 'video' ? 'bg-button-primary text-button-text' : 'text-text-secondary hover:text-text-primary'
+                  }`}
+                >
+                  Video
+                </button>
               </div>
               
-              <div className="relative">
-                <input
-                  type="text"
+
+              
+              {mode === 'video' ? (
+                <VideoInput
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault()
-                      sendMessage()
-                    }
-                  }}
-                  placeholder={mode === 'image' ? "Describe the image you want to generate" : "Ask anything"}
-                  className="w-full px-6 py-4 bg-surface rounded-3xl focus:outline-none focus:ring-2 focus:ring-accent placeholder-text-muted text-lg"
+                  onChange={setInput}
+                  onSend={sendMessage}
+                  onImageUpload={(image) => setUploadedImage(image)}
+                  uploadedImage={uploadedImage}
+                  videoQuality={videoQuality}
+                  setVideoQuality={setVideoQuality}
+                  videoDuration={videoDuration}
+                  setVideoDuration={setVideoDuration}
+                  videoFormat={videoFormat}
+                  setVideoFormat={setVideoFormat}
+                  isLoading={isLoading}
                 />
-              </div>
+              ) : (
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        sendMessage()
+                      }
+                    }}
+                    placeholder={mode === 'image' ? "Describe the image you want to generate" : "Ask anything"}
+                    className="w-full px-6 py-4 bg-surface rounded-3xl focus:outline-none focus:ring-2 focus:ring-accent placeholder-text-muted text-lg"
+                  />
+                </div>
+              )}
             </div>
           </div>
         )}

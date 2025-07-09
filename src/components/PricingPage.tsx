@@ -20,7 +20,7 @@ export function PricingPage({ onBack, onNavigate, onNeedRegistration }: PricingP
             className="hover:opacity-80 transition-opacity"
           >
             <img 
-              src="/GoonGPT.svg" 
+              src="/GoonGPT-notext.png" 
               alt="GoonGPT Logo" 
               className="h-12 w-auto"
             />
