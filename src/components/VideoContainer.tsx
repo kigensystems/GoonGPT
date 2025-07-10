@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { videoClient } from '../utils/videoClient'
 import { VideoInput } from './VideoInput'
 import { VideoMessage } from './VideoMessage'
@@ -22,6 +22,7 @@ interface VideoSettings {
 
 export function VideoContainer({ initialMessages = [], onMessagesChange, currentMode = 'video', onModeChange }: VideoContainerProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
   const [isLoading, setIsLoading] = useState(false)
   
   // Helper function to update messages both locally and in parent
@@ -37,6 +38,11 @@ export function VideoContainer({ initialMessages = [], onMessagesChange, current
       onMessagesChange?.(newMessages)
     }
   }
+  
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [videoSettings, setVideoSettings] = useState<VideoSettings>({
     quality: 'standard',
@@ -130,10 +136,10 @@ export function VideoContainer({ initialMessages = [], onMessagesChange, current
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* Messages */}
       {messages.length > 0 ? (
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto min-h-0">
           <div className="max-w-3xl mx-auto py-8 px-4">
             {messages.map((message) => (
               <VideoMessage key={message.id} message={message} />
@@ -155,6 +161,8 @@ export function VideoContainer({ initialMessages = [], onMessagesChange, current
                 </div>
               </div>
             )}
+            {/* Scroll target */}
+            <div ref={messagesEndRef} />
           </div>
         </div>
       ) : (
@@ -222,8 +230,6 @@ export function VideoContainer({ initialMessages = [], onMessagesChange, current
             </div>
           )}
           <VideoInput
-            value=""
-            onChange={() => {}} // Handled internally by VideoInput
             onSend={handleVideoGeneration}
             onImageUpload={handleImageUpload}
             uploadedImage={uploadedImage}

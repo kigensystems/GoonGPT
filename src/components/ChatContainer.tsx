@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { chatClient } from '../utils/chatClient'
 import { ChatInput } from './ChatInput'
 import { ChatMessage, Message } from './ChatMessage'
@@ -16,6 +16,7 @@ interface ChatContainerProps {
 
 export function ChatContainer({ initialMessages = [], onMessagesChange, currentMode = 'chat', onModeChange, onNavigateToLegal, onSuggestionClick }: ChatContainerProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
   
   // Debug: Log initial messages and changes
   useEffect(() => {
@@ -40,6 +41,12 @@ export function ChatContainer({ initialMessages = [], onMessagesChange, currentM
       onMessagesChange?.(newMessages)
     }
   }
+  
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+  
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSendMessage = async (content: string) => {
@@ -87,10 +94,10 @@ export function ChatContainer({ initialMessages = [], onMessagesChange, currentM
 
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* Messages */}
       {messages.length > 0 ? (
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto min-h-0">
           <div className="max-w-3xl mx-auto py-8 px-4">
             {messages.map((message) => (
               <ChatMessage key={message.id} message={message} />
@@ -112,6 +119,8 @@ export function ChatContainer({ initialMessages = [], onMessagesChange, currentM
                 </div>
               </div>
             )}
+            {/* Scroll target */}
+            <div ref={messagesEndRef} />
           </div>
         </div>
       ) : (

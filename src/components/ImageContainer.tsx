@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { imageClient } from '../utils/imageClient'
 import { ChatInput } from './ChatInput'
 import { Message } from './ChatMessage'
@@ -25,6 +25,7 @@ export function ImageContainer({
   promptMapping = {}
 }: ImageContainerProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
   
   // Debug: Log initial messages and changes
   useEffect(() => {
@@ -49,6 +50,12 @@ export function ImageContainer({
       onMessagesChange?.(newMessages)
     }
   }
+  
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+  
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSendMessage = async (content: string) => {
@@ -108,10 +115,10 @@ export function ImageContainer({
 
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* Messages */}
       {messages.length > 0 ? (
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto min-h-0">
           <div className="max-w-3xl mx-auto py-8 px-4">
             {messages.map((message) => (
               <div key={message.id} className={`mb-6 ${message.role === 'user' ? 'flex justify-end' : ''}`}>
@@ -162,6 +169,8 @@ export function ImageContainer({
                 </div>
               </div>
             )}
+            {/* Scroll target */}
+            <div ref={messagesEndRef} />
           </div>
         </div>
       ) : (
