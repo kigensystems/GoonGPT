@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Link, useNavigate, useLocation } from 'react-router-dom'
 import { imageClient } from './utils/imageClient'
 import { chatClient } from './utils/chatClient'
 import { videoClient } from './utils/videoClient'
@@ -391,7 +391,7 @@ function AppContent() {
           onSuccess={() => {
             setShowRegistration(false);
             setRegistrationWallet('');
-            setCurrentView('earn');
+            navigate('/tokens');
           }}
         />
       )}
@@ -656,7 +656,7 @@ function AppContent() {
               )}
             </div>
           </div>
-        )}
+        ) : null}
         
         {/* Footer - Only show when no conversation is active */}
         {messages.length === 0 && (

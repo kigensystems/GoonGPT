@@ -7,7 +7,7 @@ import { EarnableActionCard } from './EarnableActionCard'
 import { UserDropdown } from './UserDropdown'
 import { HowItWorksStepper } from './HowItWorksStepper'
 import { getMockTokenData, formatTokenAmount } from '../utils/mockTokens'
-import { getServerTokenData, isAuthenticated, type ServerTokenData } from '../utils/tokenAPI'
+import { getServerTokenData, type ServerTokenData } from '../utils/tokenAPI'
 
 interface EarnTokensPageProps {
   onNavigateToMode?: (mode: 'chat' | 'image' | 'video') => void

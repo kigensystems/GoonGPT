@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { UserDropdown } from './UserDropdown';
 
 export function ProfilePage() {
-  const navigate = useNavigate();
   const { user, session, updateUser, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [username, setUsername] = useState(user?.username || '');
