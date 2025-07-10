@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { 
   getMockTokenData, 
   getCurrentTier, 
-  getProgressToNextTier, 
   formatTokenAmount,
   TierLevel,
   TIER_THRESHOLDS
@@ -41,7 +40,6 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
   }, [tokenData.balance, tokenData.transactions.length, onUpdate])
   
   const currentTier = getCurrentTier(tokenData.balance)
-  const progress = getProgressToNextTier(tokenData.balance)
   
   const getTierIcon = (tier: TierLevel) => {
     switch (tier) {
@@ -153,65 +151,64 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
       </div>
       
       {/* Progress Bar */}
-      {progress.nextTier && (
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-text-muted">Progress to {getTierDisplayName(progress.nextTier)}</span>
-            <span className="text-text-secondary">
-              {Math.round(progress.percentage)}%
-            </span>
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <span className="text-text-muted">Progress to Tier 4</span>
+          <span className="text-text-secondary">
+            {Math.round((tokenData.balance / TIER_THRESHOLDS[TierLevel.TIER_4]) * 100)}%
+          </span>
+        </div>
+          
+        {/* Segmented Progress Bar */}
+        <div className="relative w-full h-3">
+          {/* Background segments */}
+          <div className="flex w-full h-full bg-bg-main rounded-full overflow-hidden">
+            {[TierLevel.TIER_1, TierLevel.TIER_2, TierLevel.TIER_3, TierLevel.TIER_4].map((tier, index) => {
+              const tierThreshold = TIER_THRESHOLDS[tier]
+              const tiers = [TierLevel.TIER_1, TierLevel.TIER_2, TierLevel.TIER_3, TierLevel.TIER_4]
+              const prevThreshold = index === 0 ? 0 : TIER_THRESHOLDS[tiers[index - 1]]
+              
+              // Calculate progress within this segment
+              let segmentProgress = 0
+              
+              if (tokenData.balance >= tierThreshold) {
+                // Segment is completed
+                segmentProgress = 100
+              } else if (tokenData.balance > prevThreshold) {
+                // Currently progressing through this segment
+                const segmentSize = tierThreshold - prevThreshold
+                const progressInSegment = tokenData.balance - prevThreshold
+                segmentProgress = Math.min(100, (progressInSegment / segmentSize) * 100)
+              }
+              
+              return (
+                <div key={tier} className="flex-1 relative">
+                  <div className="w-full h-full bg-bg-main">
+                    <div 
+                      className="h-full bg-gradient-to-r from-accent to-accent-hover transition-all duration-500 ease-out"
+                      style={{ width: `${segmentProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
           </div>
           
-          {/* Segmented Progress Bar */}
-          <div className="relative w-full h-3">
-            {/* Background segments */}
-            <div className="flex w-full h-full bg-bg-main rounded-full overflow-hidden">
-              {[TierLevel.TIER_1, TierLevel.TIER_2, TierLevel.TIER_3, TierLevel.TIER_4].map((tier, index) => {
-                const tierThreshold = TIER_THRESHOLDS[tier]
-                const prevThreshold = index === 0 ? 0 : TIER_THRESHOLDS[[TierLevel.TIER_1, TierLevel.TIER_2, TierLevel.TIER_3][index - 1]]
-                
-                // Calculate progress within this segment
-                let segmentProgress = 0
-                
-                if (tokenData.balance >= tierThreshold) {
-                  // Segment is completed
-                  segmentProgress = 100
-                } else if (tokenData.balance > prevThreshold) {
-                  // Currently progressing through this segment
-                  const segmentSize = tierThreshold - prevThreshold
-                  const progressInSegment = tokenData.balance - prevThreshold
-                  segmentProgress = Math.min(100, (progressInSegment / segmentSize) * 100)
-                }
-                
-                return (
-                  <div key={tier} className="flex-1 relative">
-                    <div className="w-full h-full bg-bg-main">
-                      <div 
-                        className="h-full bg-gradient-to-r from-accent to-accent-hover transition-all duration-700 ease-out"
-                        style={{ width: `${segmentProgress}%` }}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-            
-            {/* Vertical tick marks */}
-            <div className="absolute inset-0 flex justify-between items-center px-0">
-              {[0, 1, 2, 3, 4].map((index) => (
-                <div 
-                  key={index}
-                  className="w-0.5 h-4 bg-border"
-                  style={{ 
-                    marginLeft: index === 0 ? '0' : '-1px',
-                    marginRight: index === 4 ? '0' : '-1px'
-                  }}
-                />
-              ))}
-            </div>
+          {/* Vertical tick marks */}
+          <div className="absolute inset-0 flex justify-between items-center px-0">
+            {[0, 1, 2, 3, 4].map((index) => (
+              <div 
+                key={index}
+                className="w-0.5 h-4 bg-border"
+                style={{ 
+                  marginLeft: index === 0 ? '0' : '-1px',
+                  marginRight: index === 4 ? '0' : '-1px'
+                }}
+              />
+            ))}
           </div>
         </div>
-      )}
+      </div>
       
       {/* Tier Icons */}
       <div className="flex justify-center gap-6 items-start">

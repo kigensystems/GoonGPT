@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { getMockTokenData, formatTokenAmount } from '../utils/mockTokens'
+import { getMockTokenData } from '../utils/mockTokens'
 
 interface User {
   username: string

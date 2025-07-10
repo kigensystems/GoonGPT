@@ -1,8 +1,9 @@
 import { useState } from 'react'
+import { type ReactNode } from 'react'
 import { earnTokens, canEarnTokens, formatTokenAmount } from '../utils/mockTokens'
 
 interface EarnableActionProps {
-  icon: string
+  icon: ReactNode
   iconColor: string
   actionName: string
   description: string
@@ -63,7 +64,7 @@ export function EarnableActionCard({
       
       <div className="flex items-start gap-4">
         {/* Icon */}
-        <div className={`text-4xl ${iconColor} flex-shrink-0`}>
+        <div className={`${iconColor} flex-shrink-0`}>
           {icon}
         </div>
         

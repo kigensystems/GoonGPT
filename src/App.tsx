@@ -378,6 +378,10 @@ function AppContent() {
             setCurrentView('chat')
             setMode('chat')
           }}
+          onNavigateToMode={(mode) => {
+            setCurrentView('chat')
+            setMode(mode)
+          }}
           onNavigate={(view) => setCurrentView(view)}
           onNeedRegistration={(wallet) => {
             setRegistrationWallet(wallet)
