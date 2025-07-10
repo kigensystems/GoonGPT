@@ -1,4 +1,4 @@
-import { earnTokens } from './utils/database.js';
+import { earnTokens } from './utils/supabase.js';
 import { validateAuthToken } from './utils/auth.js';
 import { applyCors } from './utils/cors.js';
 import { createRateLimiter } from './utils/rateLimiter.js';
@@ -86,11 +86,7 @@ export default async function handler(req, context) {
     return new Response(JSON.stringify({
       success: true,
       tokensEarned: result.tokensEarned,
-      newBalance: result.user.token_balance,
-      dailyEarned: result.user.daily_tokens_earned,
-      dailyLimit: result.dailyLimit,
-      dailyRemaining: result.dailyRemaining,
-      transaction: result.transaction
+      newBalance: result.newBalance
     }), {
       status: 200,
       headers: {
@@ -106,10 +102,7 @@ export default async function handler(req, context) {
     let status = 500;
     let message = 'Internal server error';
     
-    if (error.message === 'Daily token limit reached') {
-      status = 429;
-      message = 'Daily token earning limit reached. You have reached your daily limit of 100 tokens. Try again tomorrow!';
-    } else if (error.message === 'User not found') {
+    if (error.message === 'User not found') {
       status = 404;
       message = 'User not found';
     }

@@ -227,3 +227,34 @@ export async function getUserTokenData(userId) {
     credits_balance: user.credits_balance || 0
   };
 }
+
+// Earn tokens function - uncapped token earning
+export async function earnTokens(userId, amount, action = 'Activity') {
+  console.log('🔍 SUPABASE: Earning tokens for user:', userId, 'amount:', amount);
+  
+  const user = await getUserById(userId);
+  
+  if (!user) {
+    throw new Error('User not found');
+  }
+  
+  // Update user with new token amounts (uncapped)
+  const updatedUser = await updateUser(userId, {
+    token_balance: (user.token_balance || 0) + amount,
+    total_tokens_earned: (user.total_tokens_earned || 0) + amount
+  });
+  
+  console.log('✅ SUPABASE: Tokens earned successfully');
+  return {
+    user: updatedUser,
+    tokensEarned: amount,
+    newBalance: updatedUser.token_balance
+  };
+}
+
+// Development storage reset - no-op for Supabase (data is persistent)
+export async function resetDevStorage() {
+  console.log('🔍 SUPABASE: resetDevStorage called - no action needed for Supabase');
+  // This is a no-op for Supabase since we don't want to delete production data
+  // In development, you would manually clear the database if needed
+}

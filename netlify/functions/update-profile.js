@@ -1,4 +1,4 @@
-import { getSession, getUserByUsername, updateUser } from './utils/database.js';
+import { getSession, getUserByUsername, updateUser } from './utils/supabase.js';
 
 export default async function handler(req, context) {
   if (req.method !== 'PUT') {

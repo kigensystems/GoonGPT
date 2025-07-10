@@ -1,4 +1,4 @@
-import { resetDevStorage } from './utils/database.js';
+import { resetDevStorage } from './utils/supabase.js';
 
 export async function handler(event, context) {
   // Only allow in development

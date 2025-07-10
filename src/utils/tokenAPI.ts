@@ -41,13 +41,11 @@ export async function getServerTokenData(): Promise<ServerTokenData | null> {
   }
 }
 
-// Earn tokens on the server
+// Earn tokens on the server (uncapped)
 export async function earnServerTokens(amount: number, action: string = 'Activity'): Promise<{
   success: boolean
   tokensEarned?: number
   newBalance?: number
-  dailyEarned?: number
-  dailyRemaining?: number
   error?: string
 }> {
   try {
@@ -72,9 +70,7 @@ export async function earnServerTokens(amount: number, action: string = 'Activit
     return {
       success: true,
       tokensEarned: data.tokensEarned,
-      newBalance: data.newBalance,
-      dailyEarned: data.dailyEarned,
-      dailyRemaining: data.dailyRemaining
+      newBalance: data.newBalance
     }
   } catch (error) {
     console.error('Error earning server tokens:', error)
