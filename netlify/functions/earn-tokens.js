@@ -81,12 +81,16 @@ export default async function handler(req, context) {
     const { amount, action = 'Activity' } = requestBody;
     
     // Earn tokens for the user
+    console.log('🔍 EARN-TOKENS: About to earn tokens for user:', authResult.user.id, 'amount:', amount);
     const result = await earnTokens(authResult.user.id, amount, action);
+    console.log('✅ EARN-TOKENS: Token earning result:', result);
     
     return new Response(JSON.stringify({
       success: true,
       tokensEarned: result.tokensEarned,
-      newBalance: result.newBalance
+      newBalance: result.newBalance,
+      dailyEarned: result.dailyEarned,
+      dailyRemaining: result.dailyRemaining
     }), {
       status: 200,
       headers: {

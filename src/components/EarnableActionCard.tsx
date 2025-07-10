@@ -39,16 +39,21 @@ export function EarnableActionCard({
       // Earn tokens - prefer server if authenticated, fallback to local
       let earned = false
       if (isAuthenticated()) {
+        console.log('🔍 CLIENT: Attempting to earn server tokens:', earnAmount, actionName)
         const result = await earnServerTokens(earnAmount, actionName)
+        console.log('🔍 CLIENT: Server token result:', result)
         earned = result.success
         if (!earned) {
-          console.error('Failed to earn server tokens:', result.error)
+          console.error('❌ CLIENT: Failed to earn server tokens:', result.error)
           // Show user-friendly error for daily limit
           if (result.error?.includes('Daily earning limit reached')) {
             alert(result.error)
           }
+        } else {
+          console.log('✅ CLIENT: Successfully earned tokens:', result)
         }
       } else {
+        console.log('🔍 CLIENT: Not authenticated, using localStorage tokens')
         earned = earnTokens(actionName, earnAmount)
       }
       
