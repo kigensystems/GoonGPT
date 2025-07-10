@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 // Check if we're in local development
 const isLocalDev = process.env.NODE_ENV !== 'production' && !process.env.NETLIFY;

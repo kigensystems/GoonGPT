@@ -120,7 +120,7 @@ export function ChatContainer({ initialMessages = [], onMessagesChange, currentM
           <div className="flex flex-col items-center mb-8">
             <h1 className="text-5xl font-bold mb-4">GoonGPT</h1>
             <p className="text-lg text-text-secondary text-center max-w-md">
-              Uncensored. Unfiltered. Entirely for free.
+              Uncensored. Unfiltered.
             </p>
           </div>
           

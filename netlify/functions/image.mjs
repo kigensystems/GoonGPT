@@ -1,7 +1,15 @@
 // Netlify Function: Image generation endpoint
 // Uses ModelsLab API for fast image generation
 
+import { aiRateLimiter } from './utils/rateLimiter.js';
+import { validateImageInput } from './utils/validation.js';
+
 export async function handler(event) {
+  // Apply rate limiting
+  const rateLimitResponse = await aiRateLimiter(event);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   // Check for required environment variables
   if (!process.env.MODELSLAB_API_KEY) {
     console.error('MODELSLAB_API_KEY is not set');
@@ -37,11 +45,13 @@ export async function handler(event) {
   try {
     const { prompt, negative_prompt = '', width = 1024, height = 1024, samples = 1, safety_checker = false, seed, enhance_prompt = true, enhance_style } = JSON.parse(event.body);
     
-    if (!prompt) {
+    // Validate input
+    const validation = validateImageInput(prompt, { width, height });
+    if (!validation.valid) {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ error: 'Prompt is required' }),
+        body: JSON.stringify({ error: validation.error }),
       };
     }
 

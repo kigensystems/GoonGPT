@@ -1,7 +1,15 @@
 // Netlify Function: Chat completions endpoint
 // Uses ModelsLab API for LLM chat completions
 
+import { aiRateLimiter } from './utils/rateLimiter.js';
+import { validateChatInput } from './utils/validation.js';
+
 export async function handler(event) {
+  // Apply rate limiting
+  const rateLimitResponse = await aiRateLimiter(event);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   // Check for required environment variables
   console.log('Environment check:', {
     hasKey: !!process.env.MODELSLAB_API_KEY,
@@ -25,9 +33,10 @@ export async function handler(event) {
     };
   }
 
-  // CORS headers
+  // Get CORS headers based on origin
+  const origin = event.headers.origin || event.headers.Origin;
   const headers = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': origin || 'http://localhost:5173',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json',
   };
@@ -44,11 +53,13 @@ export async function handler(event) {
   try {
     const { messages, model = 'ModelsLab/Llama-3.1-8b-Uncensored-Dare', temperature = 0.7, max_tokens = 1000, stream = false } = JSON.parse(event.body);
     
-    if (!messages || !Array.isArray(messages)) {
+    // Validate input
+    const validation = validateChatInput(messages);
+    if (!validation.valid) {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ error: 'Messages array is required' }),
+        body: JSON.stringify({ error: validation.error }),
       };
     }
 
