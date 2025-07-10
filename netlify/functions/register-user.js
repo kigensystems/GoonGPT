@@ -1,7 +1,10 @@
 import crypto from 'crypto';
-import { getUserByWallet, getUserByUsername, createUser, createSession } from './utils/database.js';
+import { getUserByWallet, getUserByUsername, createUser, createSession } from './utils/supabase.js';
 
 export default async function handler(req, context) {
+  console.log('🔍 REGISTER-USER: Function started');
+  console.log('🔍 REGISTER-USER: Request method:', req.method);
+  
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
@@ -10,7 +13,9 @@ export default async function handler(req, context) {
   }
 
   try {
+    console.log('🔍 REGISTER-USER: Parsing request body...');
     const { wallet_address, username, email, profile_picture } = await req.json();
+    console.log('🔍 REGISTER-USER: Request data:', { wallet_address, username, email: !!email });
 
     if (!wallet_address || !username) {
       return new Response(JSON.stringify({ error: 'Wallet address and username are required' }), {
@@ -81,8 +86,11 @@ export default async function handler(req, context) {
     });
 
   } catch (error) {
-    console.error('Registration error:', error);
-    return new Response(JSON.stringify({ error: 'Registration failed' }), {
+    console.error('❌ REGISTER-USER: Registration error:', error);
+    console.error('❌ REGISTER-USER: Error name:', error.name);
+    console.error('❌ REGISTER-USER: Error message:', error.message);
+    console.error('❌ REGISTER-USER: Error stack:', error.stack);
+    return new Response(JSON.stringify({ error: 'Registration failed', details: error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
