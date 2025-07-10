@@ -21,15 +21,18 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
   // Refresh data periodically and on updates
   useEffect(() => {
     const refreshData = async () => {
+      console.log('🔍 TokenDashboard: Refreshing data, isAuthenticated:', isAuthenticated())
       // Try to get server data if user is authenticated
       if (isAuthenticated()) {
         const newServerData = await getServerTokenData()
+        console.log('🔍 TokenDashboard: Server data received:', newServerData)
         if (newServerData) {
           if (!serverData || newServerData.token_balance !== serverData.token_balance) {
             if (!serverData || newServerData.token_balance !== serverData.token_balance) {
               setAnimateBalance(true)
               setTimeout(() => setAnimateBalance(false), 500)
             }
+            console.log('✅ TokenDashboard: Using server data, balance:', newServerData.token_balance)
             setServerData(newServerData)
             setUseServerData(true)
             onUpdate?.()
@@ -39,8 +42,10 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
       }
       
       // Fallback to localStorage data
+      console.log('⚠️ TokenDashboard: Falling back to localStorage data')
       setUseServerData(false)
       const newData = getMockTokenData()
+      console.log('🔍 TokenDashboard: localStorage data:', newData.balance)
       if (newData.balance !== tokenData.balance || 
           newData.transactions.length !== tokenData.transactions.length) {
         if (newData.balance !== tokenData.balance) {

@@ -29,12 +29,20 @@ export function EarnTokensPage({ onNavigateToMode, onNeedRegistration }: EarnTok
   
   // Fetch server data
   const refreshServerData = async () => {
+    console.log('🔍 EarnTokensPage: Refreshing server data, isAuthenticated:', isAuthenticated)
     if (isAuthenticated) {
       const data = await getServerTokenData()
+      console.log('🔍 EarnTokensPage: Server token data:', data)
       if (data) {
         setServerData(data)
         setUseServerData(true)
+      } else {
+        console.log('⚠️ EarnTokensPage: No server data received, falling back to localStorage')
+        setUseServerData(false)
       }
+    } else {
+      console.log('⚠️ EarnTokensPage: Not authenticated, using localStorage')
+      setUseServerData(false)
     }
   }
   
