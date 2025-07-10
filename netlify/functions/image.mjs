@@ -4,29 +4,26 @@
 import { aiRateLimiter } from './utils/rateLimiter.js';
 import { validateImageInput } from './utils/validation.js';
 
-export default async function handler(req, context) {
+export async function handler(event) {
   // Apply rate limiting
-  const rateLimitResponse = await aiRateLimiter(req);
+  const rateLimitResponse = await aiRateLimiter(event);
   if (rateLimitResponse) {
-    return new Response(rateLimitResponse.body, {
-      status: rateLimitResponse.statusCode,
-      headers: rateLimitResponse.headers
-    });
+    return rateLimitResponse;
   }
   // Check for required environment variables
   if (!process.env.MODELSLAB_API_KEY) {
     console.error('MODELSLAB_API_KEY is not set');
-    return new Response(JSON.stringify({ error: 'Server configuration error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Server configuration error' }),
+    };
   }
   // Only allow POST requests
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' }
-    });
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method not allowed' }),
+    };
   }
 
   // CORS headers
@@ -37,23 +34,25 @@ export default async function handler(req, context) {
   };
 
   // Handle preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('', {
-      status: 200,
-      headers
-    });
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: '',
+    };
   }
 
   try {
-    const { prompt, negative_prompt = '', width = 1024, height = 1024, samples = 1, safety_checker = false, seed, enhance_prompt = true, enhance_style } = await req.json();
+    const { prompt, negative_prompt = '', width = 1024, height = 1024, samples = 1, safety_checker = false, seed, enhance_prompt = true, enhance_style } = JSON.parse(event.body);
     
     // Validate input
     const validation = validateImageInput(prompt, { width, height });
     if (!validation.valid) {
-      return new Response(JSON.stringify({ error: validation.error }), {
-        status: 400,
-        headers
-      });
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: validation.error }),
+      };
     }
 
     console.log('Generating image with prompt:', prompt);
@@ -102,31 +101,33 @@ export default async function handler(req, context) {
     
     // For processing status, return with fetch URL
     if (result.status === 'processing') {
-      return new Response(JSON.stringify({
-        status: 'processing',
-        eta: result.eta,
-        fetch_result: result.fetch_result,
-        message: `Image is being generated. ETA: ${result.eta} seconds`
-      }), {
-        status: 202, // Accepted
-        headers
-      });
+      return {
+        statusCode: 202, // Accepted
+        headers,
+        body: JSON.stringify({
+          status: 'processing',
+          eta: result.eta,
+          fetch_result: result.fetch_result,
+          message: `Image is being generated. ETA: ${result.eta} seconds`
+        }),
+      };
     }
 
     // For success status, return image URLs
     if (result.status === 'success' && result.output) {
       const imageUrl = Array.isArray(result.output) ? result.output[0] : result.output;
       
-      return new Response(JSON.stringify({
-        success: true,
-        imageUrl: imageUrl,
-        images: result.output, // Include all images if multiple samples
-        prompt: prompt,
-        meta: result.meta || {}
-      }), {
-        status: 200,
-        headers
-      });
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          imageUrl: imageUrl,
+          images: result.output, // Include all images if multiple samples
+          prompt: prompt,
+          meta: result.meta || {}
+        }),
+      };
     }
     
     // Handle unexpected response format
@@ -134,12 +135,13 @@ export default async function handler(req, context) {
 
   } catch (error) {
     console.error('Image API error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to generate image',
-      details: error.message 
-    }), {
-      status: 500,
-      headers
-    });
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ 
+        error: 'Failed to generate image',
+        details: error.message 
+      }),
+    };
   }
 }

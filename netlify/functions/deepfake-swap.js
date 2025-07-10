@@ -1,5 +1,5 @@
 // Netlify Function for DeepFake Single Face Swap
-export default async function handler(req, context) {
+export const handler = async (event, context) => {
   // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -10,35 +10,39 @@ export default async function handler(req, context) {
   // Check for API key
   if (!process.env.MODELSLAB_API_KEY) {
     console.error('MODELSLAB_API_KEY is not set');
-    return new Response(JSON.stringify({ error: 'Server configuration error: API key not found' }), {
-      status: 500,
-      headers
-    });
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: 'Server configuration error: API key not found' }),
+    };
   }
 
   // Handle preflight OPTIONS request
-  if (req.method === 'OPTIONS') {
-    return new Response('', {
-      status: 200,
-      headers
-    });
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: '',
+    };
   }
 
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers
-    });
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' }),
+    };
   }
 
   try {
-    const { base_image, face_image, watermark = true } = await req.json();
+    const { base_image, face_image, watermark = true } = JSON.parse(event.body);
 
     if (!base_image || !face_image) {
-      return new Response(JSON.stringify({ error: 'Missing required images: base_image and face_image are required' }), {
-        status: 400,
-        headers
-      });
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Missing required images: base_image and face_image are required' }),
+      };
     }
 
     // Call ModelsLab DeepFake API using the two-image trick
@@ -64,49 +68,53 @@ export default async function handler(req, context) {
 
     if (!response.ok) {
       console.error('ModelsLab API error:', data);
-      return new Response(JSON.stringify({ 
-        error: data.message || data.error || 'DeepFake generation failed',
-        details: data
-      }), {
-        status: response.status,
-        headers
-      });
+      return {
+        statusCode: response.status,
+        headers,
+        body: JSON.stringify({ 
+          error: data.message || data.error || 'DeepFake generation failed',
+          details: data
+        }),
+      };
     }
 
     // Check if processing is needed
     if (data.status === 'processing' && data.fetch_result) {
-      return new Response(JSON.stringify({
-        success: true,
-        status: 'processing',
-        fetchUrl: data.fetch_result,
-        eta: data.eta || 30,
-        message: 'DeepFake is being processed',
-        id: data.id
-      }), {
-        status: 200,
-        headers
-      });
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          status: 'processing',
+          fetchUrl: data.fetch_result,
+          eta: data.eta || 30,
+          message: 'DeepFake is being processed',
+          id: data.id
+        }),
+      };
     }
 
     // Return the completed deepfake
-    return new Response(JSON.stringify({
-      success: true,
-      status: 'completed',
-      imageUrl: data.output || data.image_url || data.url || null,
-      meta: data
-    }), {
-      status: 200,
-      headers
-    });
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        success: true,
+        status: 'completed',
+        imageUrl: data.output || data.image_url || data.url || null,
+        meta: data
+      }),
+    };
 
   } catch (error) {
     console.error('DeepFake error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error',
-      details: error.message
-    }), {
-      status: 500,
-      headers
-    });
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ 
+        error: 'Internal server error',
+        details: error.message
+      }),
+    };
   }
 };

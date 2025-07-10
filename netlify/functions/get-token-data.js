@@ -11,60 +11,80 @@ const getTokenDataRateLimit = createRateLimiter({
 });
 
 export default async function handler(req, context) {
-  const response = { statusCode: 200, headers: {}, body: '' };
-  
   try {
-    // Apply CORS
-    applyCors(response);
-    
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
-      return response;
+      return new Response('', {
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+        }
+      });
     }
     
     // Only allow GET requests
     if (req.method !== 'GET') {
-      response.statusCode = 405;
-      response.body = JSON.stringify({ error: 'Method not allowed' });
-      return response;
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
     // Apply rate limiting
     const rateLimitResult = await getTokenDataRateLimit(req);
     if (rateLimitResult) {
-      return rateLimitResult;
+      return new Response(rateLimitResult.body, {
+        status: rateLimitResult.statusCode,
+        headers: rateLimitResult.headers
+      });
     }
     
     // Validate authentication
     const authResult = await validateAuthToken(req, context);
     if (!authResult.valid) {
-      response.statusCode = 401;
-      response.body = JSON.stringify({ error: 'Unauthorized' });
-      return response;
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
     // Get user token data
     const tokenData = await getUserTokenData(authResult.user.id);
     
-    response.body = JSON.stringify({
+    return new Response(JSON.stringify({
       success: true,
       ...tokenData
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+      }
     });
     
   } catch (error) {
     console.error('Get token data error:', error);
     
+    let status = 500;
+    let message = 'Internal server error';
+    
     if (error.message === 'User not found') {
-      response.statusCode = 404;
-      response.body = JSON.stringify({ error: 'User not found' });
-    } else {
-      response.statusCode = 500;
-      response.body = JSON.stringify({ 
-        error: 'Internal server error',
-        message: 'Failed to fetch token data'
-      });
+      status = 404;
+      message = 'User not found';
+    } else if (error.message === 'Failed to fetch token data') {
+      message = 'Failed to fetch token data';
     }
+    
+    return new Response(JSON.stringify({ error: message }), {
+      status,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+      }
+    });
   }
-  
-  return response;
 }

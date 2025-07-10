@@ -4,14 +4,11 @@
 import { aiRateLimiter } from './utils/rateLimiter.js';
 import { validateChatInput } from './utils/validation.js';
 
-export default async function handler(req, context) {
+export async function handler(event) {
   // Apply rate limiting
-  const rateLimitResponse = await aiRateLimiter(req);
+  const rateLimitResponse = await aiRateLimiter(event);
   if (rateLimitResponse) {
-    return new Response(rateLimitResponse.body, {
-      status: rateLimitResponse.statusCode,
-      headers: rateLimitResponse.headers
-    });
+    return rateLimitResponse;
   }
   // Check for required environment variables
   console.log('Environment check:', {
@@ -22,22 +19,22 @@ export default async function handler(req, context) {
   
   if (!process.env.MODELSLAB_API_KEY) {
     console.error('MODELSLAB_API_KEY is not set');
-    return new Response(JSON.stringify({ error: 'Server configuration error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Server configuration error' }),
+    };
   }
 
   // Only allow POST requests
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' }
-    });
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method not allowed' }),
+    };
   }
 
   // Get CORS headers based on origin
-  const origin = req.headers.get('origin') || req.headers.get('Origin');
+  const origin = event.headers.origin || event.headers.Origin;
   const headers = {
     'Access-Control-Allow-Origin': origin || 'http://localhost:5173',
     'Access-Control-Allow-Headers': 'Content-Type',
@@ -45,23 +42,25 @@ export default async function handler(req, context) {
   };
 
   // Handle preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('', {
-      status: 200,
-      headers
-    });
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: '',
+    };
   }
 
   try {
-    const { messages, model = 'ModelsLab/Llama-3.1-8b-Uncensored-Dare', temperature = 0.7, max_tokens = 1000, stream = false } = await req.json();
+    const { messages, model = 'ModelsLab/Llama-3.1-8b-Uncensored-Dare', temperature = 0.7, max_tokens = 1000, stream = false } = JSON.parse(event.body);
     
     // Validate input
     const validation = validateChatInput(messages);
     if (!validation.valid) {
-      return new Response(JSON.stringify({ error: validation.error }), {
-        status: 400,
-        headers
-      });
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: validation.error }),
+      };
     }
 
     console.log('Chat completion request:', { model, temperature, max_tokens, messageCount: messages.length });
@@ -103,15 +102,16 @@ export default async function handler(req, context) {
     
     // Handle OpenAI-compatible response format
     if (result.choices && result.choices.length > 0) {
-      return new Response(JSON.stringify({
-        success: true,
-        choices: result.choices,
-        usage: result.usage || {},
-        model: result.model || model
-      }), {
-        status: 200,
-        headers
-      });
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          choices: result.choices,
+          usage: result.usage || {},
+          model: result.model || model
+        }),
+      };
     }
     
     // Handle unexpected response format
@@ -119,12 +119,13 @@ export default async function handler(req, context) {
 
   } catch (error) {
     console.error('Chat API error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to generate chat completion',
-      details: error.message 
-    }), {
-      status: 500,
-      headers
-    });
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ 
+        error: 'Failed to generate chat completion',
+        details: error.message 
+      }),
+    };
   }
 }
