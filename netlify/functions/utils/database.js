@@ -82,42 +82,19 @@ export function resetDevStorage() {
   }
 }
 
-// Robust store getter with fallback configuration
-function getNetlifyStore(storeName, context) {
+// Simple store getter using Functions API v2 auto-configuration
+function getNetlifyStore(storeName) {
   try {
-    // First try with context (automatic configuration)
-    return getStore(storeName, context);
+    // Functions API v2 auto-configuration - no context or manual config needed
+    return getStore(storeName);
   } catch (error) {
-    console.error(`Failed to get store with context: ${error.message}`);
-    
-    // Try manual configuration with environment variables
-    const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
-    const token = process.env.NETLIFY_FUNCTIONS_TOKEN;
-    
-    if (!siteID) {
-      console.error('No site ID found in environment variables');
-      throw new Error('Missing site ID for Netlify Blobs configuration. Please ensure NETLIFY_SITE_ID or SITE_ID is set.');
-    }
-    
-    if (!token) {
-      console.error('No token found in environment variables');
-      throw new Error('Missing token for Netlify Blobs configuration. Please ensure NETLIFY_FUNCTIONS_TOKEN is set.');
-    }
-    
-    console.log(`Attempting manual configuration with siteID: ${siteID} and token: ${token ? 'available' : 'missing'}`);
-    
-    try {
-      // Try with both siteID and token as required by the library
-      return getStore(storeName, { siteID, token });
-    } catch (manualError) {
-      console.error(`Manual configuration also failed: ${manualError.message}`);
-      throw new Error(`Failed to initialize Netlify Blobs store "${storeName}". Original error: ${error.message}. Manual configuration error: ${manualError.message}`);
-    }
+    console.error(`Failed to get store "${storeName}": ${error.message}`);
+    throw new Error(`Failed to initialize Netlify Blobs store "${storeName}": ${error.message}`);
   }
 }
 
 // Initialize stores
-export const getUsersStore = (context) => {
+export const getUsersStore = () => {
   if (isLocalDev) {
     return {
       get: async (key, options = {}) => {
@@ -134,10 +111,10 @@ export const getUsersStore = (context) => {
       }
     };
   }
-  return getNetlifyStore('users', context);
+  return getNetlifyStore('users');
 };
 
-export const getSessionsStore = (context) => {
+export const getSessionsStore = () => {
   if (isLocalDev) {
     return {
       get: async (key, options = {}) => {
@@ -154,12 +131,12 @@ export const getSessionsStore = (context) => {
       }
     };
   }
-  return getNetlifyStore('sessions', context);
+  return getNetlifyStore('sessions');
 };
 
 // User operations
-export async function createUser(context, userData) {
-  const usersStore = getUsersStore(context);
+export async function createUser(userData) {
+  const usersStore = getUsersStore();
   const user = {
     id: crypto.randomUUID(),
     ...userData,
@@ -181,24 +158,24 @@ export async function createUser(context, userData) {
   return user;
 }
 
-export async function getUserByWallet(context, walletAddress) {
-  const usersStore = getUsersStore(context);
+export async function getUserByWallet(walletAddress) {
+  const usersStore = getUsersStore();
   return await usersStore.get(`wallet:${walletAddress}`, { type: 'json' });
 }
 
-export async function getUserByUsername(context, username) {
-  const usersStore = getUsersStore(context);
+export async function getUserByUsername(username) {
+  const usersStore = getUsersStore();
   return await usersStore.get(`username:${username}`, { type: 'json' });
 }
 
-export async function getUserById(context, userId) {
-  const usersStore = getUsersStore(context);
+export async function getUserById(userId) {
+  const usersStore = getUsersStore();
   return await usersStore.get(`id:${userId}`, { type: 'json' });
 }
 
-export async function updateUser(context, userId, updates) {
-  const usersStore = getUsersStore(context);
-  const user = await getUserById(context, userId);
+export async function updateUser(userId, updates) {
+  const usersStore = getUsersStore();
+  const user = await getUserById(userId);
   
   if (!user) {
     throw new Error('User not found');
@@ -226,8 +203,8 @@ export async function updateUser(context, userId, updates) {
 }
 
 // Session operations
-export async function createSession(context, userId, token) {
-  const sessionsStore = getSessionsStore(context);
+export async function createSession(userId, token) {
+  const sessionsStore = getSessionsStore();
   const session = {
     id: crypto.randomUUID(),
     user_id: userId,
@@ -240,8 +217,8 @@ export async function createSession(context, userId, token) {
   return session;
 }
 
-export async function getSession(context, token) {
-  const sessionsStore = getSessionsStore(context);
+export async function getSession(token) {
+  const sessionsStore = getSessionsStore();
   const session = await sessionsStore.get(token, { type: 'json' });
   
   if (!session) return null;
@@ -255,15 +232,15 @@ export async function getSession(context, token) {
   return session;
 }
 
-export async function deleteSession(context, token) {
-  const sessionsStore = getSessionsStore(context);
+export async function deleteSession(token) {
+  const sessionsStore = getSessionsStore();
   await sessionsStore.delete(token);
 }
 
 // Token operations
-export async function earnTokens(context, userId, amount, action = 'Activity') {
+export async function earnTokens(userId, amount, action = 'Activity') {
   const DAILY_TOKEN_LIMIT = 100;
-  const user = await getUserById(context, userId);
+  const user = await getUserById(userId);
   
   if (!user) {
     throw new Error('User not found');
@@ -288,7 +265,7 @@ export async function earnTokens(context, userId, amount, action = 'Activity') {
   }
   
   // Update user with new token amounts
-  const updatedUser = await updateUser(context, userId, {
+  const updatedUser = await updateUser(userId, {
     token_balance: (user.token_balance || 0) + amount,
     total_tokens_earned: (user.total_tokens_earned || 0) + amount,
     daily_tokens_earned: dailyTokensEarned + amount,
@@ -305,7 +282,7 @@ export async function earnTokens(context, userId, amount, action = 'Activity') {
     created_at: new Date().toISOString()
   };
   
-  const usersStore = getUsersStore(context);
+  const usersStore = getUsersStore();
   const userTransactions = await usersStore.get(`transactions:${userId}`, { type: 'json' }) || [];
   userTransactions.unshift(transaction);
   
@@ -332,7 +309,7 @@ export async function getUserTokenData(context, userId) {
     throw new Error('User not found');
   }
   
-  const usersStore = getUsersStore(context);
+  const usersStore = getUsersStore();
   const transactions = await usersStore.get(`transactions:${userId}`, { type: 'json' }) || [];
   
   const today = new Date().toISOString().split('T')[0];
@@ -345,7 +322,7 @@ export async function getUserTokenData(context, userId) {
   if (lastEarnDate !== today) {
     dailyTokensEarned = 0;
     // Persist the daily reset to the database
-    updatedUser = await updateUser(context, userId, {
+    updatedUser = await updateUser(userId, {
       daily_tokens_earned: 0,
       last_token_earn_date: new Date().toISOString()
     });

@@ -11,7 +11,7 @@ const earnTokensRateLimit = createRateLimiter({
   message: 'Too many token earning requests. Please wait a moment.'
 });
 
-export async function handler(event, context) {
+export default async function handler(req, context) {
   const response = { statusCode: 200, headers: {}, body: '' };
   
   try {
@@ -19,25 +19,25 @@ export async function handler(event, context) {
     applyCors(response);
     
     // Handle preflight requests
-    if (event.httpMethod === 'OPTIONS') {
+    if (req.method === 'OPTIONS') {
       return response;
     }
     
     // Only allow POST requests
-    if (event.httpMethod !== 'POST') {
+    if (req.method !== 'POST') {
       response.statusCode = 405;
       response.body = JSON.stringify({ error: 'Method not allowed' });
       return response;
     }
     
     // Apply rate limiting
-    const rateLimitResult = await earnTokensRateLimit(event);
+    const rateLimitResult = await earnTokensRateLimit(req);
     if (rateLimitResult) {
       return rateLimitResult;
     }
     
     // Validate authentication
-    const authResult = await validateAuthToken(event, context);
+    const authResult = await validateAuthToken(req, context);
     if (!authResult.valid) {
       response.statusCode = 401;
       response.body = JSON.stringify({ error: 'Unauthorized' });
@@ -47,7 +47,7 @@ export async function handler(event, context) {
     // Parse and validate request body
     let requestBody;
     try {
-      requestBody = JSON.parse(event.body || '{}');
+      requestBody = await req.json();
     } catch (error) {
       response.statusCode = 400;
       response.body = JSON.stringify({ error: 'Invalid JSON in request body' });
@@ -72,7 +72,7 @@ export async function handler(event, context) {
     const { amount, action = 'Activity' } = requestBody;
     
     // Earn tokens for the user
-    const result = await earnTokens(context, authResult.user.id, amount, action);
+    const result = await earnTokens(authResult.user.id, amount, action);
     
     response.body = JSON.stringify({
       success: true,

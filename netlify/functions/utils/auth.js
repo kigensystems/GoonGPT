@@ -2,9 +2,9 @@
 
 import { getSession, getUserById } from './database.js';
 
-export async function requireAuth(event, context) {
+export async function requireAuth(req, context) {
   // Extract token from Authorization header
-  const authHeader = event.headers.authorization || event.headers.Authorization;
+  const authHeader = req.headers.get('authorization') || req.headers.get('Authorization');
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return {
@@ -32,7 +32,7 @@ export async function requireAuth(event, context) {
   
   try {
     // Verify token and get session
-    const session = await getSession(context, token);
+    const session = await getSession(token);
     
     if (!session) {
       return {
@@ -58,7 +58,7 @@ export async function requireAuth(event, context) {
     }
     
     // Get user data
-    const user = await getUserById(context, session.user_id);
+    const user = await getUserById(session.user_id);
     
     // Return null to indicate success, along with user info
     return {
@@ -81,28 +81,28 @@ export async function requireAuth(event, context) {
 
 // Wrapper to make endpoints require authentication
 export function withAuth(handler) {
-  return async (event, context) => {
+  return async (req, context) => {
     // Check authentication
-    const authResult = await requireAuth(event, context);
+    const authResult = await requireAuth(req, context);
     
     // If auth failed, return the error response
     if (authResult.statusCode) {
       return authResult;
     }
     
-    // Add user info to event context
-    event.userId = authResult.userId;
-    event.session = authResult.session;
+    // Add user info to req context
+    req.userId = authResult.userId;
+    req.session = authResult.session;
     
     // Call the actual handler
-    return handler(event, context);
+    return handler(req, context);
   };
 }
 
 // Simplified auth validation function for use in API endpoints
-export async function validateAuthToken(event, context) {
+export async function validateAuthToken(req, context) {
   // Extract token from Authorization header
-  const authHeader = event.headers.authorization || event.headers.Authorization;
+  const authHeader = req.headers.get('authorization') || req.headers.get('Authorization');
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return { valid: false, error: 'Missing or invalid authorization header' };
@@ -116,7 +116,7 @@ export async function validateAuthToken(event, context) {
   
   try {
     // Verify token and get session
-    const session = await getSession(context, token);
+    const session = await getSession(token);
     
     if (!session) {
       return { valid: false, error: 'Invalid or expired token' };
@@ -128,7 +128,7 @@ export async function validateAuthToken(event, context) {
     }
     
     // Get user data
-    const user = await getUserById(context, session.user_id);
+    const user = await getUserById(session.user_id);
     
     if (!user) {
       return { valid: false, error: 'User not found' };

@@ -1,8 +1,8 @@
 import crypto from 'crypto';
 import { getUserByWallet, getUserByUsername, createUser, createSession } from './utils/database.js';
 
-export async function handler(event, context) {
-  if (event.httpMethod !== 'POST') {
+export default async function handler(req, context) {
+  if (req.method !== 'POST') {
     return {
       statusCode: 405,
       body: JSON.stringify({ error: 'Method not allowed' })
@@ -10,7 +10,7 @@ export async function handler(event, context) {
   }
 
   try {
-    const { wallet_address, username, email, profile_picture } = JSON.parse(event.body);
+    const { wallet_address, username, email, profile_picture } = await req.json();
 
     if (!wallet_address || !username) {
       return {
@@ -42,7 +42,7 @@ export async function handler(event, context) {
     }
 
     // Check if username already exists
-    const existingUsername = await getUserByUsername(context, username);
+    const existingUsername = await getUserByUsername(username);
     if (existingUsername) {
       return {
         statusCode: 409,
@@ -51,7 +51,7 @@ export async function handler(event, context) {
     }
 
     // Check if wallet already registered
-    const existingWallet = await getUserByWallet(context, wallet_address);
+    const existingWallet = await getUserByWallet(wallet_address);
     if (existingWallet) {
       return {
         statusCode: 409,
@@ -60,7 +60,7 @@ export async function handler(event, context) {
     }
 
     // Create user
-    const user = await createUser(context, {
+    const user = await createUser({
       wallet_address,
       username,
       email: email || null,
@@ -69,7 +69,7 @@ export async function handler(event, context) {
 
     // Generate session token
     const token = crypto.randomBytes(32).toString('hex');
-    const session = await createSession(context, user.id, token);
+    const session = await createSession(user.id, token);
 
     return {
       statusCode: 201,

@@ -1,7 +1,7 @@
 // Status check endpoint for video generation using track_id
 // Retrieves status from Netlify Blobs storage
 
-export const handler = async (event, context) => {
+export default async function handler(req, context) {
   // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -10,32 +10,30 @@ export const handler = async (event, context) => {
   };
 
   // Handle preflight OPTIONS request
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: '',
-    };
+  if (req.method === 'OPTIONS') {
+    return new Response('', {
+      status: 200,
+      headers
+    });
   }
 
-  if (event.httpMethod !== 'GET') {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
+  if (req.method !== 'GET') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers
+    });
   }
 
   try {
     // Get track_id from query parameters
-    const track_id = event.queryStringParameters?.track_id;
+    const url = new URL(req.url);
+    const track_id = url.searchParams.get('track_id');
 
     if (!track_id) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'track_id parameter is required' }),
-      };
+      return new Response(JSON.stringify({ error: 'track_id parameter is required' }), {
+        status: 400,
+        headers
+      });
     }
 
     // Retrieve status from Netlify Blobs
@@ -46,15 +44,14 @@ export const handler = async (event, context) => {
 
     if (!statusData) {
       // Status not found - either expired or doesn't exist
-      return {
-        statusCode: 404,
-        headers,
-        body: JSON.stringify({ 
-          error: 'Status not found',
-          track_id,
-          message: 'The video generation status may have expired or the track_id is invalid'
-        }),
-      };
+      return new Response(JSON.stringify({ 
+        error: 'Status not found',
+        track_id,
+        message: 'The video generation status may have expired or the track_id is invalid'
+      }), {
+        status: 404,
+        headers
+      });
     }
 
     // Calculate elapsed time
@@ -62,33 +59,31 @@ export const handler = async (event, context) => {
     const elapsed = Math.floor((Date.now() - created.getTime()) / 1000);
 
     // Return status data
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        success: true,
-        track_id,
-        status: statusData.status,
-        videoUrl: statusData.videoUrl || null,
-        eta: statusData.eta,
-        elapsed_seconds: elapsed,
-        error: statusData.error || null,
-        webhook_received: statusData.webhook_received || false,
-        updated_at: statusData.updated_at || statusData.created_at,
-        // Include fetchUrl as fallback for polling if webhook fails
-        fetchUrl: statusData.fetchUrl || null
-      }),
-    };
+    return new Response(JSON.stringify({
+      success: true,
+      track_id,
+      status: statusData.status,
+      videoUrl: statusData.videoUrl || null,
+      eta: statusData.eta,
+      elapsed_seconds: elapsed,
+      error: statusData.error || null,
+      webhook_received: statusData.webhook_received || false,
+      updated_at: statusData.updated_at || statusData.created_at,
+      // Include fetchUrl as fallback for polling if webhook fails
+      fetchUrl: statusData.fetchUrl || null
+    }), {
+      status: 200,
+      headers
+    });
 
   } catch (error) {
     console.error('Status check error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ 
-        error: 'Internal server error',
-        details: error.message
-      }),
-    };
+    return new Response(JSON.stringify({ 
+      error: 'Internal server error',
+      details: error.message
+    }), {
+      status: 500,
+      headers
+    });
   }
 };

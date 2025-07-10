@@ -10,11 +10,10 @@ export const handler = async (event, context) => {
   // Check for API key
   if (!process.env.MODELSLAB_API_KEY) {
     console.error('MODELSLAB_API_KEY is not set');
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: 'Server configuration error: API key not found' }),
-    };
+    return new Response(JSON.stringify({ error: 'Server configuration error: API key not found' }), {
+      status: 500,
+      headers
+    });
   }
 
   // Handle preflight OPTIONS request
@@ -38,11 +37,10 @@ export const handler = async (event, context) => {
     const { fetch_url } = JSON.parse(event.body);
 
     if (!fetch_url) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'fetch_url is required' }),
-      };
+      return new Response(JSON.stringify({ error: 'fetch_url is required' }), {
+        status: 400,
+        headers
+      });
     }
 
     // Call ModelsLab fetch API
@@ -61,52 +59,48 @@ export const handler = async (event, context) => {
 
     if (!response.ok) {
       console.error('ModelsLab API error:', data);
-      return {
-        statusCode: response.status,
-        headers,
-        body: JSON.stringify({ 
-          error: data.message || data.error || 'Video fetch failed',
-          details: data
-        }),
-      };
+      return new Response(JSON.stringify({ 
+        error: data.message || data.error || 'Video fetch failed',
+        details: data
+      }), {
+        status: response.status,
+        headers
+      });
     }
 
     // Check if still processing
     if (data.status === 'processing') {
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          status: 'processing',
-          eta: data.eta,
-          message: data.message,
-          meta: data
-        }),
-      };
+      return new Response(JSON.stringify({
+        success: true,
+        status: 'processing',
+        eta: data.eta,
+        message: data.message,
+        meta: data
+      }), {
+        status: 200,
+        headers
+      });
     }
 
     // Return the completed video
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        success: true,
-        status: 'completed',
-        videoUrl: data.output?.[0] || data.video_url || data.url || data.video || null,
-        meta: data
-      }),
-    };
+    return new Response(JSON.stringify({
+      success: true,
+      status: 'completed',
+      videoUrl: data.output?.[0] || data.video_url || data.url || data.video || null,
+      meta: data
+    }), {
+      status: 200,
+      headers
+    });
 
   } catch (error) {
     console.error('Video fetch error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ 
-        error: 'Internal server error',
-        details: error.message
-      }),
-    };
+    return new Response(JSON.stringify({ 
+      error: 'Internal server error',
+      details: error.message
+    }), {
+      status: 500,
+      headers
+    });
   }
 };

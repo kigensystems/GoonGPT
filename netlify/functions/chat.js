@@ -4,11 +4,14 @@
 import { aiRateLimiter } from './utils/rateLimiter.js';
 import { validateChatInput } from './utils/validation.js';
 
-export async function handler(event) {
+export default async function handler(req, context) {
   // Apply rate limiting
-  const rateLimitResponse = await aiRateLimiter(event);
+  const rateLimitResponse = await aiRateLimiter(req);
   if (rateLimitResponse) {
-    return rateLimitResponse;
+    return new Response(rateLimitResponse.body, {
+      status: rateLimitResponse.statusCode,
+      headers: rateLimitResponse.headers
+    });
   }
   // Check for required environment variables
   console.log('Environment check:', {
@@ -19,22 +22,22 @@ export async function handler(event) {
   
   if (!process.env.MODELSLAB_API_KEY) {
     console.error('MODELSLAB_API_KEY is not set');
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Server configuration error' }),
-    };
+    return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   // Only allow POST requests
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   // Get CORS headers based on origin
-  const origin = event.headers.origin || event.headers.Origin;
+  const origin = req.headers.get('origin') || req.headers.get('Origin');
   const headers = {
     'Access-Control-Allow-Origin': origin || 'http://localhost:5173',
     'Access-Control-Allow-Headers': 'Content-Type',
@@ -42,25 +45,23 @@ export async function handler(event) {
   };
 
   // Handle preflight
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: '',
-    };
+  if (req.method === 'OPTIONS') {
+    return new Response('', {
+      status: 200,
+      headers
+    });
   }
 
   try {
-    const { messages, model = 'ModelsLab/Llama-3.1-8b-Uncensored-Dare', temperature = 0.7, max_tokens = 1000, stream = false } = JSON.parse(event.body);
+    const { messages, model = 'ModelsLab/Llama-3.1-8b-Uncensored-Dare', temperature = 0.7, max_tokens = 1000, stream = false } = await req.json();
     
     // Validate input
     const validation = validateChatInput(messages);
     if (!validation.valid) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: validation.error }),
-      };
+      return new Response(JSON.stringify({ error: validation.error }), {
+        status: 400,
+        headers
+      });
     }
 
     console.log('Chat completion request:', { model, temperature, max_tokens, messageCount: messages.length });
@@ -102,16 +103,15 @@ export async function handler(event) {
     
     // Handle OpenAI-compatible response format
     if (result.choices && result.choices.length > 0) {
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          choices: result.choices,
-          usage: result.usage || {},
-          model: result.model || model
-        }),
-      };
+      return new Response(JSON.stringify({
+        success: true,
+        choices: result.choices,
+        usage: result.usage || {},
+        model: result.model || model
+      }), {
+        status: 200,
+        headers
+      });
     }
     
     // Handle unexpected response format
@@ -119,13 +119,12 @@ export async function handler(event) {
 
   } catch (error) {
     console.error('Chat API error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ 
-        error: 'Failed to generate chat completion',
-        details: error.message 
-      }),
-    };
+    return new Response(JSON.stringify({ 
+      error: 'Failed to generate chat completion',
+      details: error.message 
+    }), {
+      status: 500,
+      headers
+    });
   }
 }

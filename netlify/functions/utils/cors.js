@@ -26,46 +26,89 @@ export function getCorsHeaders(origin) {
 }
 
 export function createCorsHandler(handler) {
-  return async (event, context) => {
-    const origin = event.headers.origin || event.headers.Origin;
+  return async (requestObj, context) => {
+    // Support both v1 (event) and v2 (req) request objects
+    let origin, method;
+    if (requestObj.headers && typeof requestObj.headers.get === 'function') {
+      // Functions API v2 - req object
+      origin = requestObj.headers.get('origin') || requestObj.headers.get('Origin');
+      method = requestObj.method;
+    } else {
+      // Functions API v1 - event object
+      origin = requestObj.headers.origin || requestObj.headers.Origin;
+      method = requestObj.httpMethod;
+    }
+    
     const corsHeaders = getCorsHeaders(origin);
     
     // Handle preflight requests
-    if (event.httpMethod === 'OPTIONS') {
-      return {
-        statusCode: 200,
-        headers: corsHeaders,
-        body: ''
-      };
+    if (method === 'OPTIONS') {
+      // Return appropriate format based on API version
+      if (requestObj.headers && typeof requestObj.headers.get === 'function') {
+        // v2 format
+        return new Response('', {
+          status: 200,
+          headers: corsHeaders
+        });
+      } else {
+        // v1 format
+        return {
+          statusCode: 200,
+          headers: corsHeaders,
+          body: ''
+        };
+      }
     }
     
     try {
       // Call the actual handler
-      const response = await handler(event, context);
+      const response = await handler(requestObj, context);
       
-      // Add CORS headers to response
-      return {
-        ...response,
-        headers: {
-          ...response.headers,
-          ...corsHeaders
-        }
-      };
+      // Handle response format based on what handler returns
+      if (response instanceof Response) {
+        // v2 Response object - add headers
+        const newHeaders = new Headers(response.headers);
+        Object.entries(corsHeaders).forEach(([key, value]) => {
+          newHeaders.set(key, value);
+        });
+        return new Response(response.body, {
+          status: response.status,
+          headers: newHeaders
+        });
+      } else {
+        // v1 response object - merge headers
+        return {
+          ...response,
+          headers: {
+            ...response.headers,
+            ...corsHeaders
+          }
+        };
+      }
     } catch (error) {
       console.error('Handler error:', error);
-      return {
-        statusCode: 500,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'Internal server error' })
-      };
+      
+      // Return error in appropriate format
+      if (requestObj.headers && typeof requestObj.headers.get === 'function') {
+        // v2 format
+        return new Response(JSON.stringify({ error: 'Internal server error' }), {
+          status: 500,
+          headers: corsHeaders
+        });
+      } else {
+        // v1 format
+        return {
+          statusCode: 500,
+          headers: corsHeaders,
+          body: JSON.stringify({ error: 'Internal server error' })
+        };
+      }
     }
   };
 }
 
-// Helper function to apply CORS headers to a response object
-export function applyCors(response) {
-  // Get origin from current request (this would need to be passed in, but for now use production domain)
-  const origin = 'https://goongpt.pro'; // Default to production domain
+// Helper function to apply CORS headers to a response object (v1 format)
+export function applyCors(response, origin = 'https://goongpt.pro') {
   const corsHeaders = getCorsHeaders(origin);
   
   // Merge CORS headers into response
@@ -73,4 +116,9 @@ export function applyCors(response) {
     ...response.headers,
     ...corsHeaders
   };
+}
+
+// Helper function to get CORS headers for v2 Response objects
+export function getCorsHeadersForV2(origin = 'https://goongpt.pro') {
+  return getCorsHeaders(origin);
 }

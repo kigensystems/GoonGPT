@@ -10,7 +10,7 @@ const getTokenDataRateLimit = createRateLimiter({
   message: 'Too many token data requests. Please wait a moment.'
 });
 
-export async function handler(event, context) {
+export default async function handler(req, context) {
   const response = { statusCode: 200, headers: {}, body: '' };
   
   try {
@@ -18,25 +18,25 @@ export async function handler(event, context) {
     applyCors(response);
     
     // Handle preflight requests
-    if (event.httpMethod === 'OPTIONS') {
+    if (req.method === 'OPTIONS') {
       return response;
     }
     
     // Only allow GET requests
-    if (event.httpMethod !== 'GET') {
+    if (req.method !== 'GET') {
       response.statusCode = 405;
       response.body = JSON.stringify({ error: 'Method not allowed' });
       return response;
     }
     
     // Apply rate limiting
-    const rateLimitResult = await getTokenDataRateLimit(event);
+    const rateLimitResult = await getTokenDataRateLimit(req);
     if (rateLimitResult) {
       return rateLimitResult;
     }
     
     // Validate authentication
-    const authResult = await validateAuthToken(event, context);
+    const authResult = await validateAuthToken(req, context);
     if (!authResult.valid) {
       response.statusCode = 401;
       response.body = JSON.stringify({ error: 'Unauthorized' });
@@ -44,7 +44,7 @@ export async function handler(event, context) {
     }
     
     // Get user token data
-    const tokenData = await getUserTokenData(context, authResult.user.id);
+    const tokenData = await getUserTokenData(authResult.user.id);
     
     response.body = JSON.stringify({
       success: true,

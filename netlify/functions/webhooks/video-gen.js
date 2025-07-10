@@ -1,7 +1,7 @@
 // Webhook handler for ModelsLab video generation callbacks
 // Stores video generation status updates in Netlify Blobs
 
-export const handler = async (event, context) => {
+export default async function handler(req, context) {
   // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -10,25 +10,23 @@ export const handler = async (event, context) => {
   };
 
   // Handle preflight OPTIONS request
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: '',
-    };
+  if (req.method === 'OPTIONS') {
+    return new Response('', {
+      status: 200,
+      headers
+    });
   }
 
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers
+    });
   }
 
   try {
     // Parse webhook payload from ModelsLab
-    const webhookData = JSON.parse(event.body);
+    const webhookData = await req.json();
     console.log('Webhook received:', {
       id: webhookData.id,
       status: webhookData.status,
@@ -42,11 +40,10 @@ export const handler = async (event, context) => {
 
     if (!track_id) {
       console.error('No track_id in webhook payload');
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'Missing track_id' }),
-      };
+      return new Response(JSON.stringify({ error: 'Missing track_id' }), {
+        status: 400,
+        headers
+      });
     }
 
     // Store status update in Netlify Blobs
@@ -85,25 +82,23 @@ export const handler = async (event, context) => {
     console.log(`Stored status update for track_id: ${track_id}, status: ${status}`);
 
     // Return success response to ModelsLab
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ 
-        success: true,
-        message: 'Webhook processed successfully',
-        track_id
-      }),
-    };
+    return new Response(JSON.stringify({ 
+      success: true,
+      message: 'Webhook processed successfully',
+      track_id
+    }), {
+      status: 200,
+      headers
+    });
 
   } catch (error) {
     console.error('Webhook processing error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ 
-        error: 'Internal server error',
-        details: error.message
-      }),
-    };
+    return new Response(JSON.stringify({ 
+      error: 'Internal server error',
+      details: error.message
+    }), {
+      status: 500,
+      headers
+    });
   }
 };

@@ -18,16 +18,24 @@ export function createRateLimiter(options = {}) {
     windowMs = 60000, // 1 minute default
     maxRequests = 10, // 10 requests per window default
     message = 'Too many requests, please try again later',
-    keyGenerator = (event) => {
-      // Use IP address as the key, fallback to a generic key
-      return event.headers['x-forwarded-for'] || 
-             event.headers['x-real-ip'] || 
-             'anonymous';
+    keyGenerator = (requestObj) => {
+      // Support both v1 (event) and v2 (req) request objects
+      let ip;
+      if (requestObj.headers && typeof requestObj.headers.get === 'function') {
+        // Functions API v2 - req object with Headers interface
+        ip = requestObj.headers.get('x-forwarded-for') || 
+             requestObj.headers.get('x-real-ip');
+      } else if (requestObj.headers) {
+        // Functions API v1 - event object with plain headers
+        ip = requestObj.headers['x-forwarded-for'] || 
+             requestObj.headers['x-real-ip'];
+      }
+      return ip || 'anonymous';
     }
   } = options;
 
-  return async (event) => {
-    const key = keyGenerator(event);
+  return async (requestObj) => {
+    const key = keyGenerator(requestObj);
     const now = Date.now();
     
     let userData = requestCounts.get(key);

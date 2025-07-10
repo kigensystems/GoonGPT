@@ -1,7 +1,7 @@
 import { getSession, getUserByUsername, updateUser } from './utils/database.js';
 
-export async function handler(event, context) {
-  if (event.httpMethod !== 'PUT') {
+export default async function handler(req, context) {
+  if (req.method !== 'PUT') {
     return {
       statusCode: 405,
       body: JSON.stringify({ error: 'Method not allowed' })
@@ -9,7 +9,7 @@ export async function handler(event, context) {
   }
 
   try {
-    const token = event.headers.authorization?.replace('Bearer ', '');
+    const token = req.headers.get('authorization')?.replace('Bearer ', '');
     
     if (!token) {
       return {
@@ -19,7 +19,7 @@ export async function handler(event, context) {
     }
 
     // Verify session
-    const session = await getSession(context, token);
+    const session = await getSession(token);
     if (!session) {
       return {
         statusCode: 401,
@@ -27,7 +27,7 @@ export async function handler(event, context) {
       };
     }
 
-    const { username, email, profile_picture } = JSON.parse(event.body);
+    const { username, email, profile_picture } = await req.json();
     const updates = {};
 
     // Validate and add updates
@@ -43,7 +43,7 @@ export async function handler(event, context) {
       }
 
       // Check if username already taken by another user
-      const existingUser = await getUserByUsername(context, username);
+      const existingUser = await getUserByUsername(username);
       if (existingUser && existingUser.id !== session.user_id) {
         return {
           statusCode: 409,
@@ -79,7 +79,7 @@ export async function handler(event, context) {
     }
 
     // Update user
-    const updatedUser = await updateUser(context, session.user_id, updates);
+    const updatedUser = await updateUser(session.user_id, updates);
 
     return {
       statusCode: 200,
