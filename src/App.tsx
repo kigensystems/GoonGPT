@@ -13,12 +13,10 @@ import { DeepFakeInput } from './components/DeepFakeInput'
 import { ChatContainer } from './components/ChatContainer'
 import { VideoContainer } from './components/VideoContainer'
 import { ImageContainer } from './components/ImageContainer'
-import { ModeToggle } from './components/ModeToggle'
 import { VideoInput } from './components/VideoInput'
 import { LegalPage } from './components/LegalPage'
 import { EarnTokensPage } from './components/EarnTokensPage'
 import { ErrorBoundary } from './components/ErrorBoundary'
-import { AIErrorBoundary } from './components/AIErrorBoundary'
 
 interface Message {
   id: string
@@ -624,128 +622,12 @@ function AppContent() {
               )}
             </div>
           </div>
-        ) : mode === 'chat' ? (
-          <AIErrorBoundary mode="chat">
-            <ChatContainer isActive={true} />
-          </AIErrorBoundary>
         ) : (
-          <AIErrorBoundary mode={mode}>
-            <div className="flex-1 overflow-y-auto">
-            <div className="max-w-3xl mx-auto py-8 px-4">
-              {messages.map((message) => (
-                <div key={message.id} className={`mb-6 ${message.role === 'user' ? 'flex justify-end' : ''}`}>
-                  <div className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      message.role === 'user' ? 'bg-accent' : 'bg-accent'
-                    }`}>
-                      {message.role === 'user' ? (
-                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                        </svg>
-                      ) : (
-                        <span className="text-white font-bold text-sm">G</span>
-                      )}
-                    </div>
-                    <div className={`flex-1 ${message.role === 'user' ? 'text-right' : ''}`}>
-                      <div className="font-semibold text-sm mb-1">
-                        {message.role === 'user' ? 'You' : 'GoonGPT'}
-                      </div>
-                      <div className="text-text-secondary">
-                        {message.content}
-                        {message.imageUrl && (
-                          <img 
-                            src={message.imageUrl} 
-                            alt="Generated image" 
-                            className="mt-4 rounded-lg max-w-md"
-                          />
-                        )}
-                        {message.videoUrl && (
-                          <video 
-                            src={message.videoUrl} 
-                            controls
-                            className="mt-4 rounded-lg max-w-md"
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="mb-6">
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
-                      <span className="text-white font-bold text-sm">G</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-semibold text-sm mb-1">GoonGPT</div>
-                      <div className="flex gap-1">
-                        <div className="w-2 h-2 bg-text-muted rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                        <div className="w-2 h-2 bg-text-muted rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                        <div className="w-2 h-2 bg-text-muted rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          </AIErrorBoundary>
-        )}
-
-        {/* Input Area for image and deepfake modes */}
-        {messages.length > 0 && (mode === 'image' || mode === 'deepfake') && (
-          <div className="border-t border-border">
-            <div className="max-w-3xl mx-auto p-4">
-              {/* Mode Toggle */}
-              <div className="flex justify-center mb-4">
-                <ModeToggle 
-                  currentMode={mode} 
-                  onModeChange={setMode}
-                />
-              </div>
-              
-
-              
-              {mode === 'deepfake' ? (
-                <DeepFakeInput
-                  onSend={sendDeepfake}
-                  baseImage={deepfakeBaseImage}
-                  faceImage={deepfakeFaceImage}
-                  onBaseImageUpload={setDeepfakeBaseImage}
-                  onFaceImageUpload={setDeepfakeFaceImage}
-                  isLoading={isLoading}
-                />
-              ) : (
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault()
-                        sendMessage()
-                      }
-                    }}
-                    placeholder={mode === 'image' ? "Describe the image you want to generate" : "Ask anything"}
-                    className="w-full px-6 py-4 pr-16 bg-surface rounded-3xl focus:outline-none focus:ring-2 focus:ring-accent placeholder-text-muted text-lg"
-                  />
-                  <button
-                    onClick={sendMessage}
-                    disabled={isLoading || !input.trim()}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center justify-center w-9 h-9 bg-accent disabled:bg-gray-600 disabled:opacity-50 rounded-full hover:bg-accent/90 transition-all duration-200 shadow-lg hover:shadow-xl z-10 cursor-pointer pointer-events-auto"
-                  >
-                    {isLoading ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14m0 0l-7-7m7 7l-7 7" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-              )}
+          // Fallback for any other cases
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold text-text-primary mb-2">Loading...</h2>
+              <p className="text-text-secondary">Please wait while we prepare your content.</p>
             </div>
           </div>
         )}
