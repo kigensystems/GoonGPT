@@ -59,18 +59,13 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
     const interval = setInterval(refreshData, 2000) // Check every 2 seconds
     
     return () => clearInterval(interval)
-  }, [tokenData.balance, tokenData.transactions.length, serverData?.token_balance, serverData?.transactions.length, onUpdate])
+  }, [tokenData.balance, tokenData.transactions.length, serverData?.token_balance, onUpdate])
   
   // Use appropriate data source
   const displayData = useServerData && serverData ? {
     balance: serverData.token_balance,
-    dailyEarned: serverData.daily_tokens_earned,
-    transactions: serverData.transactions.map(tx => ({
-      id: tx.id,
-      action: tx.action,
-      amount: tx.amount,
-      timestamp: tx.created_at
-    }))
+    dailyEarned: 0, // No longer tracking daily earnings
+    transactions: [] // No longer tracking transactions
   } : tokenData
   
   const currentTier = getCurrentTier(displayData.balance)
@@ -168,7 +163,7 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
           {formatTokenAmount(displayData.balance)}
         </div>
         <div className="text-sm text-text-muted mt-3">
-          Daily Earned: {displayData.dailyEarned}/{useServerData && serverData ? serverData.daily_limit : 100} Tokens
+          Total Earned: {useServerData && serverData ? serverData.total_tokens_earned : displayData.dailyEarned} Tokens
         </div>
         
         {/* Redeem Button */}
@@ -279,12 +274,18 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
         <div className="border-t border-border pt-4">
           <h4 className="text-sm font-medium text-text-secondary mb-3">Recent Activity</h4>
           <div className="space-y-2 max-h-32 overflow-y-auto">
-            {displayData.transactions.slice(0, 5).map((tx) => (
-              <div key={tx.id} className="flex justify-between text-sm">
-                <span className="text-text-muted">{tx.action}</span>
-                <span className="text-accent">+{tx.amount} Tokens</span>
+            {displayData.transactions.length > 0 ? (
+              displayData.transactions.slice(0, 5).map((tx: any) => (
+                <div key={tx.id} className="flex justify-between text-sm">
+                  <span className="text-text-muted">{tx.action}</span>
+                  <span className="text-accent">+{tx.amount} Tokens</span>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-text-muted text-center py-2">
+                No activity yet
               </div>
-            ))}
+            )}
           </div>
         </div>
       )}
