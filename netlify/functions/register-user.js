@@ -3,60 +3,60 @@ import { getUserByWallet, getUserByUsername, createUser, createSession } from '.
 
 export default async function handler(req, context) {
   if (req.method !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method not allowed' })
-    };
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   try {
     const { wallet_address, username, email, profile_picture } = await req.json();
 
     if (!wallet_address || !username) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Wallet address and username are required' })
-      };
+      return new Response(JSON.stringify({ error: 'Wallet address and username are required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // Validate username (alphanumeric, underscores, 3-20 chars)
     const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
     if (!usernameRegex.test(username)) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ 
-          error: 'Username must be 3-20 characters and contain only letters, numbers, and underscores' 
-        })
-      };
+      return new Response(JSON.stringify({ 
+        error: 'Username must be 3-20 characters and contain only letters, numbers, and underscores' 
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // Validate email if provided
     if (email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        return {
-          statusCode: 400,
-          body: JSON.stringify({ error: 'Invalid email format' })
-        };
+        return new Response(JSON.stringify({ error: 'Invalid email format' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
       }
     }
 
     // Check if username already exists
     const existingUsername = await getUserByUsername(username);
     if (existingUsername) {
-      return {
-        statusCode: 409,
-        body: JSON.stringify({ error: 'Username already taken' })
-      };
+      return new Response(JSON.stringify({ error: 'Username already taken' }), {
+        status: 409,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // Check if wallet already registered
     const existingWallet = await getUserByWallet(wallet_address);
     if (existingWallet) {
-      return {
-        statusCode: 409,
-        body: JSON.stringify({ error: 'Wallet already registered' })
-      };
+      return new Response(JSON.stringify({ error: 'Wallet already registered' }), {
+        status: 409,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // Create user
@@ -71,20 +71,20 @@ export default async function handler(req, context) {
     const token = crypto.randomBytes(32).toString('hex');
     const session = await createSession(user.id, token);
 
-    return {
-      statusCode: 201,
-      body: JSON.stringify({
-        user,
-        token,
-        expires_at: session.expires_at
-      })
-    };
+    return new Response(JSON.stringify({
+      user,
+      token,
+      expires_at: session.expires_at
+    }), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' }
+    });
 
   } catch (error) {
     console.error('Registration error:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Registration failed' })
-    };
+    return new Response(JSON.stringify({ error: 'Registration failed' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }

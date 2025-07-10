@@ -2,29 +2,29 @@ import { getSession, getUserByUsername, updateUser } from './utils/database.js';
 
 export default async function handler(req, context) {
   if (req.method !== 'PUT') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method not allowed' })
-    };
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   try {
     const token = req.headers.get('authorization')?.replace('Bearer ', '');
     
     if (!token) {
-      return {
-        statusCode: 401,
-        body: JSON.stringify({ error: 'No authorization token provided' })
-      };
+      return new Response(JSON.stringify({ error: 'No authorization token provided' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // Verify session
     const session = await getSession(token);
     if (!session) {
-      return {
-        statusCode: 401,
-        body: JSON.stringify({ error: 'Invalid or expired session' })
-      };
+      return new Response(JSON.stringify({ error: 'Invalid or expired session' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     const { username, email, profile_picture } = await req.json();
@@ -34,21 +34,21 @@ export default async function handler(req, context) {
     if (username !== undefined) {
       const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
       if (!usernameRegex.test(username)) {
-        return {
-          statusCode: 400,
-          body: JSON.stringify({ 
-            error: 'Username must be 3-20 characters and contain only letters, numbers, and underscores' 
-          })
-        };
+        return new Response(JSON.stringify({ 
+          error: 'Username must be 3-20 characters and contain only letters, numbers, and underscores' 
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
       }
 
       // Check if username already taken by another user
       const existingUser = await getUserByUsername(username);
       if (existingUser && existingUser.id !== session.user_id) {
-        return {
-          statusCode: 409,
-          body: JSON.stringify({ error: 'Username already taken' })
-        };
+        return new Response(JSON.stringify({ error: 'Username already taken' }), {
+          status: 409,
+          headers: { 'Content-Type': 'application/json' }
+        });
       }
 
       updates.username = username;
@@ -58,10 +58,10 @@ export default async function handler(req, context) {
       if (email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-          return {
-            statusCode: 400,
-            body: JSON.stringify({ error: 'Invalid email format' })
-          };
+          return new Response(JSON.stringify({ error: 'Invalid email format' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
         }
       }
       updates.email = email || null;
@@ -72,25 +72,25 @@ export default async function handler(req, context) {
     }
 
     if (Object.keys(updates).length === 0) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'No fields to update' })
-      };
+      return new Response(JSON.stringify({ error: 'No fields to update' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // Update user
     const updatedUser = await updateUser(session.user_id, updates);
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ user: updatedUser })
-    };
+    return new Response(JSON.stringify({ user: updatedUser }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
 
   } catch (error) {
     console.error('Update profile error:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to update profile' })
-    };
+    return new Response(JSON.stringify({ error: 'Failed to update profile' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }
