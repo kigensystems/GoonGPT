@@ -25,8 +25,7 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
       if (isAuthenticated()) {
         const newServerData = await getServerTokenData()
         if (newServerData) {
-          if (!serverData || newServerData.token_balance !== serverData.token_balance || 
-              newServerData.transactions.length !== serverData.transactions.length) {
+          if (!serverData || newServerData.token_balance !== serverData.token_balance) {
             if (!serverData || newServerData.token_balance !== serverData.token_balance) {
               setAnimateBalance(true)
               setTimeout(() => setAnimateBalance(false), 500)

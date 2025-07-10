@@ -8,11 +8,7 @@ export interface TokenTransaction {
 export interface ServerTokenData {
   token_balance: number
   total_tokens_earned: number
-  daily_tokens_earned: number
   credits_balance: number
-  daily_limit: number
-  daily_remaining: number
-  transactions: TokenTransaction[]
 }
 
 const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || '/.netlify/functions'
