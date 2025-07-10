@@ -4,23 +4,29 @@ import path from 'path';
 import crypto from 'crypto';
 
 // Check if we're in local development
-const isLocalDev = process.env.NODE_ENV !== 'production' && !process.env.NETLIFY;
+// In production, NETLIFY will be 'true' and AWS_LAMBDA_FUNCTION_NAME will be set
+const isLocalDev = !process.env.NETLIFY && !process.env.AWS_LAMBDA_FUNCTION_NAME && process.env.NODE_ENV !== 'production';
 
 // File-based storage for local development
-const DEV_STORAGE_DIR = path.join(process.cwd(), '.dev-storage');
-const USERS_FILE = path.join(DEV_STORAGE_DIR, 'users.json');
-const SESSIONS_FILE = path.join(DEV_STORAGE_DIR, 'sessions.json');
+const DEV_STORAGE_DIR = isLocalDev ? path.join(process.cwd(), '.dev-storage') : null;
+const USERS_FILE = isLocalDev ? path.join(DEV_STORAGE_DIR, 'users.json') : null;
+const SESSIONS_FILE = isLocalDev ? path.join(DEV_STORAGE_DIR, 'sessions.json') : null;
 
-// Ensure storage directory exists
-if (isLocalDev) {
-  if (!fs.existsSync(DEV_STORAGE_DIR)) {
-    fs.mkdirSync(DEV_STORAGE_DIR, { recursive: true });
+// Ensure storage directory exists (only in local dev)
+if (isLocalDev && DEV_STORAGE_DIR) {
+  try {
+    if (!fs.existsSync(DEV_STORAGE_DIR)) {
+      fs.mkdirSync(DEV_STORAGE_DIR, { recursive: true });
+    }
+  } catch (error) {
+    console.error('Failed to create dev storage directory:', error);
+    // Don't fail the entire module if directory creation fails
   }
 }
 
 // Load data from file
 function loadDevData(filename) {
-  if (!isLocalDev) return new Map();
+  if (!isLocalDev || !filename) return new Map();
   try {
     if (fs.existsSync(filename)) {
       const data = JSON.parse(fs.readFileSync(filename, 'utf8'));
@@ -34,7 +40,7 @@ function loadDevData(filename) {
 
 // Save data to file
 function saveDevData(filename, map) {
-  if (!isLocalDev) return;
+  if (!isLocalDev || !filename) return;
   try {
     const data = Object.fromEntries(map);
     fs.writeFileSync(filename, JSON.stringify(data, null, 2));
@@ -49,7 +55,7 @@ let devSessions = loadDevData(SESSIONS_FILE);
 
 // Reset function for development
 export function resetDevStorage() {
-  if (isLocalDev) {
+  if (isLocalDev && USERS_FILE && SESSIONS_FILE) {
     devUsers.clear();
     devSessions.clear();
     saveDevData(USERS_FILE, devUsers);
