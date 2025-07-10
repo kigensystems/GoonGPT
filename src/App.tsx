@@ -261,7 +261,7 @@ function AppContent() {
     <div className="flex flex-col h-screen bg-bg-main text-text-primary">
       {/* Header - Only show when not on profile page */}
       {currentView === 'chat' && (
-        <header className="flex items-center justify-between px-4 py-3 border-b border-border">
+        <header className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => {
