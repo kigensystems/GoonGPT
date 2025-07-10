@@ -14,16 +14,19 @@ export function PricingPage({ onBack, onNavigate, onNeedRegistration }: PricingP
     <div className="flex flex-col h-screen bg-bg-main text-text-primary">
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button 
             onClick={onBack}
-            className="hover:opacity-80 transition-opacity"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity px-2 py-1 rounded-lg"
           >
             <img 
               src="/GoonGPT-notext.png" 
               alt="GoonGPT Logo" 
-              className="h-12 w-auto"
+              className="h-14 w-auto"
             />
+            <span className="text-xl font-bold text-text-primary">
+              GoonGPT
+            </span>
           </button>
         </div>
         

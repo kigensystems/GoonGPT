@@ -278,6 +278,9 @@ function AppContent() {
               alt="GoonGPT Logo" 
               className="h-14 w-auto"
             />
+            <span className="text-xl font-bold text-text-primary">
+              GoonGPT
+            </span>
           </button>
         </div>
         
@@ -375,6 +378,7 @@ function AppContent() {
             setCurrentView('chat')
             setMode('chat')
           }}
+          onNavigate={(view) => setCurrentView(view)}
           onNeedRegistration={(wallet) => {
             setRegistrationWallet(wallet)
             setShowRegistration(true)

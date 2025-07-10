@@ -10,10 +10,11 @@ import { getMockTokenData, formatTokenAmount } from '../utils/mockTokens'
 interface EarnTokensPageProps {
   onBack: () => void
   onNavigateToChat: () => void
+  onNavigate?: (view: 'chat' | 'profile' | 'earn' | 'pricing') => void
   onNeedRegistration?: (wallet: string) => void
 }
 
-export function EarnTokensPage({ onBack, onNavigateToChat, onNeedRegistration }: EarnTokensPageProps) {
+export function EarnTokensPage({ onBack, onNavigateToChat, onNavigate, onNeedRegistration }: EarnTokensPageProps) {
   const { user, isAuthenticated, logout } = useAuth()
   const [refreshKey, setRefreshKey] = useState(0)
   
@@ -42,33 +43,71 @@ export function EarnTokensPage({ onBack, onNavigateToChat, onNeedRegistration }:
   return (
     <div className="min-h-screen bg-bg-main text-text-primary flex flex-col">
       {/* Header */}
-      <header className="border-b border-border px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={onBack}
-              className="text-text-muted hover:text-text-primary transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="text-2xl font-bold">Earn Tokens</h1>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            {isAuthenticated && user ? (
-              <UserDropdown 
-                user={user} 
-                onProfile={() => {}} 
-                onLogout={logout}
-              />
-            ) : (
-              <PhantomWalletConnect
-                onNeedRegistration={onNeedRegistration}
-              />
-            )}
-          </div>
+      <header className="flex items-center justify-between px-4 py-3 border-b border-border">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={onBack}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity px-2 py-1 rounded-lg"
+          >
+            <img 
+              src="/GoonGPT-notext.png" 
+              alt="GoonGPT Logo" 
+              className="h-14 w-auto"
+            />
+            <span className="text-xl font-bold text-text-primary">
+              GoonGPT
+            </span>
+          </button>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => onNavigate?.('pricing')}
+            className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
+          >
+            Pricing
+          </button>
+          <button
+            onClick={() => onNavigate?.('earn')}
+            className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
+          >
+            Earn Tokens
+          </button>
+          <a
+            href="https://x.com/Goon_GPT"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center w-10 h-10 text-text-primary hover:text-accent transition-colors"
+            title="Follow us on X"
+          >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+          </a>
+          <a
+            href="https://dexscreener.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center w-10 h-10 hover:opacity-80 transition-opacity"
+            title="View on DexScreener"
+          >
+            <img 
+              src="/dex-screener-seeklogo.svg" 
+              alt="DexScreener" 
+              className="w-5 h-5"
+            />
+          </a>
+          {isAuthenticated && user ? (
+            <UserDropdown 
+              user={user} 
+              onProfile={() => onNavigate?.('profile')} 
+              onLogout={logout}
+            />
+          ) : (
+            <PhantomWalletConnect
+              onNeedRegistration={onNeedRegistration}
+            />
+          )}
         </div>
       </header>
       
