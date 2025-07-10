@@ -3,6 +3,24 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 
+// Log available environment variables for debugging
+console.log('Netlify Blobs Environment Debug:', {
+  NETLIFY: process.env.NETLIFY,
+  NETLIFY_SITE_ID: process.env.NETLIFY_SITE_ID,
+  SITE_ID: process.env.SITE_ID,
+  DEPLOY_ID: process.env.DEPLOY_ID,
+  CONTEXT: process.env.CONTEXT,
+  AWS_LAMBDA_FUNCTION_NAME: process.env.AWS_LAMBDA_FUNCTION_NAME,
+  NODE_ENV: process.env.NODE_ENV,
+  // Check for any environment variables that might contain site ID
+  env_keys: Object.keys(process.env).filter(key => 
+    key.includes('SITE') || 
+    key.includes('NETLIFY') || 
+    key.includes('DEPLOY') ||
+    key.includes('CONTEXT')
+  )
+});
+
 // Check if we're in local development
 // In production, NETLIFY will be 'true' and AWS_LAMBDA_FUNCTION_NAME will be set
 const isLocalDev = !process.env.NETLIFY && !process.env.AWS_LAMBDA_FUNCTION_NAME && process.env.NODE_ENV !== 'production';
@@ -64,6 +82,34 @@ export function resetDevStorage() {
   }
 }
 
+// Robust store getter with fallback configuration
+function getNetlifyStore(storeName, context) {
+  try {
+    // First try with context (automatic configuration)
+    return getStore(storeName, context);
+  } catch (error) {
+    console.error(`Failed to get store with context: ${error.message}`);
+    
+    // Try manual configuration with environment variables
+    const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
+    
+    if (!siteID) {
+      console.error('No site ID found in environment variables');
+      throw new Error('Missing site ID for Netlify Blobs configuration. Please ensure NETLIFY_SITE_ID is set.');
+    }
+    
+    console.log(`Attempting manual configuration with siteID: ${siteID}`);
+    
+    try {
+      // Try with just siteID - token should be handled by the runtime
+      return getStore(storeName, { siteID });
+    } catch (manualError) {
+      console.error(`Manual configuration also failed: ${manualError.message}`);
+      throw new Error(`Failed to initialize Netlify Blobs store "${storeName}". Original error: ${error.message}`);
+    }
+  }
+}
+
 // Initialize stores
 export const getUsersStore = (context) => {
   if (isLocalDev) {
@@ -82,7 +128,7 @@ export const getUsersStore = (context) => {
       }
     };
   }
-  return getStore('users', context);
+  return getNetlifyStore('users', context);
 };
 
 export const getSessionsStore = (context) => {
@@ -102,7 +148,7 @@ export const getSessionsStore = (context) => {
       }
     };
   }
-  return getStore('sessions', context);
+  return getNetlifyStore('sessions', context);
 };
 
 // User operations

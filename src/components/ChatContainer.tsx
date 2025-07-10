@@ -60,6 +60,15 @@ export function ChatContainer({ initialMessages = [], onMessagesChange, currentM
     updateMessages(prev => [...prev, userMessage])
     setIsLoading(true)
 
+    // Show processing message
+    const processingMessage: Message = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: 'Generating response...',
+      timestamp: new Date()
+    }
+    updateMessages(prev => [...prev, processingMessage])
+
     try {
       console.log('Sending message:', content)
       const response = await chatClient.chat(
@@ -69,24 +78,28 @@ export function ChatContainer({ initialMessages = [], onMessagesChange, currentM
       
       console.log('Received response:', response)
       
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response,
-        timestamp: new Date()
-      }
-      
-      console.log('Adding assistant message:', assistantMessage)
-      updateMessages(prev => [...prev, assistantMessage])
+      // Replace the processing message with the actual response
+      updateMessages(prev => {
+        const filtered = prev.filter(msg => msg.id !== processingMessage.id)
+        return [...filtered, {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: response,
+          timestamp: new Date()
+        }]
+      })
     } catch (error) {
       console.error('Chat error:', error)
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Sorry, there was an error processing your message. Please try again.',
-        timestamp: new Date()
-      }
-      updateMessages(prev => [...prev, errorMessage])
+      // Replace the processing message with error message
+      updateMessages(prev => {
+        const filtered = prev.filter(msg => msg.id !== processingMessage.id)
+        return [...filtered, {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: 'Sorry, there was an error processing your message. Please try again.',
+          timestamp: new Date()
+        }]
+      })
     } finally {
       setIsLoading(false)
     }
