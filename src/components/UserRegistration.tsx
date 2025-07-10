@@ -4,15 +4,17 @@ import { useAuth } from '../contexts/AuthContext';
 interface UserRegistrationProps {
   walletAddress: string;
   onCancel: () => void;
+  onSuccess?: () => void;
 }
 
-export function UserRegistration({ walletAddress, onCancel }: UserRegistrationProps) {
+export function UserRegistration({ walletAddress, onCancel, onSuccess }: UserRegistrationProps) {
   const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [profilePicture, setProfilePicture] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +44,14 @@ export function UserRegistration({ walletAddress, onCancel }: UserRegistrationPr
         token: data.token,
         expires_at: data.expires_at
       });
+
+      // Show success message
+      setShowSuccess(true);
+
+      // Redirect to earn tokens page after 2 seconds
+      setTimeout(() => {
+        onSuccess?.();
+      }, 2000);
     } catch (err) {
       console.error('Registration error:', err);
       setError(err instanceof Error ? err.message : 'Registration failed');
@@ -116,6 +126,33 @@ export function UserRegistration({ walletAddress, onCancel }: UserRegistrationPr
       img.src = URL.createObjectURL(file);
     });
   };
+
+  // Show success state
+  if (showSuccess) {
+    return (
+      <div className="fixed inset-0 bg-bg-main bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-surface border border-border rounded-xl p-8 max-w-lg w-full shadow-2xl text-center">
+          <div className="mb-6">
+            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-text-primary mb-2">Registration Successful!</h2>
+            <p className="text-text-secondary">
+              Welcome to GoonGPT, <span className="text-accent font-semibold">{username}</span>!
+            </p>
+            <p className="text-text-muted text-sm mt-2">
+              Redirecting you to earn your first tokens...
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-bg-main bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-4 z-50">

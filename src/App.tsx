@@ -375,6 +375,11 @@ function AppContent() {
             setShowRegistration(false);
             setRegistrationWallet('');
           }}
+          onSuccess={() => {
+            setShowRegistration(false);
+            setRegistrationWallet('');
+            setCurrentView('earn');
+          }}
         />
       )}
 

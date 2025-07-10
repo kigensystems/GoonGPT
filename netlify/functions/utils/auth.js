@@ -1,6 +1,6 @@
 // Simple authentication middleware for protected endpoints
 
-import { getSession, getUserById } from './database.js';
+import { getSession, getUserById } from './supabase.js';
 
 export async function requireAuth(req, context) {
   // Extract token from Authorization header

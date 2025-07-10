@@ -25,8 +25,6 @@ export async function createUser(userData) {
     profile_picture: userData.profile_picture || null,
     token_balance: 0,
     total_tokens_earned: 0,
-    daily_tokens_earned: 0,
-    last_token_earn_date: null,
     credits_balance: 0,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
@@ -210,4 +208,22 @@ export async function deleteSession(token) {
   }
   
   console.log('✅ SUPABASE: Session deleted successfully');
+}
+
+// Token operations - uncapped token earning
+export async function getUserTokenData(userId) {
+  console.log('🔍 SUPABASE: Getting token data for user:', userId);
+  
+  const user = await getUserById(userId);
+  
+  if (!user) {
+    throw new Error('User not found');
+  }
+  
+  console.log('✅ SUPABASE: Token data retrieved successfully');
+  return {
+    token_balance: user.token_balance || 0,
+    total_tokens_earned: user.total_tokens_earned || 0,
+    credits_balance: user.credits_balance || 0
+  };
 }

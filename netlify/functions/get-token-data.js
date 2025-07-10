@@ -1,4 +1,4 @@
-import { getUserTokenData } from './utils/database.js';
+import { getUserTokenData } from './utils/supabase.js';
 import { validateAuthToken } from './utils/auth.js';
 import { applyCors } from './utils/cors.js';
 import { createRateLimiter } from './utils/rateLimiter.js';
