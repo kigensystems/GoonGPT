@@ -1,5 +1,7 @@
 // Status check endpoint for video generation using track_id
-// Retrieves status from Netlify Blobs storage
+// Retrieves status from Supabase database
+
+import { getVideoStatus } from './utils/supabase.js';
 
 export default async function handler(req, context) {
   // Enable CORS
@@ -36,11 +38,8 @@ export default async function handler(req, context) {
       });
     }
 
-    // Retrieve status from Netlify Blobs
-    const { getStore } = await import('@netlify/blobs');
-    const store = getStore('video-generation-status');
-
-    const statusData = await store.get(track_id, { type: 'json' });
+    // Retrieve status from Supabase
+    const statusData = await getVideoStatus(track_id);
 
     if (!statusData) {
       // Status not found - either expired or doesn't exist
@@ -55,7 +54,7 @@ export default async function handler(req, context) {
     }
 
     // Calculate elapsed time
-    const created = new Date(statusData.created_at || statusData.updated_at);
+    const created = new Date(statusData.created_at);
     const elapsed = Math.floor((Date.now() - created.getTime()) / 1000);
 
     // Return status data
@@ -63,14 +62,14 @@ export default async function handler(req, context) {
       success: true,
       track_id,
       status: statusData.status,
-      videoUrl: statusData.videoUrl || null,
+      videoUrl: statusData.video_url || null,
       eta: statusData.eta,
       elapsed_seconds: elapsed,
-      error: statusData.error || null,
+      error: statusData.error_message || null,
       webhook_received: statusData.webhook_received || false,
-      updated_at: statusData.updated_at || statusData.created_at,
+      updated_at: statusData.updated_at,
       // Include fetchUrl as fallback for polling if webhook fails
-      fetchUrl: statusData.fetchUrl || null
+      fetchUrl: statusData.fetch_url || null
     }), {
       status: 200,
       headers

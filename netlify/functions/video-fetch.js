@@ -1,5 +1,5 @@
 // Netlify Function for fetching video generation status
-export const handler = async (event, context) => {
+export default async function handler(req, context) {
   // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -17,24 +17,22 @@ export const handler = async (event, context) => {
   }
 
   // Handle preflight OPTIONS request
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: '',
-    };
+  if (req.method === 'OPTIONS') {
+    return new Response('', {
+      status: 200,
+      headers
+    });
   }
 
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers
+    });
   }
 
   try {
-    const { fetch_url } = JSON.parse(event.body);
+    const { fetch_url } = await req.json();
 
     if (!fetch_url) {
       return new Response(JSON.stringify({ error: 'fetch_url is required' }), {
@@ -103,4 +101,4 @@ export const handler = async (event, context) => {
       headers
     });
   }
-};
+}

@@ -258,3 +258,99 @@ export async function resetDevStorage() {
   // This is a no-op for Supabase since we don't want to delete production data
   // In development, you would manually clear the database if needed
 }
+
+// Video status operations
+export async function createVideoStatus(trackId, fetchUrl, eta = 60) {
+  console.log('🔍 SUPABASE: Creating video status for track_id:', trackId);
+  
+  const videoStatus = {
+    track_id: trackId,
+    status: 'processing',
+    fetch_url: fetchUrl,
+    eta: eta,
+    webhook_received: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+  
+  const { data, error } = await supabase
+    .from('video_status')
+    .insert(videoStatus)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('❌ SUPABASE: Error creating video status:', error);
+    throw new Error(`Failed to create video status: ${error.message}`);
+  }
+  
+  console.log('✅ SUPABASE: Video status created successfully');
+  return data;
+}
+
+export async function getVideoStatus(trackId) {
+  console.log('🔍 SUPABASE: Getting video status for track_id:', trackId);
+  
+  const { data, error } = await supabase
+    .from('video_status')
+    .select('*')
+    .eq('track_id', trackId)
+    .single();
+  
+  if (error) {
+    if (error.code === 'PGRST116') {
+      // No rows returned
+      console.log('🔍 SUPABASE: No video status found for track_id:', trackId);
+      return null;
+    }
+    console.error('❌ SUPABASE: Error fetching video status:', error);
+    throw new Error(`Failed to get video status: ${error.message}`);
+  }
+  
+  console.log('✅ SUPABASE: Video status found:', data.status);
+  return data;
+}
+
+export async function updateVideoStatus(trackId, updates) {
+  console.log('🔍 SUPABASE: Updating video status for track_id:', trackId);
+  
+  const updatedData = {
+    ...updates,
+    updated_at: new Date().toISOString()
+  };
+  
+  const { data, error } = await supabase
+    .from('video_status')
+    .update(updatedData)
+    .eq('track_id', trackId)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('❌ SUPABASE: Error updating video status:', error);
+    throw new Error(`Failed to update video status: ${error.message}`);
+  }
+  
+  console.log('✅ SUPABASE: Video status updated successfully');
+  return data;
+}
+
+export async function deleteOldVideoStatus(olderThanHours = 24) {
+  console.log('🔍 SUPABASE: Cleaning up old video status records older than', olderThanHours, 'hours');
+  
+  const cutoffTime = new Date(Date.now() - olderThanHours * 60 * 60 * 1000).toISOString();
+  
+  const { data, error } = await supabase
+    .from('video_status')
+    .delete()
+    .lt('created_at', cutoffTime)
+    .select('track_id');
+  
+  if (error) {
+    console.error('❌ SUPABASE: Error cleaning up old video status:', error);
+    throw new Error(`Failed to cleanup video status: ${error.message}`);
+  }
+  
+  console.log('✅ SUPABASE: Cleaned up', data.length, 'old video status records');
+  return data;
+}

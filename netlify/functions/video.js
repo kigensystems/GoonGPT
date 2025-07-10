@@ -1,4 +1,6 @@
 // Netlify Function for Video Generation using ModelsLab img2video_ultra API
+import { createVideoStatus } from './utils/supabase.js';
+
 export default async function handler(req, context) {
   // Enable CORS
   const headers = {
@@ -93,23 +95,8 @@ export default async function handler(req, context) {
 
     // Check if video is processing
     if (data.status === 'processing' && data.fetch_result) {
-      // Store initial status in Netlify Blobs
-      const { getStore } = await import('@netlify/blobs');
-      const store = getStore('video-generation-status');
-      
-      await store.setJSON(track_id, {
-        id: data.id,
-        status: 'processing',
-        track_id,
-        eta: data.eta,
-        fetchUrl: data.fetch_result,
-        created_at: new Date().toISOString(),
-        webhook_url: webhookUrl
-      }, {
-        metadata: {
-          ttl: 3600 // 1 hour TTL
-        }
-      });
+      // Store initial status in Supabase
+      await createVideoStatus(track_id, data.fetch_result, data.eta);
 
       // Return processing status with track_id for webhook-based tracking
       return new Response(JSON.stringify({

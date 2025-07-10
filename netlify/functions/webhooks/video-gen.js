@@ -1,5 +1,7 @@
 // Webhook handler for ModelsLab video generation callbacks
-// Stores video generation status updates in Netlify Blobs
+// Stores video generation status updates in Supabase
+
+import { updateVideoStatus } from '../utils/supabase.js';
 
 export default async function handler(req, context) {
   // Enable CORS
@@ -46,40 +48,37 @@ export default async function handler(req, context) {
       });
     }
 
-    // Store status update in Netlify Blobs
-    const { getStore } = await import('@netlify/blobs');
-    const store = getStore('video-generation-status');
-
-    // Prepare status data to store
-    const statusData = {
-      id,
-      status,
-      track_id,
-      eta,
-      meta,
-      updated_at: new Date().toISOString(),
+    // Prepare status data to update in Supabase
+    const updates = {
+      status: status === 'success' ? 'completed' : status, // Map 'success' to 'completed'
       webhook_received: true
     };
 
     // Add output URL if video is completed
     if (status === 'success' && output && output.length > 0) {
-      statusData.videoUrl = output[0];
-      statusData.allOutputs = output;
+      updates.video_url = output[0];
+      updates.all_outputs = output;
     }
 
     // Add error message if failed
     if (status === 'error' && message) {
-      statusData.error = message;
+      updates.error_message = message;
+      updates.status = 'failed'; // Use 'failed' instead of 'error'
     }
 
-    // Store the status update with 1 hour TTL
-    await store.setJSON(track_id, statusData, {
-      metadata: {
-        ttl: 3600 // 1 hour TTL
-      }
-    });
+    // Add meta data if provided
+    if (meta) {
+      updates.meta = meta;
+    }
 
-    console.log(`Stored status update for track_id: ${track_id}, status: ${status}`);
+    if (eta) {
+      updates.eta = eta;
+    }
+
+    // Update the status in Supabase
+    await updateVideoStatus(track_id, updates);
+
+    console.log(`Updated video status for track_id: ${track_id}, status: ${status}`);
 
     // Return success response to ModelsLab
     return new Response(JSON.stringify({ 
