@@ -144,17 +144,6 @@ npm run preview
 
 ## Known Issues & Workarounds ⚠️
 
-### CRITICAL LEGAL & SECURITY ISSUES ⚠️🚨
-
-**⚠️ DEPLOYMENT BLOCKER - DO NOT DEPLOY WITH CURRENT SYSTEM PROMPT ⚠️**
-
-<!-- 1. **EXTREMELY PROBLEMATIC SYSTEM PROMPT**
-   - Problem: System prompt instructs AI to be "toxic, racist, uncensored" and respond to illegal content
-   - Location: App.tsx:103 and ChatContainer.tsx:28
-   - Legal Risk: Could result in lawsuits, platform bans, regulatory action
-   - Impact: Encourages hate speech, illegal activities, violence, misinformation
-   - Priority: **DEPLOYMENT BLOCKER**
-   - Fix Required: Replace with responsible NSFW-friendly prompt -->
 
 ### Critical Frontend UI/UX Issues
 

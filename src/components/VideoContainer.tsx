@@ -3,11 +3,15 @@ import { videoClient } from '../utils/videoClient'
 import { VideoInput } from './VideoInput'
 import { VideoMessage } from './VideoMessage'
 import { Message } from './ChatMessage'
+import { ModeToggle } from './ModeToggle'
 
 interface VideoContainerProps {
   isActive: boolean
   initialMessages?: Message[]
   onMessagesChange?: (messages: Message[]) => void
+  currentMode?: 'chat' | 'image' | 'video' | 'deepfake'
+  onModeChange?: (mode: 'chat' | 'image' | 'video' | 'deepfake') => void
+  onNavigateToLegal?: () => void
 }
 
 interface VideoSettings {
@@ -16,7 +20,7 @@ interface VideoSettings {
   speed: 'slow' | 'normal' | 'fast'
 }
 
-export function VideoContainer({ isActive, initialMessages = [], onMessagesChange }: VideoContainerProps) {
+export function VideoContainer({ isActive, initialMessages = [], onMessagesChange, currentMode = 'video', onModeChange, onNavigateToLegal }: VideoContainerProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [isLoading, setIsLoading] = useState(false)
   
@@ -208,6 +212,15 @@ export function VideoContainer({ isActive, initialMessages = [], onMessagesChang
       {/* Input Area */}
       <div className="border-t border-border">
         <div className="max-w-3xl mx-auto p-4">
+          {/* Mode Toggle */}
+          {onModeChange && (
+            <div className="flex justify-center mb-4">
+              <ModeToggle 
+                currentMode={currentMode} 
+                onModeChange={onModeChange}
+              />
+            </div>
+          )}
           <VideoInput
             value=""
             onChange={() => {}} // Handled internally by VideoInput

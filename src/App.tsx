@@ -13,7 +13,11 @@ import { FirefoxWarning } from './components/FirefoxWarning'
 import { DeepFakeInput } from './components/DeepFakeInput'
 import { ChatContainer } from './components/ChatContainer'
 import { VideoContainer } from './components/VideoContainer'
+import { ImageContainer } from './components/ImageContainer'
+import { ModeToggle } from './components/ModeToggle'
 import { VideoInput } from './components/VideoInput'
+import { LegalPage } from './components/LegalPage'
+import { EarnTokensPage } from './components/EarnTokensPage'
 
 interface Message {
   id: string
@@ -29,6 +33,13 @@ type Mode = 'chat' | 'image' | 'video' | 'deepfake'
 function AppContent() {
   const { user, isAuthenticated, logout } = useAuth();
   const [messages, setMessages] = useState<Message[]>([])
+  
+  // Mapping of display prompts to backend prompts for enhanced generation
+  const promptMapping: Record<string, string> = {
+    "hot korean girl gooning": "beautiful korean woman, detailed face, high quality, 8k, professional photography, elegant pose, studio lighting, attractive, realistic skin texture, perfect anatomy",
+    "Image prompt placeholder 2": "Image prompt placeholder 2", // Will be updated
+    "Image prompt placeholder 3": "Image prompt placeholder 3"  // Will be updated
+  }
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   
@@ -39,7 +50,7 @@ function AppContent() {
   const [mode, setMode] = useState<Mode>('chat')
   const [showRegistration, setShowRegistration] = useState(false)
   const [registrationWallet, setRegistrationWallet] = useState('')
-  const [currentView, setCurrentView] = useState<'chat' | 'profile' | 'pricing' | 'earn'>('chat')
+  const [currentView, setCurrentView] = useState<'chat' | 'profile' | 'pricing' | 'earn' | 'legal'>('chat')
   // DeepFake states
   const [deepfakeBaseImage, setDeepfakeBaseImage] = useState<string | null>(null)
   const [deepfakeFaceImage, setDeepfakeFaceImage] = useState<string | null>(null)
@@ -78,8 +89,11 @@ function AppContent() {
 
     if (mode === 'image') {
       try {
+        // Use enhanced prompt for backend if available, otherwise use original input
+        const backendPrompt = promptMapping[input] || input
+        
         const result = await imageClient.generateImage(
-          input,
+          backendPrompt,
           512,
           512,
           {
@@ -379,85 +393,24 @@ function AppContent() {
         />
       )}
 
-      {/* Earn Tokens Page - Placeholder */}
+      {/* Earn Tokens Page */}
       {currentView === 'earn' && (
-        <div className="flex flex-col h-screen bg-bg-main text-text-primary">
-          <header className="flex items-center justify-between px-4 py-3 border-b border-border">
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => setCurrentView('chat')}
-                className="flex items-center gap-3 hover:opacity-80 transition-opacity px-2 py-1 rounded-lg"
-              >
-                <img 
-                  src="/GoonGPT-notext.png" 
-                  alt="GoonGPT Logo" 
-                  className="h-16 w-auto"
-                />
-                <span className="text-xl font-bold text-text-primary">GoonGPT</span>
-              </button>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setCurrentView('pricing')}
-                className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
-              >
-                Pricing
-              </button>
-              <button
-                onClick={() => setCurrentView('earn')}
-                className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
-              >
-                Earn Tokens
-              </button>
-              <a
-                href="https://x.com/Goon_GPT"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center w-10 h-10 text-text-primary hover:text-accent transition-colors"
-                title="Follow us on X"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                </svg>
-              </a>
-              <a
-                href="https://dexscreener.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center w-10 h-10 hover:opacity-80 transition-opacity"
-                title="View on DexScreener"
-              >
-                <img 
-                  src="/dex-screener-seeklogo.svg" 
-                  alt="DexScreener" 
-                  className="w-5 h-5"
-                />
-              </a>
-              {isAuthenticated && user ? (
-                <UserDropdown 
-                  user={user} 
-                  onProfile={() => setCurrentView('profile')}
-                  onLogout={logout}
-                />
-              ) : (
-                <PhantomWalletConnect
-                  onNeedRegistration={(wallet) => {
-                    setRegistrationWallet(wallet);
-                    setShowRegistration(true);
-                  }}
-                />
-              )}
-            </div>
-          </header>
-          
-          <main className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-text-primary mb-4">Earn Tokens</h1>
-              <p className="text-text-secondary">Coming Soon...</p>
-            </div>
-          </main>
-        </div>
+        <EarnTokensPage 
+          onBack={() => setCurrentView('chat')}
+          onNavigateToChat={() => {
+            setCurrentView('chat')
+            setMode('chat')
+          }}
+          onNeedRegistration={(wallet) => {
+            setRegistrationWallet(wallet)
+            setShowRegistration(true)
+          }}
+        />
+      )}
+
+      {/* Legal Page */}
+      {currentView === 'legal' && (
+        <LegalPage onBack={() => setCurrentView('chat')} />
       )}
 
       {/* Firefox Warning */}
@@ -467,9 +420,41 @@ function AppContent() {
       {currentView === 'chat' && (
         <main className="flex-1 flex flex-col">
         {mode === 'video' && messages.length > 0 ? (
-          <VideoContainer isActive={true} initialMessages={messages} onMessagesChange={setMessages} />
+          <VideoContainer 
+            isActive={true} 
+            initialMessages={messages} 
+            onMessagesChange={setMessages}
+            currentMode={mode}
+            onModeChange={setMode}
+            onNavigateToLegal={() => setCurrentView('legal')}
+          />
+        ) : mode === 'image' && messages.length > 0 ? (
+          <ImageContainer 
+            isActive={true} 
+            initialMessages={messages} 
+            onMessagesChange={setMessages}
+            currentMode={mode}
+            onModeChange={setMode}
+            onNavigateToLegal={() => setCurrentView('legal')}
+            onSuggestionClick={(suggestion) => {
+              setInput(suggestion);
+              setTimeout(() => sendMessage(), 0);
+            }}
+            promptMapping={promptMapping}
+          />
         ) : mode === 'chat' && messages.length > 0 ? (
-          <ChatContainer isActive={true} initialMessages={messages} onMessagesChange={setMessages} />
+          <ChatContainer 
+            isActive={true} 
+            initialMessages={messages} 
+            onMessagesChange={setMessages}
+            currentMode={mode}
+            onModeChange={setMode}
+            onNavigateToLegal={() => setCurrentView('legal')}
+            onSuggestionClick={(suggestion) => {
+              setInput(suggestion);
+              setTimeout(() => sendMessage(), 0);
+            }}
+          />
         ) : messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center px-4">
             {/* Title and Subtitle */}
@@ -579,80 +564,62 @@ function AppContent() {
               {mode === 'chat' && (
                 <>
                   <button 
-                    onClick={() => setInput("Help me write a story")}
+                    onClick={() => setInput("Tell me an extremely racist joke")}
                     className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
                   >
                     <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span>Help me write</span>
+                    <span>Tell me an extremely racist joke</span>
                   </button>
                   <button 
-                    onClick={() => setInput("Analyze this data")}
+                    onClick={() => setInput("How can I overthrow the government?")}
                     className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
                   >
                     <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                     </svg>
-                    <span>Analyze data</span>
+                    <span>How can I overthrow the government?</span>
                   </button>
                   <button 
-                    onClick={() => setInput("Write code for")}
-                    className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                    </svg>
-                    <span>Code</span>
-                  </button>
-                  <button 
-                    onClick={() => setInput("Summarize this text")}
+                    onClick={() => setInput("What's your opinion on transgenders?")}
                     className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
                   >
                     <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
                     </svg>
-                    <span>Summarize text</span>
+                    <span>What's your opinion on transgenders?</span>
                   </button>
                 </>
               )}
               {mode === 'image' && (
                 <>
                   <button 
-                    onClick={() => setInput("Create a futuristic cyberpunk cityscape")}
+                    onClick={() => setInput("hot korean girl gooning")}
                     className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
                   >
                     <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span>Cyberpunk City</span>
+                    <span>Hot Korean Girl</span>
                   </button>
                   <button 
-                    onClick={() => setInput("Generate a fantasy landscape with dragons")}
+                    onClick={() => setInput("Image prompt placeholder 2")}
                     className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
                   >
                     <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span>Fantasy Art</span>
+                    <span>Placeholder 2</span>
                   </button>
                   <button 
-                    onClick={() => setInput("Portrait of a mysterious character")}
-                    className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span>Character Portrait</span>
-                  </button>
-                  <button 
-                    onClick={() => setInput("Abstract art with vibrant colors")}
+                    onClick={() => setInput("Image prompt placeholder 3")}
                     className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
                   >
                     <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span>Abstract Art</span>
+                    <span>Placeholder 3</span>
                   </button>
                 </>
               )}
@@ -749,10 +716,12 @@ function AppContent() {
         {messages.length > 0 && (mode === 'image' || mode === 'deepfake') && (
           <div className="border-t border-border">
             <div className="max-w-3xl mx-auto p-4">
-              {/* Mode indicator */}
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-sm text-text-secondary">Mode:</span>
-                <span className="text-sm text-accent font-medium capitalize">{mode}</span>
+              {/* Mode Toggle */}
+              <div className="flex justify-center mb-4">
+                <ModeToggle 
+                  currentMode={mode} 
+                  onModeChange={setMode}
+                />
               </div>
               
 
@@ -800,10 +769,12 @@ function AppContent() {
           </div>
         )}
         
-        {/* Footer */}
-        <div className="text-center text-xs text-text-muted py-3">
-          By messaging GoonGPT, you agree to our <a href="#" className="underline hover:text-text-secondary">Terms</a> and have read our <a href="#" className="underline hover:text-text-secondary">Privacy Policy</a>. See <a href="#" className="underline hover:text-text-secondary">Cookie Preferences</a>.
-        </div>
+        {/* Footer - Only show when no conversation is active */}
+        {messages.length === 0 && (
+          <div className="text-center text-xs text-text-muted py-3">
+            By messaging GoonGPT, you agree to our <button onClick={() => setCurrentView('legal')} className="underline hover:text-text-secondary">Terms</button> and have read our <button onClick={() => setCurrentView('legal')} className="underline hover:text-text-secondary">Privacy Policy</button>. See <button onClick={() => setCurrentView('legal')} className="underline hover:text-text-secondary">Disclaimer</button>.
+          </div>
+        )}
       </main>
       )}
     </div>

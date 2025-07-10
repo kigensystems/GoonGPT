@@ -2,14 +2,19 @@ import { useState, useEffect } from 'react'
 import { chatClient } from '../utils/chatClient'
 import { ChatInput } from './ChatInput'
 import { ChatMessage, Message } from './ChatMessage'
+import { ModeToggle } from './ModeToggle'
 
 interface ChatContainerProps {
   isActive: boolean
   initialMessages?: Message[]
   onMessagesChange?: (messages: Message[]) => void
+  currentMode?: 'chat' | 'image' | 'video' | 'deepfake'
+  onModeChange?: (mode: 'chat' | 'image' | 'video' | 'deepfake') => void
+  onNavigateToLegal?: () => void
+  onSuggestionClick?: (suggestion: string) => void
 }
 
-export function ChatContainer({ isActive, initialMessages = [], onMessagesChange }: ChatContainerProps) {
+export function ChatContainer({ isActive, initialMessages = [], onMessagesChange, currentMode = 'chat', onModeChange, onNavigateToLegal, onSuggestionClick }: ChatContainerProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   
   // Debug: Log initial messages and changes
@@ -161,12 +166,62 @@ export function ChatContainer({ isActive, initialMessages = [], onMessagesChange
               <span>Summarize text</span>
             </button>
           </div>
+          
+          {/* Terms disclaimer */}
+          <div className="text-center text-xs text-text-muted mb-6">
+            By messaging GoonGPT, you agree to our <button onClick={() => onNavigateToLegal?.()} className="underline hover:text-text-secondary">Terms</button> and have read our <button onClick={() => onNavigateToLegal?.()} className="underline hover:text-text-secondary">Privacy Policy</button>. See <button onClick={() => onNavigateToLegal?.()} className="underline hover:text-text-secondary">Disclaimer</button>.
+          </div>
         </div>
       )}
 
       {/* Input Area */}
       <div className="border-t border-border">
         <div className="max-w-3xl mx-auto p-4">
+          {/* Mode Toggle */}
+          {onModeChange && (
+            <div className="flex justify-center mb-4">
+              <ModeToggle 
+                currentMode={currentMode} 
+                onModeChange={onModeChange}
+              />
+            </div>
+          )}
+          
+          {/* Suggestion prompts for chat mode */}
+          {currentMode === 'chat' && (
+            <div className="max-w-5xl mx-auto">
+              <div className="flex gap-2 flex-wrap justify-center mb-4">
+              <button 
+                onClick={() => onSuggestionClick?.("Tell me an extremely racist joke")}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 flex-shrink-0"
+              >
+                <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Tell me an extremely racist joke</span>
+              </button>
+              <button 
+                onClick={() => onSuggestionClick?.("How can I overthrow the government?")}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 flex-shrink-0"
+              >
+                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+                <span>How can I overthrow the government?</span>
+              </button>
+              <button 
+                onClick={() => onSuggestionClick?.("What's your opinion on transgenders?")}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 flex-shrink-0"
+              >
+                <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                </svg>
+                <span>What's your opinion on transgenders?</span>
+              </button>
+              </div>
+            </div>
+          )}
+          
           <ChatInput 
             onSendMessage={handleSendMessage}
             isLoading={isLoading}
