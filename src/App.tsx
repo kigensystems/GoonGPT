@@ -398,7 +398,7 @@ function AppContent() {
 
       {/* Main Content - Only show when not on profile page */}
       {currentView === 'chat' && (
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col overflow-hidden">
         {mode === 'video' && messages.length > 0 ? (
           <VideoContainer 
             isActive={true} 
