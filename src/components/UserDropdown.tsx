@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { getMockTokenData, formatTokenAmount } from '../utils/mockTokens'
 
 interface User {
   username: string
@@ -15,6 +16,10 @@ interface UserDropdownProps {
 export function UserDropdown({ user, onProfile, onLogout }: UserDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const tokenData = getMockTokenData()
+  
+  // Mock credits data - in real app this would come from user profile/API
+  const creditsBalance = 0 // Default to 0 since subscription system not implemented yet
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -72,7 +77,22 @@ export function UserDropdown({ user, onProfile, onLogout }: UserDropdownProps) {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-lg shadow-lg py-1 z-50">
+        <div className="absolute right-0 mt-2 w-56 bg-surface border border-border rounded-lg shadow-lg py-1 z-50">
+          {/* Balance Section */}
+          <div className="px-4 py-3 border-b border-border">
+            <div className="text-xs text-text-muted mb-2">Account Balance</div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-text-secondary">Tokens:</span>
+                <span className="text-sm font-medium text-accent">{tokenData.balance.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-text-secondary">Credits:</span>
+                <span className="text-sm font-medium text-accent">{creditsBalance.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+          
           <button
             onClick={handleProfileClick}
             className="w-full px-4 py-2 text-left text-sm text-white hover:bg-gray-700 transition-colors flex items-center gap-2"
