@@ -92,20 +92,26 @@ function getNetlifyStore(storeName, context) {
     
     // Try manual configuration with environment variables
     const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
+    const token = process.env.NETLIFY_FUNCTIONS_TOKEN;
     
     if (!siteID) {
       console.error('No site ID found in environment variables');
-      throw new Error('Missing site ID for Netlify Blobs configuration. Please ensure NETLIFY_SITE_ID is set.');
+      throw new Error('Missing site ID for Netlify Blobs configuration. Please ensure NETLIFY_SITE_ID or SITE_ID is set.');
     }
     
-    console.log(`Attempting manual configuration with siteID: ${siteID}`);
+    if (!token) {
+      console.error('No token found in environment variables');
+      throw new Error('Missing token for Netlify Blobs configuration. Please ensure NETLIFY_FUNCTIONS_TOKEN is set.');
+    }
+    
+    console.log(`Attempting manual configuration with siteID: ${siteID} and token: ${token ? 'available' : 'missing'}`);
     
     try {
-      // Try with just siteID - token should be handled by the runtime
-      return getStore(storeName, { siteID });
+      // Try with both siteID and token as required by the library
+      return getStore(storeName, { siteID, token });
     } catch (manualError) {
       console.error(`Manual configuration also failed: ${manualError.message}`);
-      throw new Error(`Failed to initialize Netlify Blobs store "${storeName}". Original error: ${error.message}`);
+      throw new Error(`Failed to initialize Netlify Blobs store "${storeName}". Original error: ${error.message}. Manual configuration error: ${manualError.message}`);
     }
   }
 }
