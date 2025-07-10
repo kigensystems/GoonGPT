@@ -1,7 +1,7 @@
 import nacl from 'tweetnacl';
 import { PublicKey } from '@solana/web3.js';
 import crypto from 'crypto';
-import { getUserByWallet, createSession } from './utils/database.js';
+import { getUserByWallet, createSession } from './utils/supabase.js';
 
 export default async function handler(req, context) {
   console.log('🔍 AUTH-WALLET: Function started');
@@ -77,7 +77,7 @@ export default async function handler(req, context) {
 
     // Check if user exists
     console.log('🔍 AUTH-WALLET: Looking up user by wallet address...');
-    const user = await getUserByWallet(context, wallet_address);
+    const user = await getUserByWallet(wallet_address);
     console.log('🔍 AUTH-WALLET: User lookup result for wallet:', wallet_address, 'found:', !!user);
     if (user) {
       console.log('🔍 AUTH-WALLET: User details:', { id: user.id, username: user.username });
@@ -100,7 +100,7 @@ export default async function handler(req, context) {
     console.log('🔍 AUTH-WALLET: User found, generating session token...');
     const token = crypto.randomBytes(32).toString('hex');
     console.log('🔍 AUTH-WALLET: Token generated, creating session...');
-    const session = await createSession(context, user.id, token);
+    const session = await createSession(user.id, token);
     console.log('🔍 AUTH-WALLET: Session created successfully');
 
     console.log('🔍 AUTH-WALLET: Returning successful authentication response');
