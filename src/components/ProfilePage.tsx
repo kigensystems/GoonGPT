@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { UserDropdown } from './UserDropdown';
 
-interface ProfilePageProps {
-  onBack: () => void;
-  onNavigate: (view: 'chat' | 'pricing' | 'earn' | 'profile') => void;
-}
-
-export function ProfilePage({ onBack, onNavigate }: ProfilePageProps) {
+export function ProfilePage() {
+  const navigate = useNavigate();
   const { user, session, updateUser, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [username, setUsername] = useState(user?.username || '');
@@ -131,8 +128,8 @@ export function ProfilePage({ onBack, onNavigate }: ProfilePageProps) {
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <button 
-            onClick={onBack}
+          <Link 
+            to="/"
             className="hover:opacity-80 transition-opacity"
           >
             <img 
@@ -140,22 +137,22 @@ export function ProfilePage({ onBack, onNavigate }: ProfilePageProps) {
               alt="GoonGPT Logo" 
               className="h-12 w-auto"
             />
-          </button>
+          </Link>
         </div>
         
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => onNavigate('pricing')}
+          <Link
+            to="/pricing"
             className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
           >
             Pricing
-          </button>
-          <button
-            onClick={() => onNavigate('earn')}
+          </Link>
+          <Link
+            to="/tokens"
             className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
           >
             Earn Tokens
-          </button>
+          </Link>
           <a
             href="https://x.com/Goon_GPT"
             target="_blank"
@@ -183,7 +180,6 @@ export function ProfilePage({ onBack, onNavigate }: ProfilePageProps) {
           {user && (
             <UserDropdown 
               user={user} 
-              onProfile={() => onNavigate('profile')}
               onLogout={logout}
             />
           )}

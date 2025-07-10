@@ -1,22 +1,21 @@
+import { Link } from 'react-router-dom';
 import { PhantomWalletConnect } from './PhantomWalletConnect';
 import { useAuth } from '../contexts/AuthContext';
 import { UserDropdown } from './UserDropdown';
 
 interface PricingPageProps {
-  onBack: () => void;
-  onNavigate: (view: 'chat' | 'profile' | 'earn' | 'pricing') => void;
   onNeedRegistration?: (walletAddress: string) => void;
 }
 
-export function PricingPage({ onBack, onNavigate, onNeedRegistration }: PricingPageProps) {
+export function PricingPage({ onNeedRegistration }: PricingPageProps) {
   const { user, isAuthenticated, logout } = useAuth();
   return (
     <div className="flex flex-col h-screen bg-bg-main text-text-primary">
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-3">
-          <button 
-            onClick={onBack}
+          <Link 
+            to="/"
             className="flex items-center gap-3 hover:opacity-80 transition-opacity px-2 py-1 rounded-lg"
           >
             <img 
@@ -27,22 +26,22 @@ export function PricingPage({ onBack, onNavigate, onNeedRegistration }: PricingP
             <span className="text-xl font-bold text-text-primary">
               GoonGPT
             </span>
-          </button>
+          </Link>
         </div>
         
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => onNavigate('pricing')}
+          <Link
+            to="/pricing"
             className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
           >
             Pricing
-          </button>
-          <button
-            onClick={() => onNavigate('earn')}
+          </Link>
+          <Link
+            to="/tokens"
             className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
           >
             Earn Tokens
-          </button>
+          </Link>
           <a
             href="https://x.com/Goon_GPT"
             target="_blank"
@@ -70,7 +69,6 @@ export function PricingPage({ onBack, onNavigate, onNeedRegistration }: PricingP
           {isAuthenticated && user ? (
             <UserDropdown 
               user={user} 
-              onProfile={() => onNavigate('profile')}
               onLogout={logout}
             />
           ) : (

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { PhantomWalletConnect } from './PhantomWalletConnect'
 import { TokenDashboard } from './TokenDashboard'
@@ -9,14 +10,12 @@ import { getMockTokenData, formatTokenAmount } from '../utils/mockTokens'
 import { getServerTokenData, isAuthenticated, type ServerTokenData } from '../utils/tokenAPI'
 
 interface EarnTokensPageProps {
-  onBack: () => void
-  onNavigateToChat: () => void
   onNavigateToMode?: (mode: 'chat' | 'image' | 'video') => void
-  onNavigate?: (view: 'chat' | 'profile' | 'earn' | 'pricing') => void
   onNeedRegistration?: (wallet: string) => void
 }
 
-export function EarnTokensPage({ onBack, onNavigateToChat, onNavigateToMode, onNavigate, onNeedRegistration }: EarnTokensPageProps) {
+export function EarnTokensPage({ onNavigateToMode, onNeedRegistration }: EarnTokensPageProps) {
+  const navigate = useNavigate()
   const { user, isAuthenticated, logout } = useAuth()
   const [refreshKey, setRefreshKey] = useState(0)
   const [serverData, setServerData] = useState<ServerTokenData | null>(null)
@@ -51,7 +50,7 @@ export function EarnTokensPage({ onBack, onNavigateToChat, onNavigateToMode, onN
     if (onNavigateToMode) {
       onNavigateToMode('chat')
     } else {
-      onNavigateToChat()
+      navigate('/')
     }
   }
   
@@ -59,7 +58,7 @@ export function EarnTokensPage({ onBack, onNavigateToChat, onNavigateToMode, onN
     if (onNavigateToMode) {
       onNavigateToMode('image')
     } else {
-      onNavigateToChat()
+      navigate('/')
     }
   }
   
@@ -67,7 +66,7 @@ export function EarnTokensPage({ onBack, onNavigateToChat, onNavigateToMode, onN
     if (onNavigateToMode) {
       onNavigateToMode('video')
     } else {
-      onNavigateToChat()
+      navigate('/')
     }
   }
   
@@ -79,8 +78,8 @@ export function EarnTokensPage({ onBack, onNavigateToChat, onNavigateToMode, onN
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-3">
-          <button 
-            onClick={onBack}
+          <Link 
+            to="/"
             className="flex items-center gap-3 hover:opacity-80 transition-opacity px-2 py-1 rounded-lg"
           >
             <img 
@@ -91,22 +90,22 @@ export function EarnTokensPage({ onBack, onNavigateToChat, onNavigateToMode, onN
             <span className="text-xl font-bold text-text-primary">
               GoonGPT
             </span>
-          </button>
+          </Link>
         </div>
         
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => onNavigate?.('pricing')}
+          <Link
+            to="/pricing"
             className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
           >
             Pricing
-          </button>
-          <button
-            onClick={() => onNavigate?.('earn')}
+          </Link>
+          <Link
+            to="/tokens"
             className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
           >
             Earn Tokens
-          </button>
+          </Link>
           <a
             href="https://x.com/Goon_GPT"
             target="_blank"
@@ -134,7 +133,6 @@ export function EarnTokensPage({ onBack, onNavigateToChat, onNavigateToMode, onN
           {isAuthenticated && user ? (
             <UserDropdown 
               user={user} 
-              onProfile={() => onNavigate?.('profile')} 
               onLogout={logout}
             />
           ) : (

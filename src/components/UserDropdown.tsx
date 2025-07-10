@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getMockTokenData } from '../utils/mockTokens'
 import { getServerTokenData, isAuthenticated, type ServerTokenData } from '../utils/tokenAPI'
 
@@ -10,11 +11,11 @@ interface User {
 
 interface UserDropdownProps {
   user: User
-  onProfile: () => void
   onLogout: () => void
 }
 
-export function UserDropdown({ user, onProfile, onLogout }: UserDropdownProps) {
+export function UserDropdown({ user, onLogout }: UserDropdownProps) {
+  const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [serverData, setServerData] = useState<ServerTokenData | null>(null)
@@ -58,7 +59,7 @@ export function UserDropdown({ user, onProfile, onLogout }: UserDropdownProps) {
   }, [])
 
   const handleProfileClick = () => {
-    onProfile()
+    navigate('/profile')
     setIsOpen(false)
   }
 

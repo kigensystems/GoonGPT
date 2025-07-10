@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
 import { imageClient } from './utils/imageClient'
 import { chatClient } from './utils/chatClient'
 import { videoClient } from './utils/videoClient'
@@ -31,6 +32,8 @@ type Mode = 'chat' | 'image' | 'video' | 'deepfake'
 
 function AppContent() {
   const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [messages, setMessages] = useState<Message[]>([])
   
   // Mapping of display prompts to backend prompts for enhanced generation
@@ -49,7 +52,18 @@ function AppContent() {
   const [mode, setMode] = useState<Mode>('chat')
   const [showRegistration, setShowRegistration] = useState(false)
   const [registrationWallet, setRegistrationWallet] = useState('')
-  const [currentView, setCurrentView] = useState<'chat' | 'profile' | 'pricing' | 'earn' | 'legal'>('chat')
+  
+  // Determine current view from URL
+  const getCurrentView = () => {
+    const path = location.pathname
+    if (path === '/tokens') return 'earn'
+    if (path === '/pricing') return 'pricing'
+    if (path === '/profile') return 'profile'
+    if (path === '/legal') return 'legal'
+    return 'chat'
+  }
+  
+  const currentView = getCurrentView()
   // DeepFake states
   const [deepfakeBaseImage, setDeepfakeBaseImage] = useState<string | null>(null)
   const [deepfakeFaceImage, setDeepfakeFaceImage] = useState<string | null>(null)
@@ -293,9 +307,9 @@ function AppContent() {
       {currentView === 'chat' && (
         <header className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
-          <button 
+          <Link 
+            to="/"
             onClick={() => {
-              setCurrentView('chat');
               setMessages([]);
               setInput('');
             }}
@@ -309,22 +323,22 @@ function AppContent() {
             <span className="text-xl font-bold text-text-primary">
               GoonGPT
             </span>
-          </button>
+          </Link>
         </div>
         
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setCurrentView('pricing')}
+          <Link
+            to="/pricing"
             className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
           >
             Pricing
-          </button>
-          <button
-            onClick={() => setCurrentView('earn')}
+          </Link>
+          <Link
+            to="/tokens"
             className="px-3 py-2 text-sm text-text-primary hover:text-accent transition-colors font-medium"
           >
             Earn Tokens
-          </button>
+          </Link>
           <a
             href="https://x.com/Goon_GPT"
             target="_blank"
@@ -352,7 +366,6 @@ function AppContent() {
           {isAuthenticated && user ? (
             <UserDropdown 
               user={user} 
-              onProfile={() => setCurrentView('profile')}
               onLogout={logout}
             />
           ) : (
@@ -385,17 +398,12 @@ function AppContent() {
 
       {/* Profile Page */}
       {currentView === 'profile' && (
-        <ProfilePage
-          onBack={() => setCurrentView('chat')}
-          onNavigate={(view) => setCurrentView(view)}
-        />
+        <ProfilePage />
       )}
 
       {/* Pricing Page */}
       {currentView === 'pricing' && (
         <PricingPage
-          onBack={() => setCurrentView('chat')}
-          onNavigate={(view) => setCurrentView(view)}
           onNeedRegistration={(wallet) => {
             setRegistrationWallet(wallet);
             setShowRegistration(true);
@@ -406,16 +414,10 @@ function AppContent() {
       {/* Earn Tokens Page */}
       {currentView === 'earn' && (
         <EarnTokensPage 
-          onBack={() => setCurrentView('chat')}
-          onNavigateToChat={() => {
-            setCurrentView('chat')
-            setMode('chat')
-          }}
           onNavigateToMode={(mode) => {
-            setCurrentView('chat')
+            navigate('/')
             setMode(mode)
           }}
-          onNavigate={(view) => setCurrentView(view)}
           onNeedRegistration={(wallet) => {
             setRegistrationWallet(wallet)
             setShowRegistration(true)
@@ -425,7 +427,7 @@ function AppContent() {
 
       {/* Legal Page */}
       {currentView === 'legal' && (
-        <LegalPage onBack={() => setCurrentView('chat')} />
+        <LegalPage />
       )}
 
       {/* Firefox Warning */}
@@ -441,7 +443,6 @@ function AppContent() {
             onMessagesChange={setMessages}
             currentMode={mode}
             onModeChange={setMode}
-            onNavigateToLegal={() => setCurrentView('legal')}
           />
         ) : mode === 'image' && messages.length > 0 ? (
           <ImageContainer 
@@ -450,7 +451,6 @@ function AppContent() {
             onMessagesChange={setMessages}
             currentMode={mode}
             onModeChange={setMode}
-            onNavigateToLegal={() => setCurrentView('legal')}
             onSuggestionClick={(suggestion) => {
               setInput(suggestion);
               setTimeout(() => sendMessage(), 0);
@@ -464,7 +464,6 @@ function AppContent() {
             onMessagesChange={setMessages}
             currentMode={mode}
             onModeChange={setMode}
-            onNavigateToLegal={() => setCurrentView('legal')}
             onSuggestionClick={(suggestion) => {
               setInput(suggestion);
               setTimeout(() => sendMessage(), 0);
@@ -662,7 +661,7 @@ function AppContent() {
         {/* Footer - Only show when no conversation is active */}
         {messages.length === 0 && (
           <div className="text-center text-xs text-text-muted py-3">
-            By messaging GoonGPT, you agree to our <button onClick={() => setCurrentView('legal')} className="underline hover:text-text-secondary">Terms</button> and have read our <button onClick={() => setCurrentView('legal')} className="underline hover:text-text-secondary">Privacy Policy</button>. See <button onClick={() => setCurrentView('legal')} className="underline hover:text-text-secondary">Disclaimer</button>.
+            By messaging GoonGPT, you agree to our <Link to="/legal" className="underline hover:text-text-secondary">Terms</Link> and have read our <Link to="/legal" className="underline hover:text-text-secondary">Privacy Policy</Link>. See <Link to="/legal" className="underline hover:text-text-secondary">Disclaimer</Link>.
           </div>
         )}
       </main>
@@ -674,18 +673,20 @@ function AppContent() {
 function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <ErrorBoundary fallback={
-          <div className="min-h-screen bg-bg-main flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-text-primary mb-2">Authentication Error</h2>
-              <p className="text-text-secondary">Please refresh the page and try again.</p>
+      <Router>
+        <AuthProvider>
+          <ErrorBoundary fallback={
+            <div className="min-h-screen bg-bg-main flex items-center justify-center">
+              <div className="text-center">
+                <h2 className="text-xl font-semibold text-text-primary mb-2">Authentication Error</h2>
+                <p className="text-text-secondary">Please refresh the page and try again.</p>
+              </div>
             </div>
-          </div>
-        }>
-          <AppContent />
-        </ErrorBoundary>
-      </AuthProvider>
+          }>
+            <AppContent />
+          </ErrorBoundary>
+        </AuthProvider>
+      </Router>
     </ErrorBoundary>
   );
 }

@@ -1,16 +1,14 @@
 
-interface LegalPageProps {
-  onBack: () => void;
-}
+import { Link } from 'react-router-dom';
 
-export function LegalPage({ onBack }: LegalPageProps) {
+export function LegalPage() {
   return (
     <div className="flex flex-col h-screen bg-bg-main text-text-primary">
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-3">
-          <button 
-            onClick={onBack}
+          <Link 
+            to="/"
             className="flex items-center gap-3 hover:opacity-80 transition-opacity px-2 py-1 rounded-lg"
           >
             <img 
@@ -18,18 +16,18 @@ export function LegalPage({ onBack }: LegalPageProps) {
               alt="GoonGPT Logo" 
               className="h-14 w-auto"
             />
-          </button>
+          </Link>
         </div>
         
-        <button
-          onClick={onBack}
+        <Link
+          to="/"
           className="flex items-center gap-2 px-3 py-2 text-sm bg-surface hover:bg-gray-700 rounded-lg transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           Back to Chat
-        </button>
+        </Link>
       </header>
 
       {/* Main Content */}
