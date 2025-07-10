@@ -12,23 +12,33 @@ interface TokenDashboardProps {
   onUpdate?: () => void
 }
 
-export function TokenDashboard({ }: TokenDashboardProps) {
+export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
   const [tokenData, setTokenData] = useState(getMockTokenData())
   const [animateBalance, setAnimateBalance] = useState(false)
   
-  // Refresh data periodically
+  // Refresh data periodically and on updates
   useEffect(() => {
-    const interval = setInterval(() => {
+    const refreshData = () => {
       const newData = getMockTokenData()
-      if (newData.balance !== tokenData.balance) {
-        setAnimateBalance(true)
-        setTimeout(() => setAnimateBalance(false), 500)
+      if (newData.balance !== tokenData.balance || 
+          newData.transactions.length !== tokenData.transactions.length) {
+        if (newData.balance !== tokenData.balance) {
+          setAnimateBalance(true)
+          setTimeout(() => setAnimateBalance(false), 500)
+        }
+        setTokenData(newData)
+        onUpdate?.()
       }
-      setTokenData(newData)
-    }, 1000)
+    }
+    
+    // Initial refresh
+    refreshData()
+    
+    // Set up interval for real-time updates
+    const interval = setInterval(refreshData, 500) // More frequent updates
     
     return () => clearInterval(interval)
-  }, [tokenData.balance])
+  }, [tokenData.balance, tokenData.transactions.length, onUpdate])
   
   const currentTier = getCurrentTier(tokenData.balance)
   const progress = getProgressToNextTier(tokenData.balance)
@@ -119,13 +129,13 @@ export function TokenDashboard({ }: TokenDashboardProps) {
     <div className="bg-surface rounded-lg p-6 space-y-6">
       {/* Balance Display */}
       <div className="text-center">
-        <h3 className="text-sm text-text-muted mb-2">Your Balance</h3>
+        <h3 className="text-sm text-text-muted mb-3">Your Balance</h3>
         <div className={`text-4xl font-bold text-text-primary transition-all duration-500 ${
           animateBalance ? 'scale-110 text-accent' : ''
         }`}>
           {formatTokenAmount(tokenData.balance)}
         </div>
-        <div className="text-sm text-text-muted mt-1">
+        <div className="text-sm text-text-muted mt-3">
           Daily Earned: {tokenData.dailyEarned}/100 Tokens
         </div>
         
@@ -148,44 +158,89 @@ export function TokenDashboard({ }: TokenDashboardProps) {
           <div className="flex justify-between text-sm">
             <span className="text-text-muted">Progress to {getTierDisplayName(progress.nextTier)}</span>
             <span className="text-text-secondary">
-              {formatTokenAmount(progress.needed)} to go
+              {Math.round(progress.percentage)}%
             </span>
           </div>
-          <div className="w-full bg-bg-main rounded-full h-3 overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-accent to-accent-hover transition-all duration-1000 ease-out"
-              style={{ width: `${progress.percentage}%` }}
-            />
+          
+          {/* Segmented Progress Bar */}
+          <div className="relative w-full h-3">
+            {/* Background segments */}
+            <div className="flex w-full h-full bg-bg-main rounded-full overflow-hidden">
+              {[TierLevel.TIER_1, TierLevel.TIER_2, TierLevel.TIER_3, TierLevel.TIER_4].map((tier, index) => {
+                const tierThreshold = TIER_THRESHOLDS[tier]
+                const prevThreshold = index === 0 ? 0 : TIER_THRESHOLDS[[TierLevel.TIER_1, TierLevel.TIER_2, TierLevel.TIER_3][index - 1]]
+                
+                // Calculate progress within this segment
+                let segmentProgress = 0
+                
+                if (tokenData.balance >= tierThreshold) {
+                  // Segment is completed
+                  segmentProgress = 100
+                } else if (tokenData.balance > prevThreshold) {
+                  // Currently progressing through this segment
+                  const segmentSize = tierThreshold - prevThreshold
+                  const progressInSegment = tokenData.balance - prevThreshold
+                  segmentProgress = Math.min(100, (progressInSegment / segmentSize) * 100)
+                }
+                
+                return (
+                  <div key={tier} className="flex-1 relative">
+                    <div className="w-full h-full bg-bg-main">
+                      <div 
+                        className="h-full bg-gradient-to-r from-accent to-accent-hover transition-all duration-700 ease-out"
+                        style={{ width: `${segmentProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            
+            {/* Vertical tick marks */}
+            <div className="absolute inset-0 flex justify-between items-center px-0">
+              {[0, 1, 2, 3, 4].map((index) => (
+                <div 
+                  key={index}
+                  className="w-0.5 h-4 bg-border"
+                  style={{ 
+                    marginLeft: index === 0 ? '0' : '-1px',
+                    marginRight: index === 4 ? '0' : '-1px'
+                  }}
+                />
+              ))}
+            </div>
           </div>
         </div>
       )}
       
       {/* Tier Icons */}
       <div className="flex justify-center gap-6 items-start">
-        {Object.entries(TIER_THRESHOLDS).map(([tier, threshold]) => {
-          const isActive = tokenData.balance >= threshold
-          const isCurrentTier = tier === currentTier
-          const tierLevel = tier as TierLevel
-          
-          return (
-            <div 
-              key={tier}
-              className={`flex flex-col items-center w-16 transition-all duration-300 ${
-                isCurrentTier ? 'scale-110' : ''
-              }`}
-            >
-              <div className={`mb-2 flex items-center justify-center w-8 h-8 ${isCurrentTier ? 'animate-bounce' : ''} ${getTierColor(tierLevel, isActive)}`}>
-                {getTierIcon(tierLevel)}
+        {Object.entries(TIER_THRESHOLDS)
+          .filter(([tier]) => tier !== TierLevel.NONE)
+          .map(([tier, threshold]) => {
+            const isActive = tokenData.balance >= threshold
+            const isCurrentTier = tier === currentTier
+            const tierLevel = tier as TierLevel
+            
+            return (
+              <div 
+                key={tier}
+                className={`flex flex-col items-center w-16 transition-all duration-300 ${
+                  isCurrentTier ? 'scale-110' : ''
+                }`}
+              >
+                <div className={`mb-2 flex items-center justify-center w-8 h-8 ${isCurrentTier ? 'animate-bounce' : ''} ${getTierColor(tierLevel, isActive)}`}>
+                  {getTierIcon(tierLevel)}
+                </div>
+                <span className={`text-xs font-medium mb-1 text-center ${getTierColor(tierLevel, isActive)}`}>
+                  {getTierDisplayName(tierLevel)}
+                </span>
+                <span className="text-xs text-text-muted text-center">
+                  {formatTokenAmount(threshold)}
+                </span>
               </div>
-              <span className={`text-xs font-medium mb-1 text-center ${getTierColor(tierLevel, isActive)}`}>
-                {getTierDisplayName(tierLevel)}
-              </span>
-              <span className="text-xs text-text-muted text-center">
-                {formatTokenAmount(threshold)}
-              </span>
-            </div>
-          )
-        })}
+            )
+          })}
       </div>
       
       {/* Recent Transactions */}

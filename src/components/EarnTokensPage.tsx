@@ -153,28 +153,28 @@ export function EarnTokensPage({ onBack, onNavigateToChat, onNavigate, onNeedReg
                   <EarnableActionCard
                     icon="🤖"
                     iconColor="text-purple-400"
-                    actionName="Chat with Claude"
-                    description="Train the Claude model by having conversations"
+                    actionName="Chat with our uncensored model"
+                    description="Have conversations with our unfiltered AI"
                     earnAmount={5}
                     onAction={handleChatAction}
                     onEarnSuccess={handleEarnSuccess}
                   />
                   
                   <EarnableActionCard
-                    icon="📚"
+                    icon="🖼️"
                     iconColor="text-blue-400"
-                    actionName="Summarize Article"
-                    description="Feed us docs to improve summarization"
+                    actionName="Generate an Image"
+                    description="Create NSFW images with our AI models"
                     earnAmount={3}
                     onAction={handleSummarizeAction}
                     onEarnSuccess={handleEarnSuccess}
                   />
                   
                   <EarnableActionCard
-                    icon="📝"
+                    icon="🎬"
                     iconColor="text-orange-400"
-                    actionName="Label Examples"
-                    description="Help us categorize inputs for better AI responses"
+                    actionName="Convert an Image to Video"
+                    description="Transform images into animated videos"
                     earnAmount={2}
                     onAction={handleLabelAction}
                     onEarnSuccess={handleEarnSuccess}

@@ -41,8 +41,8 @@ export function HowItWorksStepper() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
         </svg>
       ),
-      title: "Interact with AI",
-      description: "Chat, summarize, label."
+      title: "INTERACT WITH OUR MODELS",
+      description: "Start using our AI features to earn tokens."
     },
     {
       number: 3,
@@ -129,11 +129,11 @@ export function HowItWorksStepper() {
                   </div>
                   
                   {/* Text */}
-                  <div className="mt-4 text-center max-w-[150px]">
-                    <h4 className={`font-semibold mb-1 ${styles.text}`}>
+                  <div className="mt-4 text-center max-w-[150px] h-20 flex flex-col justify-start">
+                    <h4 className={`font-semibold mb-2 ${styles.text} leading-tight`}>
                       {step.title}
                     </h4>
-                    <p className={`text-sm ${styles.text} opacity-75`}>
+                    <p className={`text-sm ${styles.text} opacity-75 leading-tight`}>
                       {step.description}
                     </p>
                   </div>
