@@ -5,7 +5,7 @@ import { Message } from './ChatMessage'
 import { ModeToggle } from './ModeToggle'
 
 interface ImageContainerProps {
-  isActive: boolean
+  isActive?: boolean
   initialMessages?: Message[]
   onMessagesChange?: (messages: Message[]) => void
   currentMode?: 'chat' | 'image' | 'video' | 'deepfake'
@@ -16,7 +16,6 @@ interface ImageContainerProps {
 }
 
 export function ImageContainer({ 
-  isActive, 
   initialMessages = [], 
   onMessagesChange, 
   currentMode = 'image', 
@@ -107,9 +106,6 @@ export function ImageContainer({
     }
   }
 
-  const clearChat = () => {
-    updateMessages([])
-  }
 
   return (
     <div className="flex flex-col h-full">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useRef } from 'react'
 
 interface DeepFakeInputProps {
   onSend: () => void

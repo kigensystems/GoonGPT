@@ -1,3 +1,4 @@
+import { type JSX } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { getMockTokenData } from '../utils/mockTokens'
 
@@ -108,7 +109,7 @@ export function HowItWorksStepper() {
             {/* Background connector line */}
             <div className="absolute top-12 left-12 right-12 h-0.5 bg-border" />
             
-            {steps.map((step, index) => {
+            {steps.map((step) => {
               const state = getStepState(step.number)
               const styles = getStepStyles(state)
               

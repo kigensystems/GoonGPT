@@ -14,7 +14,7 @@ interface ChatContainerProps {
   onSuggestionClick?: (suggestion: string) => void
 }
 
-export function ChatContainer({ isActive, initialMessages = [], onMessagesChange, currentMode = 'chat', onModeChange, onNavigateToLegal, onSuggestionClick }: ChatContainerProps) {
+export function ChatContainer({ initialMessages = [], onMessagesChange, currentMode = 'chat', onModeChange, onNavigateToLegal, onSuggestionClick }: ChatContainerProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   
   // Debug: Log initial messages and changes
@@ -85,9 +85,6 @@ export function ChatContainer({ isActive, initialMessages = [], onMessagesChange
     }
   }
 
-  const clearChat = () => {
-    updateMessages([])
-  }
 
   return (
     <div className="flex flex-col h-full">

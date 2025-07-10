@@ -56,11 +56,11 @@ export class VideoClient {
       if (result.status === 'processing') {
         // Use webhook-based status checking if track_id is available
         if (result.track_id) {
-          return await this.checkVideoStatus(result.track_id, result.eta || 60);
+          return await this.checkVideoStatus(result.track_id);
         }
         // Fallback to polling if no track_id (for backward compatibility)
         else if (result.fetchUrl) {
-          return await this.pollForVideo(result.fetchUrl, result.eta || 60);
+          return await this.pollForVideo(result.fetchUrl);
         }
       }
       
@@ -77,7 +77,7 @@ export class VideoClient {
   }
 
   // Check video status using webhook-based tracking
-  private async checkVideoStatus(trackId: string, initialEta: number): Promise<any> {
+  private async checkVideoStatus(trackId: string): Promise<any> {
     const maxAttempts = 60; // Max 10 minutes of checking
     const minInterval = 2000; // Min 2 seconds
     const maxInterval = 15000; // Max 15 seconds
@@ -124,7 +124,7 @@ export class VideoClient {
           // If we have a fetchUrl as fallback and webhook hasn't been received after 30 seconds
           if (result.fetchUrl && !result.webhook_received && result.elapsed_seconds > 30) {
             console.log('Webhook not received after 30 seconds, falling back to polling');
-            return await this.pollForVideo(result.fetchUrl, initialEta);
+            return await this.pollForVideo(result.fetchUrl);
           }
         }
 
@@ -147,7 +147,7 @@ export class VideoClient {
   }
 
   // Poll for video completion (fallback method)
-  private async pollForVideo(fetchUrl: string, initialEta: number): Promise<any> {
+  private async pollForVideo(fetchUrl: string): Promise<any> {
     const maxAttempts = 30; // Max 5 minutes of polling
     const pollInterval = 10000; // Poll every 10 seconds
     

@@ -4,7 +4,7 @@ import { UserDropdown } from './UserDropdown';
 
 interface ProfilePageProps {
   onBack: () => void;
-  onNavigate: (view: 'chat' | 'pricing' | 'earn') => void;
+  onNavigate: (view: 'chat' | 'pricing' | 'earn' | 'profile') => void;
 }
 
 export function ProfilePage({ onBack, onNavigate }: ProfilePageProps) {

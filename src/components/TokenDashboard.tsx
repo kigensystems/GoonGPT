@@ -12,7 +12,7 @@ interface TokenDashboardProps {
   onUpdate?: () => void
 }
 
-export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
+export function TokenDashboard({ }: TokenDashboardProps) {
   const [tokenData, setTokenData] = useState(getMockTokenData())
   const [animateBalance, setAnimateBalance] = useState(false)
   
@@ -170,17 +170,17 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
           return (
             <div 
               key={tier}
-              className={`flex flex-col items-center transition-all duration-300 ${
+              className={`flex flex-col items-center w-16 transition-all duration-300 ${
                 isCurrentTier ? 'scale-110' : ''
               }`}
             >
               <div className={`mb-2 flex items-center justify-center w-8 h-8 ${isCurrentTier ? 'animate-bounce' : ''} ${getTierColor(tierLevel, isActive)}`}>
                 {getTierIcon(tierLevel)}
               </div>
-              <span className={`text-xs font-medium mb-1 ${getTierColor(tierLevel, isActive)}`}>
+              <span className={`text-xs font-medium mb-1 text-center ${getTierColor(tierLevel, isActive)}`}>
                 {getTierDisplayName(tierLevel)}
               </span>
-              <span className="text-xs text-text-muted">
+              <span className="text-xs text-text-muted text-center">
                 {formatTokenAmount(threshold)}
               </span>
             </div>

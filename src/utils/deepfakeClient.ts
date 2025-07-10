@@ -51,7 +51,7 @@ export class DeepFakeClient {
       // Check if processing is needed
       if (result.status === 'processing' && result.fetchUrl) {
         // Poll for completion
-        return await this.pollForDeepFake(result.fetchUrl, result.eta || 30);
+        return await this.pollForDeepFake(result.fetchUrl);
       }
       
       // Return completed deepfake
@@ -67,7 +67,7 @@ export class DeepFakeClient {
   }
 
   // Poll for deepfake completion
-  private async pollForDeepFake(fetchUrl: string, initialEta: number): Promise<DeepFakeResponse> {
+  private async pollForDeepFake(fetchUrl: string): Promise<DeepFakeResponse> {
     const maxAttempts = 60; // Max 2 minutes of polling
     const pollInterval = 2000; // Poll every 2 seconds
     

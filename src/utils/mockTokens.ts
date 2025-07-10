@@ -21,6 +21,7 @@ export enum TierLevel {
 }
 
 export const TIER_THRESHOLDS = {
+  [TierLevel.NONE]: 0,
   [TierLevel.TIER_1]: 1000,
   [TierLevel.TIER_2]: 5000,
   [TierLevel.TIER_3]: 10000,

@@ -6,7 +6,7 @@ import { Message } from './ChatMessage'
 import { ModeToggle } from './ModeToggle'
 
 interface VideoContainerProps {
-  isActive: boolean
+  isActive?: boolean
   initialMessages?: Message[]
   onMessagesChange?: (messages: Message[]) => void
   currentMode?: 'chat' | 'image' | 'video' | 'deepfake'
@@ -20,7 +20,7 @@ interface VideoSettings {
   speed: 'slow' | 'normal' | 'fast'
 }
 
-export function VideoContainer({ isActive, initialMessages = [], onMessagesChange, currentMode = 'video', onModeChange, onNavigateToLegal }: VideoContainerProps) {
+export function VideoContainer({ initialMessages = [], onMessagesChange, currentMode = 'video', onModeChange }: VideoContainerProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [isLoading, setIsLoading] = useState(false)
   

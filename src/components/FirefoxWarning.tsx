@@ -1,4 +1,3 @@
-import React from 'react';
 
 export function FirefoxWarning() {
   const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');

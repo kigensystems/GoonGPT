@@ -19,8 +19,8 @@ export async function verifyWalletOwnership(
     const pubKey = new PublicKey(publicKey);
     const messageBytes = new TextEncoder().encode(originalMessage);
     
-    const { verify } = await import('tweetnacl');
-    return verify(messageBytes, signedMessage, pubKey.toBytes());
+    const nacl = await import('tweetnacl');
+    return nacl.sign.detached.verify(messageBytes, signedMessage, pubKey.toBytes());
   } catch (error) {
     console.error('Error verifying wallet ownership:', error);
     return false;

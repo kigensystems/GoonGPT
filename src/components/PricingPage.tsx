@@ -1,11 +1,10 @@
-import React from 'react';
 import { PhantomWalletConnect } from './PhantomWalletConnect';
 import { useAuth } from '../contexts/AuthContext';
 import { UserDropdown } from './UserDropdown';
 
 interface PricingPageProps {
   onBack: () => void;
-  onNavigate: (view: 'chat' | 'profile' | 'earn') => void;
+  onNavigate: (view: 'chat' | 'profile' | 'earn' | 'pricing') => void;
   onNeedRegistration?: (walletAddress: string) => void;
 }
 

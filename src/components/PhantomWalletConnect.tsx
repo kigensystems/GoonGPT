@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { PublicKey } from '@solana/web3.js';
 import { createAuthMessage } from '../lib/auth';
 import { useAuth } from '../contexts/AuthContext';
