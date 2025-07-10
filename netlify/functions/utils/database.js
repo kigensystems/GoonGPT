@@ -82,11 +82,14 @@ export function resetDevStorage() {
   }
 }
 
-// Simple store getter using Functions API v2 auto-configuration
-function getNetlifyStore(storeName) {
+// Store getter with context for proper Netlify Blobs initialization
+function getNetlifyStore(context, storeName) {
   try {
-    // Functions API v2 auto-configuration - no context or manual config needed
-    return getStore(storeName);
+    // Pass the context's blob configuration to getStore
+    return getStore({
+      ...context.blobs,
+      name: storeName,
+    });
   } catch (error) {
     console.error(`Failed to get store "${storeName}": ${error.message}`);
     throw new Error(`Failed to initialize Netlify Blobs store "${storeName}": ${error.message}`);
@@ -94,7 +97,7 @@ function getNetlifyStore(storeName) {
 }
 
 // Initialize stores
-export const getUsersStore = () => {
+export const getUsersStore = (context) => {
   if (isLocalDev) {
     return {
       get: async (key, options = {}) => {
@@ -111,10 +114,10 @@ export const getUsersStore = () => {
       }
     };
   }
-  return getNetlifyStore('users');
+  return getNetlifyStore(context, 'users');
 };
 
-export const getSessionsStore = () => {
+export const getSessionsStore = (context) => {
   if (isLocalDev) {
     return {
       get: async (key, options = {}) => {
@@ -131,12 +134,12 @@ export const getSessionsStore = () => {
       }
     };
   }
-  return getNetlifyStore('sessions');
+  return getNetlifyStore(context, 'sessions');
 };
 
 // User operations
-export async function createUser(userData) {
-  const usersStore = getUsersStore();
+export async function createUser(context, userData) {
+  const usersStore = getUsersStore(context);
   const user = {
     id: crypto.randomUUID(),
     ...userData,
@@ -158,24 +161,24 @@ export async function createUser(userData) {
   return user;
 }
 
-export async function getUserByWallet(walletAddress) {
-  const usersStore = getUsersStore();
+export async function getUserByWallet(context, walletAddress) {
+  const usersStore = getUsersStore(context);
   return await usersStore.get(`wallet:${walletAddress}`, { type: 'json' });
 }
 
-export async function getUserByUsername(username) {
-  const usersStore = getUsersStore();
+export async function getUserByUsername(context, username) {
+  const usersStore = getUsersStore(context);
   return await usersStore.get(`username:${username}`, { type: 'json' });
 }
 
-export async function getUserById(userId) {
-  const usersStore = getUsersStore();
+export async function getUserById(context, userId) {
+  const usersStore = getUsersStore(context);
   return await usersStore.get(`id:${userId}`, { type: 'json' });
 }
 
-export async function updateUser(userId, updates) {
-  const usersStore = getUsersStore();
-  const user = await getUserById(userId);
+export async function updateUser(context, userId, updates) {
+  const usersStore = getUsersStore(context);
+  const user = await getUserById(context, userId);
   
   if (!user) {
     throw new Error('User not found');
@@ -203,8 +206,8 @@ export async function updateUser(userId, updates) {
 }
 
 // Session operations
-export async function createSession(userId, token) {
-  const sessionsStore = getSessionsStore();
+export async function createSession(context, userId, token) {
+  const sessionsStore = getSessionsStore(context);
   const session = {
     id: crypto.randomUUID(),
     user_id: userId,
@@ -217,8 +220,8 @@ export async function createSession(userId, token) {
   return session;
 }
 
-export async function getSession(token) {
-  const sessionsStore = getSessionsStore();
+export async function getSession(context, token) {
+  const sessionsStore = getSessionsStore(context);
   const session = await sessionsStore.get(token, { type: 'json' });
   
   if (!session) return null;
@@ -232,15 +235,15 @@ export async function getSession(token) {
   return session;
 }
 
-export async function deleteSession(token) {
-  const sessionsStore = getSessionsStore();
+export async function deleteSession(context, token) {
+  const sessionsStore = getSessionsStore(context);
   await sessionsStore.delete(token);
 }
 
 // Token operations
-export async function earnTokens(userId, amount, action = 'Activity') {
+export async function earnTokens(context, userId, amount, action = 'Activity') {
   const DAILY_TOKEN_LIMIT = 100;
-  const user = await getUserById(userId);
+  const user = await getUserById(context, userId);
   
   if (!user) {
     throw new Error('User not found');
@@ -265,7 +268,7 @@ export async function earnTokens(userId, amount, action = 'Activity') {
   }
   
   // Update user with new token amounts
-  const updatedUser = await updateUser(userId, {
+  const updatedUser = await updateUser(context, userId, {
     token_balance: (user.token_balance || 0) + amount,
     total_tokens_earned: (user.total_tokens_earned || 0) + amount,
     daily_tokens_earned: dailyTokensEarned + amount,
@@ -283,7 +286,22 @@ export async function earnTokens(userId, amount, action = 'Activity') {
   };
   
   const usersStore = getUsersStore();
-  const userTransactions = await usersStore.get(`transactions:${userId}`, { type: 'json' }) || [];
+  const result = await usersStore.get(`transactions:${userId}`);
+  
+  // Handle both string and object responses from Netlify Blobs
+  let userTransactions = [];
+  if (result) {
+    if (typeof result === 'string') {
+      try {
+        userTransactions = JSON.parse(result);
+      } catch (error) {
+        console.error('Error parsing user transactions data from string:', error);
+        userTransactions = [];
+      }
+    } else {
+      userTransactions = result;
+    }
+  }
   userTransactions.unshift(transaction);
   
   // Keep only last 50 transactions
@@ -303,14 +321,29 @@ export async function earnTokens(userId, amount, action = 'Activity') {
 }
 
 export async function getUserTokenData(context, userId) {
-  const user = await getUserById(context, userId);
+  const user = await getUserById(userId);
   
   if (!user) {
     throw new Error('User not found');
   }
   
   const usersStore = getUsersStore();
-  const transactions = await usersStore.get(`transactions:${userId}`, { type: 'json' }) || [];
+  const result = await usersStore.get(`transactions:${userId}`);
+  
+  // Handle both string and object responses from Netlify Blobs
+  let transactions = [];
+  if (result) {
+    if (typeof result === 'string') {
+      try {
+        transactions = JSON.parse(result);
+      } catch (error) {
+        console.error('Error parsing transactions data from string:', error);
+        transactions = [];
+      }
+    } else {
+      transactions = result;
+    }
+  }
   
   const today = new Date().toISOString().split('T')[0];
   const lastEarnDate = user.last_token_earn_date?.split('T')[0];
