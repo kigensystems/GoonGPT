@@ -64,7 +64,7 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
   // Use appropriate data source
   const displayData = useServerData && serverData ? {
     balance: serverData.token_balance,
-    dailyEarned: 0, // No longer tracking daily earnings
+    dailyEarned: serverData.total_tokens_earned, // Use total earned for display
     transactions: [] // No longer tracking transactions
   } : tokenData
   

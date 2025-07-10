@@ -64,7 +64,7 @@ export default async function handler(req, context) {
     
     // Validate input
     const validation = validateInput(requestBody, {
-      amount: { type: 'number', required: true, min: 1, max: 50 },
+      amount: { type: 'number', required: true, min: 1, max: 5000 },
       action: { type: 'string', required: false, maxLength: 100 }
     });
     

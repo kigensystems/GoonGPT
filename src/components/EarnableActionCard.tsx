@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { type ReactNode } from 'react'
 import { earnTokens, canEarnTokens, formatTokenAmount } from '../utils/mockTokens'
+import { earnServerTokens, isAuthenticated } from '../utils/tokenAPI'
 
 interface EarnableActionProps {
   icon: ReactNode
@@ -35,8 +36,22 @@ export function EarnableActionCard({
       // Perform the action
       await onAction()
       
-      // Earn tokens
-      const earned = earnTokens(actionName, earnAmount)
+      // Earn tokens - prefer server if authenticated, fallback to local
+      let earned = false
+      if (isAuthenticated()) {
+        const result = await earnServerTokens(earnAmount, actionName)
+        earned = result.success
+        if (!earned) {
+          console.error('Failed to earn server tokens:', result.error)
+          // Show user-friendly error for daily limit
+          if (result.error?.includes('Daily earning limit reached')) {
+            alert(result.error)
+          }
+        }
+      } else {
+        earned = earnTokens(actionName, earnAmount)
+      }
+      
       if (earned) {
         setShowSuccess(true)
         onEarnSuccess?.()

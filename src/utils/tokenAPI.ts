@@ -9,6 +9,8 @@ export interface ServerTokenData {
   token_balance: number
   total_tokens_earned: number
   credits_balance: number
+  daily_tokens_earned?: number
+  last_earn_date?: string
 }
 
 const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || '/.netlify/functions'
@@ -41,11 +43,13 @@ export async function getServerTokenData(): Promise<ServerTokenData | null> {
   }
 }
 
-// Earn tokens on the server (uncapped)
+// Earn tokens on the server (with daily cap)
 export async function earnServerTokens(amount: number, action: string = 'Activity'): Promise<{
   success: boolean
   tokensEarned?: number
   newBalance?: number
+  dailyEarned?: number
+  dailyRemaining?: number
   error?: string
 }> {
   try {
@@ -70,7 +74,9 @@ export async function earnServerTokens(amount: number, action: string = 'Activit
     return {
       success: true,
       tokensEarned: data.tokensEarned,
-      newBalance: data.newBalance
+      newBalance: data.newBalance,
+      dailyEarned: data.dailyEarned,
+      dailyRemaining: data.dailyRemaining
     }
   } catch (error) {
     console.error('Error earning server tokens:', error)

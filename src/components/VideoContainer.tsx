@@ -25,6 +25,11 @@ export function VideoContainer({ initialMessages = [], onMessagesChange, current
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [isLoading, setIsLoading] = useState(false)
   
+  // Sync messages when initialMessages prop changes
+  useEffect(() => {
+    setMessages(initialMessages)
+  }, [initialMessages])
+  
   // Helper function to update messages both locally and in parent
   const updateMessages = (newMessages: Message[] | ((prev: Message[]) => Message[])) => {
     if (typeof newMessages === 'function') {

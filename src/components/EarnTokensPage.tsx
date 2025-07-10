@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { PhantomWalletConnect } from './PhantomWalletConnect'
 import { TokenDashboard } from './TokenDashboard'
@@ -6,6 +6,7 @@ import { EarnableActionCard } from './EarnableActionCard'
 import { UserDropdown } from './UserDropdown'
 import { HowItWorksStepper } from './HowItWorksStepper'
 import { getMockTokenData, formatTokenAmount } from '../utils/mockTokens'
+import { getServerTokenData, isAuthenticated, type ServerTokenData } from '../utils/tokenAPI'
 
 interface EarnTokensPageProps {
   onBack: () => void
@@ -18,11 +19,32 @@ interface EarnTokensPageProps {
 export function EarnTokensPage({ onBack, onNavigateToChat, onNavigateToMode, onNavigate, onNeedRegistration }: EarnTokensPageProps) {
   const { user, isAuthenticated, logout } = useAuth()
   const [refreshKey, setRefreshKey] = useState(0)
+  const [serverData, setServerData] = useState<ServerTokenData | null>(null)
+  const [useServerData, setUseServerData] = useState(false)
   
-  // Force refresh of dashboard
+  // Force refresh of dashboard and server data
   const handleEarnSuccess = () => {
     setRefreshKey(prev => prev + 1)
+    refreshServerData()
   }
+  
+  // Fetch server data
+  const refreshServerData = async () => {
+    if (isAuthenticated) {
+      const data = await getServerTokenData()
+      if (data) {
+        setServerData(data)
+        setUseServerData(true)
+      }
+    }
+  }
+  
+  // Initial data fetch and periodic refresh
+  useEffect(() => {
+    refreshServerData()
+    const interval = setInterval(refreshServerData, 2000)
+    return () => clearInterval(interval)
+  }, [isAuthenticated])
   
   // Actions that navigate to specific modes
   const handleChatAction = () => {
@@ -50,6 +72,7 @@ export function EarnTokensPage({ onBack, onNavigateToChat, onNavigateToMode, onN
   }
   
   const tokenData = getMockTokenData()
+  const displayBalance = useServerData && serverData ? serverData.token_balance : tokenData.balance
   
   return (
     <div className="min-h-screen bg-bg-main text-text-primary flex flex-col">
@@ -133,7 +156,7 @@ export function EarnTokensPage({ onBack, onNavigateToChat, onNavigateToMode, onN
                   Your wallet: {user?.wallet_address.slice(0, 6)}...{user?.wallet_address.slice(-4)}
                 </p>
                 <p className="text-2xl font-semibold text-accent">
-                  Balance: {formatTokenAmount(tokenData.balance)}
+                  Balance: {formatTokenAmount(displayBalance)}
                 </p>
               </div>
             ) : (
@@ -170,7 +193,7 @@ export function EarnTokensPage({ onBack, onNavigateToChat, onNavigateToMode, onN
                     iconColor="text-purple-400"
                     actionName="Chat With Our Uncensored Model"
                     description="Have conversations with our unfiltered AI"
-                    earnAmount={5}
+                    earnAmount={2500}
                     onAction={handleChatAction}
                     onEarnSuccess={handleEarnSuccess}
                   />
@@ -184,7 +207,7 @@ export function EarnTokensPage({ onBack, onNavigateToChat, onNavigateToMode, onN
                     iconColor="text-blue-400"
                     actionName="Generate An Image"
                     description="Create NSFW images with our AI models"
-                    earnAmount={3}
+                    earnAmount={3500}
                     onAction={handleImageAction}
                     onEarnSuccess={handleEarnSuccess}
                   />
@@ -198,7 +221,7 @@ export function EarnTokensPage({ onBack, onNavigateToChat, onNavigateToMode, onN
                     iconColor="text-orange-400"
                     actionName="Convert An Image To Video"
                     description="Transform images into animated videos"
-                    earnAmount={2}
+                    earnAmount={5000}
                     onAction={handleVideoAction}
                     onEarnSuccess={handleEarnSuccess}
                   />

@@ -657,14 +657,6 @@ function AppContent() {
               )}
             </div>
           </div>
-        ) : (
-          // Fallback for any other cases
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-text-primary mb-2">Loading...</h2>
-              <p className="text-text-secondary">Please wait while we prepare your content.</p>
-            </div>
-          </div>
         )}
         
         {/* Footer - Only show when no conversation is active */}

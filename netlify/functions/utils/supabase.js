@@ -228,7 +228,7 @@ export async function getUserTokenData(userId) {
   };
 }
 
-// Earn tokens function - uncapped token earning
+// Earn tokens function - with daily cap of 75,000 tokens
 export async function earnTokens(userId, amount, action = 'Activity') {
   console.log('🔍 SUPABASE: Earning tokens for user:', userId, 'amount:', amount);
   
@@ -238,17 +238,37 @@ export async function earnTokens(userId, amount, action = 'Activity') {
     throw new Error('User not found');
   }
   
-  // Update user with new token amounts (uncapped)
+  // Check daily earning limit (75,000 tokens per day)
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+  const lastEarnDate = user.last_earn_date ? user.last_earn_date.split('T')[0] : null;
+  
+  let dailyEarned = 0;
+  if (lastEarnDate === today) {
+    dailyEarned = user.daily_tokens_earned || 0;
+  }
+  
+  // Check if adding this amount would exceed the daily limit
+  const DAILY_LIMIT = 75000;
+  if (dailyEarned + amount > DAILY_LIMIT) {
+    const remainingToday = DAILY_LIMIT - dailyEarned;
+    throw new Error(`Daily earning limit reached. You can earn ${remainingToday} more tokens today.`);
+  }
+  
+  // Update user with new token amounts and daily tracking
   const updatedUser = await updateUser(userId, {
     token_balance: (user.token_balance || 0) + amount,
-    total_tokens_earned: (user.total_tokens_earned || 0) + amount
+    total_tokens_earned: (user.total_tokens_earned || 0) + amount,
+    daily_tokens_earned: lastEarnDate === today ? dailyEarned + amount : amount,
+    last_earn_date: new Date().toISOString()
   });
   
   console.log('✅ SUPABASE: Tokens earned successfully');
   return {
     user: updatedUser,
     tokensEarned: amount,
-    newBalance: updatedUser.token_balance
+    newBalance: updatedUser.token_balance,
+    dailyEarned: updatedUser.daily_tokens_earned,
+    dailyRemaining: DAILY_LIMIT - updatedUser.daily_tokens_earned
   };
 }
 
