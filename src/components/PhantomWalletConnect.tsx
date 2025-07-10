@@ -75,8 +75,8 @@ export function PhantomWalletConnect({ onNeedRegistration }: PhantomWalletConnec
       const messageBytes = new TextEncoder().encode(authMessage.message);
       const { signature } = await provider.signMessage(messageBytes);
 
-      // Convert Uint8Array to base64
-      const base64Signature = btoa(String.fromCharCode(...signature));
+      // Convert Uint8Array to base64 properly
+      const base64Signature = Buffer.from(signature).toString('base64');
       
       console.log('Sending authentication request for:', walletAddress);
       console.log('Request URL:', `${window.location.origin}/.netlify/functions/auth-wallet`);

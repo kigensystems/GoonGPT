@@ -17,10 +17,11 @@
 
 @font-face {
   font-family: 'OpenAI Sans';
-  src: url('https://cdn.openai.com/common/fonts/openai-sans/OpenAISans-SemiBold.woff2') format('woff2');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
+  /* Fallback to Bold weight since SemiBold is 404 */
+  src: url('https://cdn.openai.com/common/fonts/openai-sans/OpenAISans-Bold.woff2') format('woff2');
 }
 
 @font-face {
