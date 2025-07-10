@@ -105,6 +105,12 @@ export async function createUser(context, userData) {
   const user = {
     id: crypto.randomUUID(),
     ...userData,
+    // Token tracking fields
+    token_balance: 0,
+    total_tokens_earned: 0,
+    daily_tokens_earned: 0,
+    last_token_earn_date: null,
+    credits_balance: 0,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
@@ -194,4 +200,106 @@ export async function getSession(context, token) {
 export async function deleteSession(context, token) {
   const sessionsStore = getSessionsStore(context);
   await sessionsStore.delete(token);
+}
+
+// Token operations
+export async function earnTokens(context, userId, amount, action = 'Activity') {
+  const DAILY_TOKEN_LIMIT = 100;
+  const user = await getUserById(context, userId);
+  
+  if (!user) {
+    throw new Error('User not found');
+  }
+  
+  const today = new Date().toISOString().split('T')[0];
+  const lastEarnDate = user.last_token_earn_date?.split('T')[0];
+  
+  // Reset daily counter if it's a new day
+  let dailyTokensEarned = user.daily_tokens_earned || 0;
+  if (lastEarnDate !== today) {
+    dailyTokensEarned = 0;
+  }
+  
+  // Check if daily limit would be exceeded
+  if (dailyTokensEarned + amount > DAILY_TOKEN_LIMIT) {
+    const remainingTokens = DAILY_TOKEN_LIMIT - dailyTokensEarned;
+    if (remainingTokens <= 0) {
+      throw new Error('Daily token limit reached');
+    }
+    amount = remainingTokens; // Only award remaining tokens
+  }
+  
+  // Update user with new token amounts
+  const updatedUser = await updateUser(context, userId, {
+    token_balance: (user.token_balance || 0) + amount,
+    total_tokens_earned: (user.total_tokens_earned || 0) + amount,
+    daily_tokens_earned: dailyTokensEarned + amount,
+    last_token_earn_date: new Date().toISOString()
+  });
+  
+  // Store transaction record
+  const transaction = {
+    id: crypto.randomUUID(),
+    user_id: userId,
+    amount,
+    action,
+    type: 'earn',
+    created_at: new Date().toISOString()
+  };
+  
+  const usersStore = getUsersStore(context);
+  const userTransactions = await usersStore.get(`transactions:${userId}`, { type: 'json' }) || [];
+  userTransactions.unshift(transaction);
+  
+  // Keep only last 50 transactions
+  if (userTransactions.length > 50) {
+    userTransactions.splice(50);
+  }
+  
+  await usersStore.set(`transactions:${userId}`, userTransactions);
+  
+  return {
+    user: updatedUser,
+    transaction,
+    tokensEarned: amount,
+    dailyLimit: DAILY_TOKEN_LIMIT,
+    dailyRemaining: DAILY_TOKEN_LIMIT - (dailyTokensEarned + amount)
+  };
+}
+
+export async function getUserTokenData(context, userId) {
+  const user = await getUserById(context, userId);
+  
+  if (!user) {
+    throw new Error('User not found');
+  }
+  
+  const usersStore = getUsersStore(context);
+  const transactions = await usersStore.get(`transactions:${userId}`, { type: 'json' }) || [];
+  
+  const today = new Date().toISOString().split('T')[0];
+  const lastEarnDate = user.last_token_earn_date?.split('T')[0];
+  
+  // Reset daily counter if it's a new day
+  let dailyTokensEarned = user.daily_tokens_earned || 0;
+  let updatedUser = user;
+  
+  if (lastEarnDate !== today) {
+    dailyTokensEarned = 0;
+    // Persist the daily reset to the database
+    updatedUser = await updateUser(context, userId, {
+      daily_tokens_earned: 0,
+      last_token_earn_date: new Date().toISOString()
+    });
+  }
+  
+  return {
+    token_balance: updatedUser.token_balance || 0,
+    total_tokens_earned: updatedUser.total_tokens_earned || 0,
+    daily_tokens_earned: dailyTokensEarned,
+    credits_balance: updatedUser.credits_balance || 0,
+    daily_limit: 100,
+    daily_remaining: 100 - dailyTokensEarned,
+    transactions: transactions.slice(0, 10) // Return last 10 transactions
+  };
 }

@@ -5,10 +5,9 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5173', // Vite dev server
   'http://localhost:8888', // Netlify dev
   'http://localhost:3000', // Common React dev port
-  // TODO: Add your production domain here when you deploy:
-  // 'https://yourdomain.com',
-  // 'https://yourdomain.netlify.app'
-  // Example: 'https://goongpt.netlify.app'
+  'https://goongpt.pro', // Production domain
+  'https://goongpt.netlify.app', // Netlify subdomain
+  'https://www.goongpt.pro' // WWW subdomain
 ];
 
 export function getCorsHeaders(origin) {
@@ -60,5 +59,18 @@ export function createCorsHandler(handler) {
         body: JSON.stringify({ error: 'Internal server error' })
       };
     }
+  };
+}
+
+// Helper function to apply CORS headers to a response object
+export function applyCors(response) {
+  // Get origin from current request (this would need to be passed in, but for now use production domain)
+  const origin = 'https://goongpt.pro'; // Default to production domain
+  const corsHeaders = getCorsHeaders(origin);
+  
+  // Merge CORS headers into response
+  response.headers = {
+    ...response.headers,
+    ...corsHeaders
   };
 }

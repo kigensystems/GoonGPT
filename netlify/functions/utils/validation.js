@@ -95,3 +95,77 @@ export function hasObviouslyBadContent(text) {
   
   return suspiciousPatterns.some(pattern => pattern.test(text));
 }
+
+// General input validation function
+export function validateInput(data, schema) {
+  const errors = [];
+  
+  for (const [field, rules] of Object.entries(schema)) {
+    const value = data[field];
+    
+    // Check if required field is missing
+    if (rules.required && (value === undefined || value === null || value === '')) {
+      errors.push(`${field} is required`);
+      continue;
+    }
+    
+    // Skip validation if field is not provided and not required
+    if (value === undefined || value === null) {
+      continue;
+    }
+    
+    // Type validation
+    if (rules.type) {
+      const expectedType = rules.type;
+      const actualType = typeof value;
+      
+      if (expectedType === 'number' && (actualType !== 'number' || isNaN(value))) {
+        errors.push(`${field} must be a valid number`);
+        continue;
+      }
+      
+      if (expectedType === 'string' && actualType !== 'string') {
+        errors.push(`${field} must be a string`);
+        continue;
+      }
+      
+      if (expectedType === 'boolean' && actualType !== 'boolean') {
+        errors.push(`${field} must be a boolean`);
+        continue;
+      }
+    }
+    
+    // Numeric range validation
+    if (rules.min !== undefined && typeof value === 'number' && value < rules.min) {
+      errors.push(`${field} must be at least ${rules.min}`);
+    }
+    
+    if (rules.max !== undefined && typeof value === 'number' && value > rules.max) {
+      errors.push(`${field} must be at most ${rules.max}`);
+    }
+    
+    // String length validation
+    if (rules.minLength !== undefined && typeof value === 'string' && value.length < rules.minLength) {
+      errors.push(`${field} must be at least ${rules.minLength} characters long`);
+    }
+    
+    if (rules.maxLength !== undefined && typeof value === 'string' && value.length > rules.maxLength) {
+      errors.push(`${field} must be at most ${rules.maxLength} characters long`);
+    }
+    
+    // Pattern validation
+    if (rules.pattern && typeof value === 'string' && !rules.pattern.test(value)) {
+      errors.push(`${field} has invalid format`);
+    }
+    
+    // Content filtering
+    if (typeof value === 'string' && hasObviouslyBadContent(value)) {
+      errors.push(`${field} contains potentially malicious content`);
+    }
+  }
+  
+  return {
+    valid: errors.length === 0,
+    errors: errors
+  };
+}

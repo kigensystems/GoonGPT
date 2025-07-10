@@ -1,6 +1,6 @@
 // Simple authentication middleware for protected endpoints
 
-import { getSessionByToken } from './database.js';
+import { getSession, getUserById } from './database.js';
 
 export async function requireAuth(event, context) {
   // Extract token from Authorization header
@@ -32,7 +32,7 @@ export async function requireAuth(event, context) {
   
   try {
     // Verify token and get session
-    const session = await getSessionByToken(context, token);
+    const session = await getSession(context, token);
     
     if (!session) {
       return {
@@ -57,11 +57,15 @@ export async function requireAuth(event, context) {
       };
     }
     
+    // Get user data
+    const user = await getUserById(context, session.user_id);
+    
     // Return null to indicate success, along with user info
     return {
       success: true,
       userId: session.user_id,
-      session: session
+      session: session,
+      user: user
     };
   } catch (error) {
     console.error('Auth error:', error);
@@ -93,4 +97,51 @@ export function withAuth(handler) {
     // Call the actual handler
     return handler(event, context);
   };
+}
+
+// Simplified auth validation function for use in API endpoints
+export async function validateAuthToken(event, context) {
+  // Extract token from Authorization header
+  const authHeader = event.headers.authorization || event.headers.Authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { valid: false, error: 'Missing or invalid authorization header' };
+  }
+  
+  const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+  
+  if (!token) {
+    return { valid: false, error: 'Missing authentication token' };
+  }
+  
+  try {
+    // Verify token and get session
+    const session = await getSession(context, token);
+    
+    if (!session) {
+      return { valid: false, error: 'Invalid or expired token' };
+    }
+    
+    // Check if session is expired
+    if (new Date(session.expires_at) < new Date()) {
+      return { valid: false, error: 'Token has expired' };
+    }
+    
+    // Get user data
+    const user = await getUserById(context, session.user_id);
+    
+    if (!user) {
+      return { valid: false, error: 'User not found' };
+    }
+    
+    return {
+      valid: true,
+      userId: session.user_id,
+      session: session,
+      user: user
+    };
+  } catch (error) {
+    console.error('Auth validation error:', error);
+    return { valid: false, error: 'Authentication error' };
+  }
 }

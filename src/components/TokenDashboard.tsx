@@ -6,6 +6,7 @@ import {
   TierLevel,
   TIER_THRESHOLDS
 } from '../utils/mockTokens'
+import { getServerTokenData, isAuthenticated, type ServerTokenData } from '../utils/tokenAPI'
 
 interface TokenDashboardProps {
   onUpdate?: () => void
@@ -13,11 +14,33 @@ interface TokenDashboardProps {
 
 export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
   const [tokenData, setTokenData] = useState(getMockTokenData())
+  const [serverData, setServerData] = useState<ServerTokenData | null>(null)
   const [animateBalance, setAnimateBalance] = useState(false)
+  const [useServerData, setUseServerData] = useState(false)
   
   // Refresh data periodically and on updates
   useEffect(() => {
-    const refreshData = () => {
+    const refreshData = async () => {
+      // Try to get server data if user is authenticated
+      if (isAuthenticated()) {
+        const newServerData = await getServerTokenData()
+        if (newServerData) {
+          if (!serverData || newServerData.token_balance !== serverData.token_balance || 
+              newServerData.transactions.length !== serverData.transactions.length) {
+            if (!serverData || newServerData.token_balance !== serverData.token_balance) {
+              setAnimateBalance(true)
+              setTimeout(() => setAnimateBalance(false), 500)
+            }
+            setServerData(newServerData)
+            setUseServerData(true)
+            onUpdate?.()
+          }
+          return
+        }
+      }
+      
+      // Fallback to localStorage data
+      setUseServerData(false)
       const newData = getMockTokenData()
       if (newData.balance !== tokenData.balance || 
           newData.transactions.length !== tokenData.transactions.length) {
@@ -34,12 +57,24 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
     refreshData()
     
     // Set up interval for real-time updates
-    const interval = setInterval(refreshData, 500) // More frequent updates
+    const interval = setInterval(refreshData, 2000) // Check every 2 seconds
     
     return () => clearInterval(interval)
-  }, [tokenData.balance, tokenData.transactions.length, onUpdate])
+  }, [tokenData.balance, tokenData.transactions.length, serverData?.token_balance, serverData?.transactions.length, onUpdate])
   
-  const currentTier = getCurrentTier(tokenData.balance)
+  // Use appropriate data source
+  const displayData = useServerData && serverData ? {
+    balance: serverData.token_balance,
+    dailyEarned: serverData.daily_tokens_earned,
+    transactions: serverData.transactions.map(tx => ({
+      id: tx.id,
+      action: tx.action,
+      amount: tx.amount,
+      timestamp: tx.created_at
+    }))
+  } : tokenData
+  
+  const currentTier = getCurrentTier(displayData.balance)
   
   const getTierIcon = (tier: TierLevel) => {
     switch (tier) {
@@ -131,10 +166,10 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
         <div className={`text-4xl font-bold text-text-primary transition-all duration-500 ${
           animateBalance ? 'scale-110 text-accent' : ''
         }`}>
-          {formatTokenAmount(tokenData.balance)}
+          {formatTokenAmount(displayData.balance)}
         </div>
         <div className="text-sm text-text-muted mt-3">
-          Daily Earned: {tokenData.dailyEarned}/100 Tokens
+          Daily Earned: {displayData.dailyEarned}/{useServerData && serverData ? serverData.daily_limit : 100} Tokens
         </div>
         
         {/* Redeem Button */}
@@ -155,7 +190,7 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
         <div className="flex justify-between text-sm">
           <span className="text-text-muted">Progress to Tier 4</span>
           <span className="text-text-secondary">
-            {Math.round((tokenData.balance / TIER_THRESHOLDS[TierLevel.TIER_4]) * 100)}%
+            {Math.round((displayData.balance / TIER_THRESHOLDS[TierLevel.TIER_4]) * 100)}%
           </span>
         </div>
           
@@ -171,13 +206,13 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
               // Calculate progress within this segment
               let segmentProgress = 0
               
-              if (tokenData.balance >= tierThreshold) {
+              if (displayData.balance >= tierThreshold) {
                 // Segment is completed
                 segmentProgress = 100
-              } else if (tokenData.balance > prevThreshold) {
+              } else if (displayData.balance > prevThreshold) {
                 // Currently progressing through this segment
                 const segmentSize = tierThreshold - prevThreshold
-                const progressInSegment = tokenData.balance - prevThreshold
+                const progressInSegment = displayData.balance - prevThreshold
                 segmentProgress = Math.min(100, (progressInSegment / segmentSize) * 100)
               }
               
@@ -215,7 +250,7 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
         {Object.entries(TIER_THRESHOLDS)
           .filter(([tier]) => tier !== TierLevel.NONE)
           .map(([tier, threshold]) => {
-            const isActive = tokenData.balance >= threshold
+            const isActive = displayData.balance >= threshold
             const isCurrentTier = tier === currentTier
             const tierLevel = tier as TierLevel
             
@@ -241,11 +276,11 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
       </div>
       
       {/* Recent Transactions */}
-      {tokenData.transactions.length > 0 && (
+      {displayData.transactions.length > 0 && (
         <div className="border-t border-border pt-4">
           <h4 className="text-sm font-medium text-text-secondary mb-3">Recent Activity</h4>
           <div className="space-y-2 max-h-32 overflow-y-auto">
-            {tokenData.transactions.slice(0, 5).map((tx) => (
+            {displayData.transactions.slice(0, 5).map((tx) => (
               <div key={tx.id} className="flex justify-between text-sm">
                 <span className="text-text-muted">{tx.action}</span>
                 <span className="text-accent">+{tx.amount} Tokens</span>

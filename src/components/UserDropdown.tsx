@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { getMockTokenData } from '../utils/mockTokens'
+import { getServerTokenData, isAuthenticated, type ServerTokenData } from '../utils/tokenAPI'
 
 interface User {
   username: string
@@ -16,10 +17,31 @@ interface UserDropdownProps {
 export function UserDropdown({ user, onProfile, onLogout }: UserDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const [serverData, setServerData] = useState<ServerTokenData | null>(null)
   const tokenData = getMockTokenData()
   
   // Mock credits data - in real app this would come from user profile/API
   const creditsBalance = 0 // Default to 0 since subscription system not implemented yet
+
+  // Fetch server data if authenticated
+  useEffect(() => {
+    const fetchServerData = async () => {
+      if (isAuthenticated()) {
+        const data = await getServerTokenData()
+        if (data) {
+          setServerData(data)
+        }
+      }
+    }
+    
+    fetchServerData()
+    // Refresh every 5 seconds when dropdown is open
+    const interval = isOpen ? setInterval(fetchServerData, 5000) : undefined
+    
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [isOpen])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -84,11 +106,15 @@ export function UserDropdown({ user, onProfile, onLogout }: UserDropdownProps) {
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-text-secondary">Tokens:</span>
-                <span className="text-sm font-medium text-accent">{tokenData.balance.toLocaleString()}</span>
+                <span className="text-sm font-medium text-accent">
+                  {(serverData ? serverData.token_balance : tokenData.balance).toLocaleString()}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-text-secondary">Credits:</span>
-                <span className="text-sm font-medium text-accent">{creditsBalance.toLocaleString()}</span>
+                <span className="text-sm font-medium text-accent">
+                  {(serverData ? serverData.credits_balance : creditsBalance).toLocaleString()}
+                </span>
               </div>
             </div>
           </div>
