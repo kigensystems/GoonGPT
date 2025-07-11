@@ -220,11 +220,24 @@ export async function getUserTokenData(userId) {
     throw new Error('User not found');
   }
   
+  // Calculate daily progress
+  const today = new Date().toISOString().split('T')[0];
+  const lastEarnDate = user.last_earn_date ? user.last_earn_date.split('T')[0] : null;
+  const DAILY_LIMIT = 75000;
+  
+  let dailyEarned = 0;
+  if (lastEarnDate === today) {
+    dailyEarned = user.daily_tokens_earned || 0;
+  }
+  
   console.log('✅ SUPABASE: Token data retrieved successfully');
   return {
     token_balance: user.token_balance || 0,
     total_tokens_earned: user.total_tokens_earned || 0,
-    credits_balance: user.credits_balance || 0
+    credits_balance: user.credits_balance || 0,
+    daily_tokens_earned: dailyEarned,
+    daily_remaining: DAILY_LIMIT - dailyEarned,
+    daily_limit: DAILY_LIMIT
   };
 }
 

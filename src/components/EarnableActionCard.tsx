@@ -24,7 +24,6 @@ export function EarnableActionCard({
 }: EarnableActionProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
-  const [showTooltip, setShowTooltip] = useState(false)
   
   const canEarn = canEarnTokens(earnAmount)
   
@@ -104,38 +103,24 @@ export function EarnableActionCard({
             </span>
             
             {/* Action Button */}
-            <div className="relative">
-              <button
-                onClick={handleAction}
-                disabled={!canEarn || isLoading}
-                onMouseEnter={() => setShowTooltip(true)}
-                onMouseLeave={() => setShowTooltip(false)}
-                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
-                  canEarn && !isLoading
-                    ? 'bg-accent text-white hover:bg-accent-hover'
-                    : 'bg-surface text-text-muted cursor-not-allowed'
-                }`}
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Processing...</span>
-                  </div>
-                ) : (
-                  <span>{canEarn ? 'Use Model' : 'Daily Limit Reached'}</span>
-                )}
-              </button>
-              
-              {/* Tooltip */}
-              {showTooltip && canEarn && (
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-black text-white text-xs rounded whitespace-nowrap">
-                  Max 100 Tokens / day
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                    <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black" />
-                  </div>
+            <button
+              onClick={handleAction}
+              disabled={!canEarn || isLoading}
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
+                canEarn && !isLoading
+                  ? 'bg-accent text-white hover:bg-accent-hover'
+                  : 'bg-surface text-text-muted cursor-not-allowed'
+              }`}
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Processing...</span>
                 </div>
+              ) : (
+                <span>{canEarn ? 'Use Model' : 'Daily Limit Reached'}</span>
               )}
-            </div>
+            </button>
           </div>
         </div>
       </div>

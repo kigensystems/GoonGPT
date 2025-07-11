@@ -165,6 +165,27 @@ export function EarnTokensPage({ onNavigateToMode, onNeedRegistration }: EarnTok
                 <p className="text-2xl font-semibold text-accent">
                   Balance: {formatTokenAmount(displayBalance)}
                 </p>
+                {useServerData && serverData && (
+                  <div className="bg-surface/50 rounded-lg p-4 max-w-md mx-auto">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-text-secondary">Daily Progress</span>
+                      <span className="text-sm font-medium text-text-primary">
+                        {formatTokenAmount(serverData.daily_tokens_earned || 0)} / {formatTokenAmount(serverData.daily_limit || 75000)}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
+                      <div 
+                        className="bg-accent h-2 rounded-full transition-all duration-300" 
+                        style={{
+                          width: `${Math.min((serverData.daily_tokens_earned || 0) / (serverData.daily_limit || 75000) * 100, 100)}%`
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs text-text-muted text-center">
+                      {formatTokenAmount(serverData.daily_remaining || 0)} tokens remaining today
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <>

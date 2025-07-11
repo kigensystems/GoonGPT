@@ -10,6 +10,8 @@ export interface ServerTokenData {
   total_tokens_earned: number
   credits_balance: number
   daily_tokens_earned?: number
+  daily_remaining?: number
+  daily_limit?: number
   last_earn_date?: string
 }
 
