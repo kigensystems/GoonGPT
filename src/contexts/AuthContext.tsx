@@ -40,10 +40,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('goongpt_session', JSON.stringify(newSession));
   };
 
-  const logout = () => {
-    setSession(null);
-    setUser(null);
-    localStorage.removeItem('goongpt_session');
+  const logout = async () => {
+    try {
+      const baseUrl = (import.meta as any).env?.DEV ? 'http://localhost:8888' : '';
+      await fetch(`${baseUrl}/.netlify/functions/logout`, {
+        method: 'POST',
+        credentials: 'include' // Important: include cookies in request
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      // Clear local state regardless of API call success
+      setSession(null);
+      setUser(null);
+      localStorage.removeItem('goongpt_session');
+    }
   };
 
   const updateUser = (updatedUser: User) => {
