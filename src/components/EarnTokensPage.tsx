@@ -49,7 +49,8 @@ export function EarnTokensPage({ onNavigateToMode, onNeedRegistration }: EarnTok
   // Initial data fetch and periodic refresh
   useEffect(() => {
     refreshServerData()
-    const interval = setInterval(refreshServerData, 2000)
+    // Refresh every 30 seconds instead of 2 seconds
+    const interval = setInterval(refreshServerData, 30000)
     return () => clearInterval(interval)
   }, [isAuthenticated])
   
