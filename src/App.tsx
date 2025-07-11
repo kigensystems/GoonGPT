@@ -526,10 +526,15 @@ function AppContent() {
 
             {/* Video Mode Instructions */}
             {mode === 'video' && (
-              <div className="text-center mb-4">
+              <div className="text-center mb-4 space-y-2">
                 <p className="text-text-secondary text-sm">
                   Upload an image and describe the video you want to create from it
                 </p>
+                <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg px-4 py-2 max-w-lg mx-auto">
+                  <p className="text-yellow-500 text-xs">
+                    Video generation may take 2-3x longer than usual as we're upgrading our infrastructure to handle increased demand
+                  </p>
+                </div>
               </div>
             )}
 
