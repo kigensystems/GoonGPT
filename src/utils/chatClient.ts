@@ -57,7 +57,13 @@ export class ChatClient {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          // Handle non-JSON responses (like 504 Gateway Timeout)
+          errorData = { error: `HTTP error! status: ${response.status}` };
+        }
         
         // Handle rate limiting specifically
         if (response.status === 429) {
