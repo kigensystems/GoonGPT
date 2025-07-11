@@ -2,11 +2,22 @@ import nacl from 'tweetnacl';
 import { PublicKey } from '@solana/web3.js';
 import crypto from 'crypto';
 import { getUserByWallet, createSession } from './utils/supabase.js';
+import { authRateLimiter } from './utils/rateLimiter.js';
+import { createResponseWithCookie } from './utils/cookies.js';
 
-export default async function handler(req, context) {
+export default async function handler(req) {
   console.log('🔍 AUTH-WALLET: Function started');
   console.log('🔍 AUTH-WALLET: Request method:', req.method);
   console.log('🔍 AUTH-WALLET: Request headers:', Object.fromEntries(req.headers.entries()));
+  
+  // Apply rate limiting
+  const rateLimitResponse = await authRateLimiter(req);
+  if (rateLimitResponse) {
+    return new Response(rateLimitResponse.body, {
+      status: rateLimitResponse.statusCode,
+      headers: rateLimitResponse.headers
+    });
+  }
   
   if (req.method !== 'POST') {
     console.log('❌ AUTH-WALLET: Method not allowed:', req.method);
@@ -107,11 +118,10 @@ export default async function handler(req, context) {
     return new Response(JSON.stringify({
       authenticated: true,
       user,
-      token,
       expires_at: session.expires_at
     }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: createResponseWithCookie(token)
     });
 
   } catch (error) {

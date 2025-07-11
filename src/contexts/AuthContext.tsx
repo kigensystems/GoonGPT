@@ -6,7 +6,7 @@ interface AuthContextType {
   session: AuthSession | null;
   isAuthenticated: boolean;
   login: (session: AuthSession) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateUser: (user: User) => void;
 }
 

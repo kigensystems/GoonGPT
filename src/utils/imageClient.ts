@@ -29,6 +29,7 @@ export class ImageClient {
       seed?: number;
       enhance_prompt?: boolean;
       enhance_style?: string;
+      wallet_address?: string;
     } = {}
   ): Promise<any> {
     try {
@@ -48,6 +49,30 @@ export class ImageClient {
 
       if (!response.ok) {
         const errorData = await response.json();
+        
+        // Handle rate limiting specifically
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('Retry-After');
+          const rateLimitUser = response.headers.get('X-RateLimit-User');
+          const remaining = errorData.remaining || 0;
+          const limit = errorData.limit || 'unknown';
+          
+          let message = errorData.error || 'Too many requests';
+          if (retryAfter) {
+            message += ` Please wait ${retryAfter} seconds before trying again.`;
+          }
+          if (rateLimitUser) {
+            message += ` (Limit: ${limit} requests per minute)`;
+          }
+          
+          const error = new Error(message);
+          (error as any).rateLimited = true;
+          (error as any).retryAfter = retryAfter;
+          (error as any).remaining = remaining;
+          (error as any).limit = limit;
+          throw error;
+        }
+        
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 

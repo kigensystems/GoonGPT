@@ -25,6 +25,7 @@ export class VideoClient {
       num_frames?: string;
       fps?: string;
       output_type?: string;
+      wallet_address?: string;
     } = {}
   ): Promise<any> {
     try {
@@ -40,12 +41,37 @@ export class VideoClient {
           output_type: options.output_type || 'mp4',
           negative_prompt: options.negative_prompt || 'blurry, low quality, distorted, extra limbs, missing limbs, broken fingers, deformed, glitch, artifacts, unrealistic, low resolution, bad anatomy, duplicate, cropped, watermark, text, logo, jpeg artifacts, noisy, oversaturated, underexposed, overexposed, flicker, unstable motion, motion blur, stretched, mutated, out of frame, bad proportions',
           num_frames: options.num_frames || '81',
-          fps: options.fps || '16'
+          fps: options.fps || '16',
+          wallet_address: options.wallet_address
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
+        
+        // Handle rate limiting specifically
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('Retry-After');
+          const rateLimitUser = response.headers.get('X-RateLimit-User');
+          const remaining = errorData.remaining || 0;
+          const limit = errorData.limit || 'unknown';
+          
+          let message = errorData.error || 'Too many requests';
+          if (retryAfter) {
+            message += ` Please wait ${retryAfter} seconds before trying again.`;
+          }
+          if (rateLimitUser) {
+            message += ` (Limit: ${limit} requests per time window)`;
+          }
+          
+          const error = new Error(message);
+          (error as any).rateLimited = true;
+          (error as any).retryAfter = retryAfter;
+          (error as any).remaining = remaining;
+          (error as any).limit = limit;
+          throw error;
+        }
+        
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 

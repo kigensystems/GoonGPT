@@ -2,7 +2,7 @@
 
 import { getSession, getUserById } from './supabase.js';
 
-export async function requireAuth(req, context) {
+export async function requireAuth(req) {
   // Extract token from Authorization header
   const authHeader = req.headers.get('authorization') || req.headers.get('Authorization');
   
@@ -81,9 +81,9 @@ export async function requireAuth(req, context) {
 
 // Wrapper to make endpoints require authentication
 export function withAuth(handler) {
-  return async (req, context) => {
+  return async (req) => {
     // Check authentication
-    const authResult = await requireAuth(req, context);
+    const authResult = await requireAuth(req);
     
     // If auth failed, return the error response
     if (authResult.statusCode) {
@@ -95,12 +95,12 @@ export function withAuth(handler) {
     req.session = authResult.session;
     
     // Call the actual handler
-    return handler(req, context);
+    return handler(req);
   };
 }
 
 // Simplified auth validation function for use in API endpoints
-export async function validateAuthToken(req, context) {
+export async function validateAuthToken(req) {
   // Extract token from Authorization header
   const authHeader = req.headers.get('authorization') || req.headers.get('Authorization');
   

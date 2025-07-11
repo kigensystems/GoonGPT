@@ -272,12 +272,6 @@ export async function earnTokens(userId, amount, action = 'Activity') {
   };
 }
 
-// Development storage reset - no-op for Supabase (data is persistent)
-export async function resetDevStorage() {
-  console.log('🔍 SUPABASE: resetDevStorage called - no action needed for Supabase');
-  // This is a no-op for Supabase since we don't want to delete production data
-  // In development, you would manually clear the database if needed
-}
 
 // Video status operations
 export async function createVideoStatus(trackId, fetchUrl, eta = 60) {

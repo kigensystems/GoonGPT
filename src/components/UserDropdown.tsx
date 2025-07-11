@@ -11,7 +11,7 @@ interface User {
 
 interface UserDropdownProps {
   user: User
-  onLogout: () => void
+  onLogout: () => Promise<void>
 }
 
 export function UserDropdown({ user, onLogout }: UserDropdownProps) {
@@ -63,8 +63,8 @@ export function UserDropdown({ user, onLogout }: UserDropdownProps) {
     setIsOpen(false)
   }
 
-  const handleLogoutClick = () => {
-    onLogout()
+  const handleLogoutClick = async () => {
+    await onLogout()
     setIsOpen(false)
   }
 

@@ -10,7 +10,7 @@ const getTokenDataRateLimit = createRateLimiter({
   message: 'Too many token data requests. Please wait a moment.'
 });
 
-export default async function handler(req, context) {
+export default async function handler(req) {
   try {
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
@@ -42,7 +42,7 @@ export default async function handler(req, context) {
     }
     
     // Validate authentication
-    const authResult = await validateAuthToken(req, context);
+    const authResult = await validateAuthToken(req);
     if (!authResult.valid) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,

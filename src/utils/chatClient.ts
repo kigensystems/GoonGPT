@@ -37,6 +37,7 @@ export class ChatClient {
       temperature?: number;
       max_tokens?: number;
       stream?: boolean;
+      wallet_address?: string;
     } = {}
   ): Promise<ChatCompletionResponse> {
     try {
@@ -50,12 +51,37 @@ export class ChatClient {
           model: options.model || 'ModelsLab/Llama-3.1-8b-Uncensored-Dare',
           temperature: options.temperature || 0.7,
           max_tokens: options.max_tokens || 1000,
-          stream: options.stream || false
+          stream: options.stream || false,
+          wallet_address: options.wallet_address
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
+        
+        // Handle rate limiting specifically
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('Retry-After');
+          const rateLimitUser = response.headers.get('X-RateLimit-User');
+          const remaining = errorData.remaining || 0;
+          const limit = errorData.limit || 'unknown';
+          
+          let message = errorData.error || 'Too many requests';
+          if (retryAfter) {
+            message += ` Please wait ${retryAfter} seconds before trying again.`;
+          }
+          if (rateLimitUser) {
+            message += ` (Limit: ${limit} requests per minute)`;
+          }
+          
+          const error = new Error(message);
+          (error as any).rateLimited = true;
+          (error as any).retryAfter = retryAfter;
+          (error as any).remaining = remaining;
+          (error as any).limit = limit;
+          throw error;
+        }
+        
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
@@ -73,7 +99,7 @@ export class ChatClient {
   }
 
   // Convenience method for simple single message
-  async chat(message: string, systemPrompt?: string): Promise<string> {
+  async chat(message: string, systemPrompt?: string, walletAddress?: string): Promise<string> {
     const messages: ChatMessage[] = [];
     
     if (systemPrompt) {
@@ -82,7 +108,7 @@ export class ChatClient {
     
     messages.push({ role: 'user', content: message });
     
-    const response = await this.sendMessage(messages);
+    const response = await this.sendMessage(messages, { wallet_address: walletAddress });
     return response.choices[0].message.content;
   }
 }

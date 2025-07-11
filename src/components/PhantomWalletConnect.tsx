@@ -84,6 +84,7 @@ export function PhantomWalletConnect({ onNeedRegistration }: PhantomWalletConnec
       const response = await fetch('/.netlify/functions/auth-wallet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Important: include cookies in request
         body: JSON.stringify({
           wallet_address: walletAddress,
           signed_message: base64Signature,
@@ -105,7 +106,7 @@ export function PhantomWalletConnect({ onNeedRegistration }: PhantomWalletConnec
         console.log('User exists, logging in:', data.user);
         login({
           user: data.user,
-          token: data.token,
+          token: 'cookie-managed', // Token is in HTTP-only cookie
           expires_at: data.expires_at
         });
       }
@@ -121,7 +122,7 @@ export function PhantomWalletConnect({ onNeedRegistration }: PhantomWalletConnec
     if (provider) {
       try {
         await provider.disconnect();
-        logout();
+        await logout(); // logout is now async
       } catch (err) {
         console.error('Error disconnecting wallet:', err);
       }

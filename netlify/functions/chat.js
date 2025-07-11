@@ -1,12 +1,12 @@
 // Netlify Function: Chat completions endpoint
 // Uses ModelsLab API for LLM chat completions
 
-import { aiRateLimiter } from './utils/rateLimiter.js';
+import { chatRateLimiter } from './utils/rateLimiter.js';
 import { validateChatInput } from './utils/validation.js';
 
 export async function handler(event) {
   // Apply rate limiting
-  const rateLimitResponse = await aiRateLimiter(event);
+  const rateLimitResponse = await chatRateLimiter(event);
   if (rateLimitResponse) {
     return rateLimitResponse;
   }

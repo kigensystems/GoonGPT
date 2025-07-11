@@ -1,7 +1,17 @@
 // Netlify Function for Video Generation using ModelsLab img2video_ultra API
 import { createVideoStatus } from './utils/supabase.js';
+import { videoRateLimiter } from './utils/rateLimiter.js';
 
-export default async function handler(req, context) {
+export default async function handler(req) {
+  // Apply rate limiting
+  const rateLimitResponse = await videoRateLimiter(req);
+  if (rateLimitResponse) {
+    return new Response(rateLimitResponse.body, {
+      status: rateLimitResponse.statusCode,
+      headers: rateLimitResponse.headers
+    });
+  }
+
   // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',

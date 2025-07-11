@@ -1,12 +1,12 @@
 // Netlify Function: Image generation endpoint
 // Uses ModelsLab API for fast image generation
 
-import { aiRateLimiter } from './utils/rateLimiter.js';
+import { imageRateLimiter } from './utils/rateLimiter.js';
 import { validateImageInput } from './utils/validation.js';
 
 export async function handler(event) {
   // Apply rate limiting
-  const rateLimitResponse = await aiRateLimiter(event);
+  const rateLimitResponse = await imageRateLimiter(event);
   if (rateLimitResponse) {
     return rateLimitResponse;
   }
