@@ -1,6 +1,6 @@
 interface ModeToggleProps {
-  currentMode: 'chat' | 'image' | 'video' | 'deepfake'
-  onModeChange: (mode: 'chat' | 'image' | 'video' | 'deepfake') => void
+  currentMode: 'chat' | 'image' | 'video' | 'asmr' | 'deepfake'
+  onModeChange: (mode: 'chat' | 'image' | 'video' | 'asmr' | 'deepfake') => void
   className?: string
 }
 
@@ -30,6 +30,14 @@ export function ModeToggle({ currentMode, onModeChange, className = "" }: ModeTo
         }`}
       >
         Video
+      </button>
+      <button
+        onClick={() => onModeChange('asmr')}
+        className={`px-4 py-2 text-sm rounded-md transition-colors ${
+          currentMode === 'asmr' ? 'bg-button-primary text-button-text' : 'text-text-secondary hover:text-text-primary'
+        }`}
+      >
+        ASMR
       </button>
       <button
         onClick={() => onModeChange('deepfake')}

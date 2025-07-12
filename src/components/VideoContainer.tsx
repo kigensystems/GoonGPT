@@ -9,8 +9,8 @@ interface VideoContainerProps {
   isActive?: boolean
   initialMessages?: Message[]
   onMessagesChange?: (messages: Message[]) => void
-  currentMode?: 'chat' | 'image' | 'video' | 'deepfake'
-  onModeChange?: (mode: 'chat' | 'image' | 'video' | 'deepfake') => void
+  currentMode?: 'chat' | 'image' | 'video' | 'asmr' | 'deepfake'
+  onModeChange?: (mode: 'chat' | 'image' | 'video' | 'asmr' | 'deepfake') => void
   onNavigateToLegal?: () => void
 }
 

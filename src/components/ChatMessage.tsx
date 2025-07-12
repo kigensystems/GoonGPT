@@ -5,6 +5,7 @@ interface Message {
   timestamp: Date
   imageUrl?: string
   videoUrl?: string
+  audioUrl?: string
 }
 
 interface ChatMessageProps {

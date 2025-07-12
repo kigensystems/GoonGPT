@@ -8,11 +8,10 @@ interface ImageContainerProps {
   isActive?: boolean
   initialMessages?: Message[]
   onMessagesChange?: (messages: Message[]) => void
-  currentMode?: 'chat' | 'image' | 'video' | 'deepfake'
-  onModeChange?: (mode: 'chat' | 'image' | 'video' | 'deepfake') => void
+  currentMode?: 'chat' | 'image' | 'video' | 'asmr' | 'deepfake'
+  onModeChange?: (mode: 'chat' | 'image' | 'video' | 'asmr' | 'deepfake') => void
   onNavigateToLegal?: () => void
   onSuggestionClick?: (suggestion: string) => void
-  promptMapping?: Record<string, string>
 }
 
 export function ImageContainer({ 
@@ -21,8 +20,7 @@ export function ImageContainer({
   currentMode = 'image', 
   onModeChange, 
   onNavigateToLegal, 
-  onSuggestionClick,
-  promptMapping = {}
+  onSuggestionClick
 }: ImageContainerProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -72,11 +70,9 @@ export function ImageContainer({
     try {
       console.log('Generating image for:', content)
       
-      // Use enhanced prompt for backend if available, otherwise use original input
-      const backendPrompt = promptMapping[content] || content
-      
+      // The prompt mapping is now handled in App.tsx before calling this function
       const result = await imageClient.generateImage(
-        backendPrompt,
+        content,
         512,
         512,
         {
