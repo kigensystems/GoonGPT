@@ -6,6 +6,7 @@ export async function handler(event) {
   console.log('ASMR Environment check:', {
     hasKey: !!process.env.MODELSLAB_API_KEY,
     keyLength: process.env.MODELSLAB_API_KEY?.length,
+    hasVoiceId: !!process.env.ASMR_VOICE_ID,
     nodeEnv: process.env.NODE_ENV
   });
   
@@ -14,6 +15,14 @@ export async function handler(event) {
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Server configuration error' }),
+    };
+  }
+
+  if (!process.env.ASMR_VOICE_ID) {
+    console.error('ASMR_VOICE_ID is not set - voice must be uploaded first');
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'ASMR voice not configured' }),
     };
   }
 
@@ -60,7 +69,7 @@ export async function handler(event) {
     const requestBody = {
       key: process.env.MODELSLAB_API_KEY,
       prompt: text,
-      voice_id: 'asmrwhisperfemale',
+      voice_id: process.env.ASMR_VOICE_ID,
       language: 'english',
       speed: 1.0,
     };
@@ -91,12 +100,13 @@ export async function handler(event) {
     }
 
     // Return successful response
+    const audioUrl = result.output && result.output[0] ? result.output[0] : result.audio_url;
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
-        audio_url: result.output || result.audio_url,
+        audio_url: audioUrl,
         message: 'ASMR audio generated successfully'
       }),
     };
