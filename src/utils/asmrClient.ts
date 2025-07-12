@@ -5,6 +5,8 @@ interface AsmrResponse {
   audio_url?: string
   message?: string
   error?: string
+  details?: string
+  eta?: number
 }
 
 export const asmrClient = {
@@ -21,12 +23,22 @@ export const asmrClient = {
         }),
       })
 
+      const data = await response.json().catch(() => ({ 
+        error: 'Network error', 
+        details: 'Failed to parse response' 
+      }))
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Network error' }))
-        throw new Error(errorData.error || `HTTP ${response.status}`)
+        console.error('ASMR API error:', response.status, data)
+        throw new Error(data.error || `HTTP ${response.status}: ${data.details || 'Unknown error'}`)
       }
 
-      const data = await response.json()
+      // Handle async processing (202 status)
+      if (response.status === 202) {
+        console.log('ASMR audio generation in progress:', data)
+        throw new Error(data.message || 'Audio generation in progress, please try again')
+      }
+
       return data
     } catch (error) {
       console.error('ASMR generation error:', error)
