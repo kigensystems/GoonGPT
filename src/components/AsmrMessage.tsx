@@ -10,6 +10,9 @@ export function AsmrMessage({ message }: AsmrMessageProps) {
   const [progress, setProgress] = useState(0)
   const [duration, setDuration] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
   const audioRef = useRef<HTMLAudioElement>(null)
 
   useEffect(() => {
@@ -33,27 +36,58 @@ export function AsmrMessage({ message }: AsmrMessageProps) {
       setCurrentTime(0)
     }
 
+    const handleCanPlay = () => {
+      setIsLoading(false)
+      setError(null)
+    }
+
+    const handleError = () => {
+      console.log(`Audio load error, retry count: ${retryCount}`)
+      
+      // If audio is still processing (within first 10 seconds), retry
+      if (retryCount < 5) {
+        setError('Audio is still processing, please wait...')
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1)
+          audio.load() // Reload the audio element
+        }, 2000) // Retry every 2 seconds
+      } else {
+        setError('Failed to load audio. It may still be processing.')
+        setIsLoading(false)
+      }
+    }
+
     audio.addEventListener('timeupdate', updateProgress)
     audio.addEventListener('loadedmetadata', handleLoadedMetadata)
     audio.addEventListener('ended', handleEnded)
+    audio.addEventListener('canplay', handleCanPlay)
+    audio.addEventListener('error', handleError)
 
     return () => {
       audio.removeEventListener('timeupdate', updateProgress)
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata)
       audio.removeEventListener('ended', handleEnded)
+      audio.removeEventListener('canplay', handleCanPlay)
+      audio.removeEventListener('error', handleError)
     }
-  }, [message.audioUrl])
+  }, [message.audioUrl, retryCount])
 
-  const togglePlayback = () => {
+  const togglePlayback = async () => {
     const audio = audioRef.current
-    if (!audio) return
+    if (!audio || isLoading) return
 
     if (isPlaying) {
       audio.pause()
+      setIsPlaying(false)
     } else {
-      audio.play()
+      try {
+        await audio.play()
+        setIsPlaying(true)
+      } catch (err) {
+        console.error('Play error:', err)
+        setError('Unable to play audio. It may still be processing.')
+      }
     }
-    setIsPlaying(!isPlaying)
   }
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -117,9 +151,14 @@ export function AsmrMessage({ message }: AsmrMessageProps) {
                 <div className="flex items-center gap-3 mb-3">
                   <button
                     onClick={togglePlayback}
-                    className="flex items-center justify-center w-10 h-10 bg-accent rounded-full hover:bg-accent/90 transition-colors"
+                    disabled={isLoading}
+                    className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
+                      isLoading ? 'bg-gray-600 cursor-not-allowed' : 'bg-accent hover:bg-accent/90'
+                    }`}
                   >
-                    {isPlaying ? (
+                    {isLoading ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : isPlaying ? (
                       <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                       </svg>
@@ -158,12 +197,22 @@ export function AsmrMessage({ message }: AsmrMessageProps) {
                   />
                 </div>
                 
-                {/* ASMR Label */}
-                <div className="flex items-center gap-2 mt-2">
-                  <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                  </svg>
-                  <span className="text-xs text-purple-400 font-medium">ASMR Audio</span>
+                {/* ASMR Label and Status */}
+                <div className="flex items-center justify-between mt-2">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                    <span className="text-xs text-purple-400 font-medium">ASMR Audio</span>
+                  </div>
+                  
+                  {/* Error or Loading Status */}
+                  {error && (
+                    <span className="text-xs text-yellow-500">{error}</span>
+                  )}
+                  {isLoading && !error && (
+                    <span className="text-xs text-text-muted">Loading audio...</span>
+                  )}
                 </div>
               </div>
             )}
