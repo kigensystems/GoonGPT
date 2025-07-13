@@ -7,6 +7,7 @@ export async function handler(event) {
     hasKey: !!process.env.MODELSLAB_API_KEY,
     keyLength: process.env.MODELSLAB_API_KEY?.length,
     hasVoiceId: !!process.env.ASMR_VOICE_ID,
+    voiceId: process.env.ASMR_VOICE_ID,
     nodeEnv: process.env.NODE_ENV
   });
   
@@ -99,7 +100,29 @@ export async function handler(event) {
       throw new Error(errorMsg);
     }
 
-    // Return successful response
+    // Handle processing status
+    if (result.status === 'processing') {
+      console.log('ASMR audio is processing, using future_links');
+      const audioUrl = result.future_links && result.future_links[0] 
+        ? result.future_links[0] 
+        : result.proxy_links && result.proxy_links[0] 
+        ? result.proxy_links[0]
+        : null;
+      
+      if (audioUrl) {
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            audio_url: audioUrl,
+            message: `Audio will be ready in approximately ${result.eta || 5} seconds`
+          }),
+        };
+      }
+    }
+
+    // Return successful response for immediate generation
     const audioUrl = result.output && result.output[0] ? result.output[0] : result.audio_url;
     return {
       statusCode: 200,
