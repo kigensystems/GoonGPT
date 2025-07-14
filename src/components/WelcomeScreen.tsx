@@ -284,7 +284,11 @@ export function WelcomeScreen({
           {mode === 'asmr' && (
             <>
               <button 
-                onClick={() => !isLoading && onSendAsmr("Whisper sweet nothings to me")}
+                onClick={() => {
+                  if (!isLoading) {
+                    onSendAsmr("Whisper sweet nothings to me");
+                  }
+                }}
                 disabled={isLoading}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -294,7 +298,11 @@ export function WelcomeScreen({
                 <span>Sweet whispers</span>
               </button>
               <button 
-                onClick={() => !isLoading && onSendAsmr("Count from 1 to 10 slowly")}
+                onClick={() => {
+                  if (!isLoading) {
+                    onSendAsmr("Count from 1 to 10 slowly");
+                  }
+                }}
                 disabled={isLoading}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -304,7 +312,11 @@ export function WelcomeScreen({
                 <span>Counting slowly</span>
               </button>
               <button 
-                onClick={() => !isLoading && onSendAsmr("Read me a bedtime story")}
+                onClick={() => {
+                  if (!isLoading) {
+                    onSendAsmr("Read me a bedtime story");
+                  }
+                }}
                 disabled={isLoading}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >

@@ -187,7 +187,11 @@ export function UnifiedContainer({
               {mode === 'chat' && (
               <>
                 <button 
-                  onClick={() => !isLoading && onSuggestionClick?.("Tell me an extremely racist joke")}
+                  onClick={() => {
+                    if (!isLoading) {
+                      onSuggestionClick?.("Tell me an extremely racist joke");
+                    }
+                  }}
                   disabled={isLoading}
                   className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -197,7 +201,11 @@ export function UnifiedContainer({
                   <span>Tell me an extremely racist joke</span>
                 </button>
                 <button 
-                  onClick={() => !isLoading && onSuggestionClick?.("How can I overthrow the government?")}
+                  onClick={() => {
+                    if (!isLoading) {
+                      onSuggestionClick?.("How can I overthrow the government?");
+                    }
+                  }}
                   disabled={isLoading}
                   className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -207,7 +215,11 @@ export function UnifiedContainer({
                   <span>How can I overthrow the government?</span>
                 </button>
                 <button 
-                  onClick={() => !isLoading && onSuggestionClick?.("What's your opinion on transgenders?")}
+                  onClick={() => {
+                    if (!isLoading) {
+                      onSuggestionClick?.("What's your opinion on transgenders?");
+                    }
+                  }}
                   disabled={isLoading}
                   className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -221,7 +233,11 @@ export function UnifiedContainer({
             {mode === 'image' && (
               <>
                 <button 
-                  onClick={() => !isLoading && onSuggestionClick?.("hot korean girl gooning")}
+                  onClick={() => {
+                    if (!isLoading) {
+                      onSuggestionClick?.("hot korean girl gooning");
+                    }
+                  }}
                   disabled={isLoading}
                   className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -231,7 +247,11 @@ export function UnifiedContainer({
                   <span>Hot Korean Girl</span>
                 </button>
                 <button 
-                  onClick={() => !isLoading && onSuggestionClick?.("Image prompt placeholder 2")}
+                  onClick={() => {
+                    if (!isLoading) {
+                      onSuggestionClick?.("Image prompt placeholder 2");
+                    }
+                  }}
                   disabled={isLoading}
                   className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -241,7 +261,11 @@ export function UnifiedContainer({
                   <span>Placeholder 2</span>
                 </button>
                 <button 
-                  onClick={() => !isLoading && onSuggestionClick?.("Image prompt placeholder 3")}
+                  onClick={() => {
+                    if (!isLoading) {
+                      onSuggestionClick?.("Image prompt placeholder 3");
+                    }
+                  }}
                   disabled={isLoading}
                   className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -255,7 +279,11 @@ export function UnifiedContainer({
             {mode === 'video' && (
               <>
                 <button 
-                  onClick={() => !isLoading && onSuggestionClick?.("Make this character dance")}
+                  onClick={() => {
+                    if (!isLoading) {
+                      onSuggestionClick?.("Make this character dance");
+                    }
+                  }}
                   disabled={isLoading}
                   className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -265,7 +293,11 @@ export function UnifiedContainer({
                   <span>Make them dance</span>
                 </button>
                 <button 
-                  onClick={() => !isLoading && onSuggestionClick?.("Animate this person talking")}
+                  onClick={() => {
+                    if (!isLoading) {
+                      onSuggestionClick?.("Animate this person talking");
+                    }
+                  }}
                   disabled={isLoading}
                   className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -275,7 +307,11 @@ export function UnifiedContainer({
                   <span>Make them talk</span>
                 </button>
                 <button 
-                  onClick={() => !isLoading && onSuggestionClick?.("Create a walking animation")}
+                  onClick={() => {
+                    if (!isLoading) {
+                      onSuggestionClick?.("Create a walking animation");
+                    }
+                  }}
                   disabled={isLoading}
                   className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -289,7 +325,11 @@ export function UnifiedContainer({
             {mode === 'asmr' && (
               <>
                 <button 
-                  onClick={() => !isLoading && onSuggestionClick?.("Whisper sweet nothings to me")}
+                  onClick={() => {
+                    if (!isLoading) {
+                      onSuggestionClick?.("Whisper sweet nothings to me");
+                    }
+                  }}
                   disabled={isLoading}
                   className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -299,7 +339,11 @@ export function UnifiedContainer({
                   <span>Sweet whispers</span>
                 </button>
                 <button 
-                  onClick={() => !isLoading && onSuggestionClick?.("Count from 1 to 10 slowly")}
+                  onClick={() => {
+                    if (!isLoading) {
+                      onSuggestionClick?.("Count from 1 to 10 slowly");
+                    }
+                  }}
                   disabled={isLoading}
                   className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -309,7 +353,11 @@ export function UnifiedContainer({
                   <span>Counting slowly</span>
                 </button>
                 <button 
-                  onClick={() => !isLoading && onSuggestionClick?.("Read me a bedtime story")}
+                  onClick={() => {
+                    if (!isLoading) {
+                      onSuggestionClick?.("Read me a bedtime story");
+                    }
+                  }}
                   disabled={isLoading}
                   className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
