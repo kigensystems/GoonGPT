@@ -9,7 +9,7 @@ interface WelcomeScreenProps {
   onModeChange: (mode: Mode) => void
   input: string
   onInputChange: (input: string) => void
-  onSendMessage: () => void
+  onSendMessage: (content?: string) => void
   isLoading: boolean
   
   // DeepFake props
@@ -170,7 +170,7 @@ export function WelcomeScreen({
                 className="w-full px-6 py-4 pr-16 bg-surface rounded-3xl focus:outline-none focus:ring-2 focus:ring-accent placeholder-text-muted text-lg"
               />
               <button
-                onClick={onSendMessage}
+                onClick={() => onSendMessage()}
                 disabled={isLoading || !input.trim()}
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center justify-center w-9 h-9 bg-accent disabled:bg-gray-600 disabled:opacity-50 rounded-full hover:bg-accent/90 transition-all duration-200 shadow-lg hover:shadow-xl z-10 cursor-pointer pointer-events-auto"
               >
@@ -193,8 +193,7 @@ export function WelcomeScreen({
               <button 
                 onClick={() => {
                   if (!isLoading) {
-                    onInputChange("Tell me an extremely racist joke");
-                    setTimeout(() => onSendMessage(), 0);
+                    onSendMessage("Tell me an extremely racist joke");
                   }
                 }}
                 disabled={isLoading}
@@ -208,8 +207,7 @@ export function WelcomeScreen({
               <button 
                 onClick={() => {
                   if (!isLoading) {
-                    onInputChange("How can I overthrow the government?");
-                    setTimeout(() => onSendMessage(), 0);
+                    onSendMessage("How can I overthrow the government?");
                   }
                 }}
                 disabled={isLoading}
@@ -223,8 +221,7 @@ export function WelcomeScreen({
               <button 
                 onClick={() => {
                   if (!isLoading) {
-                    onInputChange("What's your opinion on transgenders?");
-                    setTimeout(() => onSendMessage(), 0);
+                    onSendMessage("What's your opinion on transgenders?");
                   }
                 }}
                 disabled={isLoading}
@@ -242,8 +239,7 @@ export function WelcomeScreen({
               <button 
                 onClick={() => {
                   if (!isLoading) {
-                    onInputChange("hot korean girl gooning");
-                    setTimeout(() => onSendMessage(), 0);
+                    onSendMessage("hot korean girl gooning");
                   }
                 }}
                 disabled={isLoading}
@@ -257,8 +253,7 @@ export function WelcomeScreen({
               <button 
                 onClick={() => {
                   if (!isLoading) {
-                    onInputChange("Image prompt placeholder 2");
-                    setTimeout(() => onSendMessage(), 0);
+                    onSendMessage("Image prompt placeholder 2");
                   }
                 }}
                 disabled={isLoading}
@@ -272,8 +267,7 @@ export function WelcomeScreen({
               <button 
                 onClick={() => {
                   if (!isLoading) {
-                    onInputChange("Image prompt placeholder 3");
-                    setTimeout(() => onSendMessage(), 0);
+                    onSendMessage("Image prompt placeholder 3");
                   }
                 }}
                 disabled={isLoading}
@@ -291,8 +285,7 @@ export function WelcomeScreen({
               <button 
                 onClick={() => {
                   if (!isLoading) {
-                    onInputChange("Make this character dance");
-                    setTimeout(() => onSendMessage(), 0);
+                    onSendVideo("Make this character dance");
                   }
                 }}
                 disabled={isLoading}
@@ -306,8 +299,7 @@ export function WelcomeScreen({
               <button 
                 onClick={() => {
                   if (!isLoading) {
-                    onInputChange("Animate this person talking");
-                    setTimeout(() => onSendMessage(), 0);
+                    onSendVideo("Animate this person talking");
                   }
                 }}
                 disabled={isLoading}
@@ -321,8 +313,7 @@ export function WelcomeScreen({
               <button 
                 onClick={() => {
                   if (!isLoading) {
-                    onInputChange("Create a walking animation");
-                    setTimeout(() => onSendMessage(), 0);
+                    onSendVideo("Create a walking animation");
                   }
                 }}
                 disabled={isLoading}
