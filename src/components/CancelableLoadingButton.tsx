@@ -42,7 +42,7 @@ export function CancelableLoadingButton({
       {isLoading ? (
         <>
           {/* Outer spinning ring */}
-          <div className={`absolute inset-0 ${iconSizeClasses[size]} border-2 border-white/20 border-t-white rounded-full animate-spin`}></div>
+          <div className="absolute inset-0 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
           
           {/* Stop icon (square) in center */}
           <div className={`relative ${stopIconSizeClasses[size]} bg-white rounded-sm`}></div>
