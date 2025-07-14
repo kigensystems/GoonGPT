@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, RefObject } from 'react'
 import { ChatInput } from './ChatInput'
 import { VideoInput } from './VideoInput'
-import { AsmrInput } from './AsmrInput'
 import { DeepFakeInput } from './DeepFakeInput'
 import { Message } from './ChatMessage'
 import { EmptyState } from './EmptyState'
