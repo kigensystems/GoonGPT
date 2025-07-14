@@ -49,10 +49,6 @@ export function AsmrInput({ onSend, isLoading }: AsmrInputProps) {
           )}
         </button>
       </div>
-      <div className="flex justify-between items-center text-xs text-text-muted px-2">
-        <span>{text.length} / {maxLength} characters</span>
-        <span>Press Enter to send, Shift+Enter for new line</span>
-      </div>
     </div>
   )
 }

@@ -471,6 +471,7 @@ function AppContent() {
             videoDuration={videoDuration}
             onVideoDurationChange={setVideoDuration}
             onSendVideo={sendVideo}
+            onSendAsmr={sendAsmr}
           />
         ) : null}
       </main>

@@ -7,6 +7,7 @@ interface DeepFakeInputProps {
   onBaseImageUpload: (image: string | null) => void
   onFaceImageUpload: (image: string | null) => void
   isLoading: boolean
+  disabled?: boolean
 }
 
 export function DeepFakeInput({
@@ -15,7 +16,8 @@ export function DeepFakeInput({
   faceImage,
   onBaseImageUpload,
   onFaceImageUpload,
-  isLoading
+  isLoading,
+  disabled = false
 }: DeepFakeInputProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -172,7 +174,7 @@ export function DeepFakeInput({
         <div className="flex justify-center">
           <button
             onClick={onSend}
-            disabled={isLoading || !allImagesUploaded}
+            disabled={disabled || isLoading || !allImagesUploaded}
             className="flex items-center justify-center w-9 h-9 bg-accent disabled:bg-gray-600 disabled:opacity-50 rounded-full hover:bg-accent/90 transition-all duration-200 shadow-lg hover:shadow-xl z-10 cursor-pointer pointer-events-auto"
           >
             {isLoading ? (

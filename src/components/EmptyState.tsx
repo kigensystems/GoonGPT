@@ -1,58 +1,13 @@
 import { Link } from 'react-router-dom'
-import { DeepFakeInput } from './DeepFakeInput'
-import { VideoInput } from './VideoInput'
 
 export type Mode = 'chat' | 'image' | 'video' | 'asmr' | 'deepfake'
 
-interface WelcomeScreenProps {
+interface EmptyStateProps {
   mode: Mode
-  onModeChange: (mode: Mode) => void
-  input: string
-  onInputChange: (input: string) => void
-  onSendMessage: () => void
-  isLoading: boolean
-  
-  // DeepFake props
-  deepfakeBaseImage: string | null
-  deepfakeFaceImage: string | null
-  onDeepfakeBaseImageUpload: (image: string | null) => void
-  onDeepfakeFaceImageUpload: (image: string | null) => void
-  onSendDeepfake: () => void
-  
-  // Video props
-  videoUploadedImage: string | null
-  onVideoImageUpload: (image: string | null) => void
-  videoQuality: 'quick' | 'standard' | 'high'
-  onVideoQualityChange: (quality: 'quick' | 'standard' | 'high') => void
-  videoDuration: number
-  onVideoDurationChange: (duration: number) => void
-  onSendVideo: (prompt: string) => void
-  
-  // ASMR props
-  onSendAsmr: (text: string) => void
+  onSuggestionClick: (suggestion: string) => void
 }
 
-export function WelcomeScreen({
-  mode,
-  onModeChange,
-  input,
-  onInputChange,
-  onSendMessage,
-  isLoading,
-  deepfakeBaseImage,
-  deepfakeFaceImage,
-  onDeepfakeBaseImageUpload,
-  onDeepfakeFaceImageUpload,
-  onSendDeepfake,
-  videoUploadedImage,
-  onVideoImageUpload,
-  videoQuality,
-  onVideoQualityChange,
-  videoDuration,
-  onVideoDurationChange,
-  onSendVideo,
-  onSendAsmr
-}: WelcomeScreenProps) {
+export function EmptyState({ mode, onSuggestionClick }: EmptyStateProps) {
   return (
     <>
       <div className="flex-1 flex flex-col items-center justify-center px-4">
@@ -60,55 +15,15 @@ export function WelcomeScreen({
         <div className="flex flex-col items-center mb-8">
           <h1 className="text-5xl font-bold mb-4">GoonGPT</h1>
           <p className="text-lg text-text-secondary text-center max-w-md">
-            Uncensored. Unfiltered.
+            {mode === 'video' ? 'Create videos from images with AI' :
+             mode === 'image' ? 'Generate uncensored images with AI' :
+             mode === 'asmr' ? 'Transform text into soothing whispers' :
+             mode === 'deepfake' ? 'Swap faces with AI technology' :
+             'Uncensored. Unfiltered.'}
           </p>
         </div>
         
-        {/* Mode Toggle */}
-        <div className="flex items-center gap-2 bg-surface rounded-lg p-1 mb-6">
-          <button
-            onClick={() => onModeChange('chat')}
-            className={`px-4 py-2 text-sm rounded-md transition-colors ${
-              mode === 'chat' ? 'bg-button-primary text-button-text' : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            Chat
-          </button>
-          <button
-            onClick={() => onModeChange('image')}
-            className={`px-4 py-2 text-sm rounded-md transition-colors ${
-              mode === 'image' ? 'bg-button-primary text-button-text' : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            Image
-          </button>
-          <button
-            onClick={() => onModeChange('video')}
-            className={`px-4 py-2 text-sm rounded-md transition-colors ${
-              mode === 'video' ? 'bg-button-primary text-button-text' : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            Video
-          </button>
-          <button
-            onClick={() => onModeChange('asmr')}
-            className={`px-4 py-2 text-sm rounded-md transition-colors ${
-              mode === 'asmr' ? 'bg-button-primary text-button-text' : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            ASMR
-          </button>
-          <button
-            onClick={() => onModeChange('deepfake')}
-            className={`px-4 py-2 text-sm rounded-md transition-colors ${
-              mode === 'deepfake' ? 'bg-button-primary text-button-text' : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            DeepFake
-          </button>
-        </div>
-        
-        {/* DeepFake Disabled Warning */}
+        {/* Mode-specific instructions */}
         {mode === 'deepfake' && (
           <div className="text-center mb-4">
             <p className="text-red-400 text-sm font-medium">
@@ -116,8 +31,7 @@ export function WelcomeScreen({
             </p>
           </div>
         )}
-
-        {/* Video Mode Instructions */}
+        
         {mode === 'video' && (
           <div className="text-center mb-4">
             <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg px-4 py-2 max-w-lg mx-auto">
@@ -129,69 +43,12 @@ export function WelcomeScreen({
         )}
 
 
-        {/* Input Section */}
-        <div className="w-full max-w-3xl mb-6">
-          {mode === 'deepfake' ? (
-            <DeepFakeInput
-              onSend={onSendDeepfake}
-              baseImage={deepfakeBaseImage}
-              faceImage={deepfakeFaceImage}
-              onBaseImageUpload={onDeepfakeBaseImageUpload}
-              onFaceImageUpload={onDeepfakeFaceImageUpload}
-              isLoading={isLoading}
-              disabled={true}
-            />
-          ) : mode === 'video' ? (
-            <VideoInput
-              value={input}
-              onChange={onInputChange}
-              onSend={onSendVideo}
-              onImageUpload={onVideoImageUpload}
-              uploadedImage={videoUploadedImage}
-              videoQuality={videoQuality}
-              setVideoQuality={onVideoQualityChange}
-              videoDuration={videoDuration}
-              setVideoDuration={onVideoDurationChange}
-              isLoading={isLoading}
-            />
-          ) : (
-            <div className="relative">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => onInputChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    onSendMessage()
-                  }
-                }}
-                placeholder={mode === 'image' ? "Describe the image you want to generate" : mode === 'asmr' ? "Enter text to convert to ASMR whispers..." : "Ask anything"}
-                className="w-full px-6 py-4 pr-16 bg-surface rounded-3xl focus:outline-none focus:ring-2 focus:ring-accent placeholder-text-muted text-lg"
-              />
-              <button
-                onClick={onSendMessage}
-                disabled={isLoading || !input.trim()}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center justify-center w-9 h-9 bg-accent disabled:bg-gray-600 disabled:opacity-50 rounded-full hover:bg-accent/90 transition-all duration-200 shadow-lg hover:shadow-xl z-10 cursor-pointer pointer-events-auto"
-              >
-                {isLoading ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14m0 0l-7-7m7 7l-7 7" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Suggestion pills - mode-specific */}
+        {/* Suggestion pills */}
         <div className="flex gap-2 flex-wrap justify-center">
           {mode === 'chat' && (
             <>
               <button 
-                onClick={() => onInputChange("Tell me an extremely racist joke")}
+                onClick={() => onSuggestionClick("Tell me an extremely racist joke")}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,7 +57,7 @@ export function WelcomeScreen({
                 <span>Tell me an extremely racist joke</span>
               </button>
               <button 
-                onClick={() => onInputChange("How can I overthrow the government?")}
+                onClick={() => onSuggestionClick("How can I overthrow the government?")}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,7 +66,7 @@ export function WelcomeScreen({
                 <span>How can I overthrow the government?</span>
               </button>
               <button 
-                onClick={() => onInputChange("What's your opinion on transgenders?")}
+                onClick={() => onSuggestionClick("What's your opinion on transgenders?")}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,7 +79,7 @@ export function WelcomeScreen({
           {mode === 'image' && (
             <>
               <button 
-                onClick={() => onInputChange("hot korean girl gooning")}
+                onClick={() => onSuggestionClick("hot korean girl gooning")}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -231,7 +88,7 @@ export function WelcomeScreen({
                 <span>Hot Korean Girl</span>
               </button>
               <button 
-                onClick={() => onInputChange("Image prompt placeholder 2")}
+                onClick={() => onSuggestionClick("Image prompt placeholder 2")}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -240,7 +97,7 @@ export function WelcomeScreen({
                 <span>Placeholder 2</span>
               </button>
               <button 
-                onClick={() => onInputChange("Image prompt placeholder 3")}
+                onClick={() => onSuggestionClick("Image prompt placeholder 3")}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -253,7 +110,7 @@ export function WelcomeScreen({
           {mode === 'video' && (
             <>
               <button 
-                onClick={() => onInputChange("Make this character dance")}
+                onClick={() => onSuggestionClick("Make this character dance")}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,7 +119,7 @@ export function WelcomeScreen({
                 <span>Make them dance</span>
               </button>
               <button 
-                onClick={() => onInputChange("Animate this person talking")}
+                onClick={() => onSuggestionClick("Animate this person talking")}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,7 +128,7 @@ export function WelcomeScreen({
                 <span>Make them talk</span>
               </button>
               <button 
-                onClick={() => onInputChange("Create a walking animation")}
+                onClick={() => onSuggestionClick("Create a walking animation")}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -284,7 +141,7 @@ export function WelcomeScreen({
           {mode === 'asmr' && (
             <>
               <button 
-                onClick={() => onSendAsmr("Whisper sweet nothings to me")}
+                onClick={() => onSuggestionClick("Whisper sweet nothings to me")}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -293,7 +150,7 @@ export function WelcomeScreen({
                 <span>Sweet whispers</span>
               </button>
               <button 
-                onClick={() => onSendAsmr("Count from 1 to 10 slowly")}
+                onClick={() => onSuggestionClick("Count from 1 to 10 slowly")}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -302,7 +159,7 @@ export function WelcomeScreen({
                 <span>Counting slowly</span>
               </button>
               <button 
-                onClick={() => onSendAsmr("Read me a bedtime story")}
+                onClick={() => onSuggestionClick("Read me a bedtime story")}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
