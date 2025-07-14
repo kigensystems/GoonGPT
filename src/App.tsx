@@ -228,18 +228,18 @@ function AppContent() {
     setInput('')
     setIsLoading(true)
 
+    // First show processing message
+    const processingMessage: Message = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: 'Your video is being generated. This may take up to 60 seconds...',
+      timestamp: new Date()
+    }
+    setMessages(prev => [...prev, processingMessage])
+
     try {
       // Calculate FPS based on speed setting
       const fps = '16' // Default to normal speed
-      
-      // First show processing message
-      const processingMessage: Message = {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: 'Your video is being generated. This may take up to 60 seconds...',
-        timestamp: new Date()
-      }
-      setMessages(prev => [...prev, processingMessage])
       
       const result = await videoClient.generateVideo(
         videoUploadedImage,
