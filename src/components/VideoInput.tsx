@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import { CancelableLoadingButton } from './CancelableLoadingButton'
 
 interface VideoInputProps {
   value?: string
@@ -233,13 +232,22 @@ export function VideoInput({
           />
 
           {/* Send Button */}
-          <CancelableLoadingButton
-            isLoading={isLoading}
-            onCancel={onCancel}
-            onClick={handleSend}
-            disabled={!value.trim() || !uploadedImage}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2"
-          />
+          <button
+            onClick={() => isLoading && onCancel ? onCancel() : handleSend()}
+            disabled={!isLoading && (!value.trim() || !uploadedImage || isLoading)}
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center justify-center w-9 h-9 bg-accent disabled:bg-gray-600 disabled:opacity-50 rounded-full hover:bg-accent/90 transition-all duration-200 shadow-lg hover:shadow-xl z-10 cursor-pointer pointer-events-auto"
+          >
+            {isLoading ? (
+              <>
+                <div className="absolute inset-0 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                <div className="relative w-3.5 h-3.5 bg-white rounded-sm"></div>
+              </>
+            ) : (
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14m0 0l-7-7m7 7l-7 7" />
+              </svg>
+            )}
+          </button>
         </div>
 
         {/* Bottom row with video controls */}
