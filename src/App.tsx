@@ -50,10 +50,16 @@ function AppContent() {
   const [videoUploadedImage, setVideoUploadedImage] = useState<string | null>(null)
   const [videoQuality, setVideoQuality] = useState<'quick' | 'standard' | 'high'>('standard')
   const [videoDuration, setVideoDuration] = useState<number>(81)
+  
+  // Track current request IDs to ignore cancelled requests
+  const [currentRequestId, setCurrentRequestId] = useState<string | null>(null)
 
 
   const cancelGeneration = () => {
     console.log('Cancelling generation...')
+    // Clear the current request ID to ignore any pending results
+    setCurrentRequestId(null)
+    
     if (mode === 'image') {
       imageClient.cancel()
     } else if (mode === 'video') {
@@ -74,6 +80,10 @@ function AppContent() {
       return;
     }
     setIsProcessing(true) // Immediate synchronous block
+    
+    // Generate unique request ID
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    setCurrentRequestId(requestId)
     
     if (mode === 'deepfake') {
       // DeepFake doesn't use text input
@@ -137,6 +147,14 @@ function AppContent() {
           }
         )
 
+        // Check if this request was cancelled
+        if (currentRequestId !== requestId) {
+          console.log('Ignoring image result from cancelled request')
+          // Remove the processing message
+          setMessages(prev => prev.filter(msg => msg.id !== processingMessage.id))
+          return
+        }
+
         // Replace processing message with actual result
         setMessages(prev => {
           const filtered = prev.filter(msg => msg.id !== processingMessage.id)
@@ -179,6 +197,12 @@ function AppContent() {
           user?.wallet_address
         )
         
+        // Check if this request was cancelled
+        if (currentRequestId !== requestId) {
+          console.log('Ignoring response from cancelled request')
+          return
+        }
+        
         // Add the response message
         setMessages(prev => [...prev, {
           id: (Date.now() + 1).toString(),
@@ -199,13 +223,11 @@ function AppContent() {
           timestamp: new Date()
         }])
       }
-      setIsLoading(false)
-      setIsProcessing(false)
-    }
-    
-    if (mode === 'image') {
-      setIsLoading(false)
-      setIsProcessing(false)
+      // Only clear loading state if this is still the current request
+      if (currentRequestId === requestId) {
+        setIsLoading(false)
+        setIsProcessing(false)
+      }
     }
   }
 
@@ -216,6 +238,10 @@ function AppContent() {
     }
 
     if (!prompt.trim() || isLoading) return
+
+    // Generate unique request ID
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    setCurrentRequestId(requestId)
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -257,6 +283,14 @@ function AppContent() {
 
       console.log('Video generation result:', result)
 
+      // Check if this request was cancelled
+      if (currentRequestId !== requestId) {
+        console.log('Ignoring video result from cancelled request')
+        // Remove the processing message
+        setMessages(prev => prev.filter(msg => msg.id !== processingMessage.id))
+        return
+      }
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -286,13 +320,20 @@ function AppContent() {
       }
       setMessages(prev => [...prev, errorMessage])
     } finally {
-      setIsLoading(false)
-      setIsProcessing(false)
+      // Only clear loading state if this is still the current request
+      if (currentRequestId === requestId) {
+        setIsLoading(false)
+        setIsProcessing(false)
+      }
     }
   }
 
   const sendAsmr = async (text: string) => {
     if (!text.trim() || isLoading) return
+
+    // Generate unique request ID
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    setCurrentRequestId(requestId)
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -313,6 +354,12 @@ function AppContent() {
       console.log('ASMR prompt mapping:', { original: text, mapped: backendPrompt })
       
       const result = await asmrClient.generateAudio(backendPrompt, user?.wallet_address)
+      
+      // Check if this request was cancelled
+      if (currentRequestId !== requestId) {
+        console.log('Ignoring ASMR result from cancelled request')
+        return
+      }
       
       if (result.success && result.audio_url) {
         const assistantMessage: Message = {
@@ -336,8 +383,11 @@ function AppContent() {
       }
       setMessages(prev => [...prev, errorMessage])
     } finally {
-      setIsLoading(false)
-      setIsProcessing(false)
+      // Only clear loading state if this is still the current request
+      if (currentRequestId === requestId) {
+        setIsLoading(false)
+        setIsProcessing(false)
+      }
     }
   }
 
