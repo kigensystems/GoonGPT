@@ -51,8 +51,9 @@ function AppContent() {
   const [videoDuration, setVideoDuration] = useState<number>(81)
 
 
-  const sendMessage = async () => {
-    console.log('sendMessage called!', { mode, input, isLoading })
+  const sendMessage = async (content?: string) => {
+    const messageContent = content || input
+    console.log('sendMessage called!', { mode, messageContent, isLoading })
     if (mode === 'deepfake') {
       // DeepFake doesn't use text input
       sendDeepfake();
@@ -61,27 +62,27 @@ function AppContent() {
     
     if (mode === 'video') {
       // Video doesn't use text input in welcome screen
-      sendVideo(input);
+      sendVideo(messageContent);
       return;
     }
     
     if (mode === 'asmr') {
       // ASMR doesn't use text input in welcome screen
-      sendAsmr(input);
+      sendAsmr(messageContent);
       return;
     }
     
-    if (!input.trim() || isLoading) return
+    if (!messageContent.trim() || isLoading) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input,
+      content: messageContent,
       timestamp: new Date()
     }
 
     setMessages([...messages, userMessage])
-    setInput('')
+    if (!content) setInput('') // Only clear input if using App.tsx's input state
     setIsLoading(true)
 
     if (mode === 'image') {
@@ -96,8 +97,8 @@ function AppContent() {
       
       try {
         // Use mapped prompt for image generation
-        const backendPrompt = getMappedPrompt(input, 'image')
-        console.log('Image prompt mapping:', { original: input, mapped: backendPrompt })
+        const backendPrompt = getMappedPrompt(messageContent, 'image')
+        console.log('Image prompt mapping:', { original: messageContent, mapped: backendPrompt })
         
         const result = await imageClient.generateImage(
           backendPrompt,

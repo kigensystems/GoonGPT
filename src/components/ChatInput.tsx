@@ -1,19 +1,25 @@
 import { useState } from 'react'
 
 interface ChatInputProps {
+  value?: string
+  onChange?: (value: string) => void
   onSendMessage: (message: string) => void
   isLoading: boolean
   placeholder?: string
 }
 
-export function ChatInput({ onSendMessage, isLoading, placeholder = "Ask anything" }: ChatInputProps) {
-  const [input, setInput] = useState('')
+export function ChatInput({ value, onChange, onSendMessage, isLoading, placeholder = "Ask anything" }: ChatInputProps) {
+  const [internalInput, setInternalInput] = useState('')
+  
+  // Use controlled value if provided, otherwise use internal state
+  const inputValue = value !== undefined ? value : internalInput
+  const setInputValue = onChange || setInternalInput
 
   const handleSend = () => {
-    console.log('Button clicked!', { input, isLoading })
-    if (!input.trim() || isLoading) return
-    onSendMessage(input)
-    setInput('')
+    console.log('Button clicked!', { inputValue, isLoading })
+    if (!inputValue.trim() || isLoading) return
+    onSendMessage(inputValue)
+    setInputValue('')
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -27,8 +33,8 @@ export function ChatInput({ onSendMessage, isLoading, placeholder = "Ask anythin
     <div className="relative">
       <input
         type="text"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         className="w-full px-6 py-4 pr-16 bg-surface rounded-3xl focus:outline-none focus:ring-2 focus:ring-accent placeholder-text-muted text-lg"

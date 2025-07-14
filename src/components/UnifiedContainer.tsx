@@ -137,6 +137,8 @@ export function UnifiedContainer({
         
         {mode === 'chat' || mode === 'image' ? (
           <ChatInput
+            value={input}
+            onChange={setInput}
             onSendMessage={handleSendMessage}
             placeholder={mode === 'image' ? "Describe the image you want to generate" : "Ask anything"}
             isLoading={isLoading}
@@ -156,6 +158,8 @@ export function UnifiedContainer({
           />
         ) : mode === 'asmr' ? (
           <ChatInput
+            value={input}
+            onChange={setInput}
             onSendMessage={(text) => onSendAsmr!(text)}
             placeholder="Enter text to convert to ASMR whispers..."
             isLoading={isLoading}
