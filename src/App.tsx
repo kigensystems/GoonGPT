@@ -8,11 +8,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { getMappedPrompt } from './promptMappings'
 import { UserRegistration } from './components/UserRegistration'
 import { FirefoxWarning } from './components/FirefoxWarning'
-import { ChatContainer } from './components/ChatContainer'
-import { VideoContainer } from './components/VideoContainer'
-import { ImageContainer } from './components/ImageContainer'
-import { DeepFakeContainer } from './components/DeepFakeContainer'
-import { AsmrContainer } from './components/AsmrContainer'
+import { UnifiedContainer } from './components/UnifiedContainer'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { AppHeader } from './components/AppHeader'
 import { WelcomeScreen, Mode } from './components/WelcomeScreen'
@@ -395,63 +391,32 @@ function AppContent() {
       {/* Main Content - Only show when not on profile page */}
       {currentView === 'chat' && (
         <main className="flex-1 flex flex-col overflow-hidden">
-        {mode === 'video' && messages.length > 0 ? (
-          <VideoContainer 
-            isActive={true} 
-            initialMessages={messages} 
-            onMessagesChange={setMessages}
-            currentMode={mode}
+        {messages.length > 0 ? (
+          <UnifiedContainer
+            mode={mode}
+            messages={messages}
             onModeChange={setMode}
-          />
-        ) : mode === 'image' && messages.length > 0 ? (
-          <ImageContainer 
-            isActive={true} 
-            initialMessages={messages} 
-            onMessagesChange={setMessages}
-            currentMode={mode}
-            onModeChange={setMode}
+            isLoading={isLoading}
+            onSendMessage={sendMessage}
             onSuggestionClick={(suggestion) => {
               setInput(suggestion);
               setTimeout(() => sendMessage(), 0);
             }}
+            videoUploadedImage={videoUploadedImage}
+            onVideoImageUpload={setVideoUploadedImage}
+            videoQuality={videoQuality}
+            onVideoQualityChange={setVideoQuality}
+            videoDuration={videoDuration}
+            onVideoDurationChange={setVideoDuration}
+            onSendVideo={sendVideo}
+            onSendAsmr={sendAsmr}
+            deepfakeBaseImage={deepfakeBaseImage}
+            deepfakeFaceImage={deepfakeFaceImage}
+            onDeepfakeBaseImageUpload={setDeepfakeBaseImage}
+            onDeepfakeFaceImageUpload={setDeepfakeFaceImage}
+            onSendDeepfake={sendDeepfake}
           />
-        ) : mode === 'chat' && messages.length > 0 ? (
-          <ChatContainer 
-            isActive={true} 
-            initialMessages={messages} 
-            onMessagesChange={setMessages}
-            currentMode={mode}
-            onModeChange={setMode}
-            onSuggestionClick={(suggestion) => {
-              setInput(suggestion);
-              setTimeout(() => sendMessage(), 0);
-            }}
-          />
-        ) : mode === 'asmr' && messages.length > 0 ? (
-          <AsmrContainer 
-            isActive={true} 
-            initialMessages={messages} 
-            currentMode={mode}
-            onModeChange={setMode}
-            onNavigateToLegal={() => navigate('/legal')}
-            onSend={sendAsmr}
-            isLoading={isLoading}
-          />
-        ) : mode === 'deepfake' && messages.length > 0 ? (
-          <DeepFakeContainer 
-            isActive={true} 
-            initialMessages={messages} 
-            currentMode={mode}
-            onModeChange={setMode}
-            onNavigateToLegal={() => navigate('/legal')}
-            baseImage={deepfakeBaseImage}
-            faceImage={deepfakeFaceImage}
-            onBaseImageUpload={setDeepfakeBaseImage}
-            onFaceImageUpload={setDeepfakeFaceImage}
-            onSend={sendDeepfake}
-            isLoading={isLoading}
-          />
-        ) : messages.length === 0 ? (
+        ) : (
           <WelcomeScreen
             mode={mode}
             onModeChange={setMode}
@@ -473,7 +438,7 @@ function AppContent() {
             onSendVideo={sendVideo}
             onSendAsmr={sendAsmr}
           />
-        ) : null}
+        )}
       </main>
       )}
     </div>
