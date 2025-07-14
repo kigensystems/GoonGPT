@@ -5,9 +5,10 @@ export type Mode = 'chat' | 'image' | 'video' | 'asmr' | 'deepfake'
 interface EmptyStateProps {
   mode: Mode
   onSuggestionClick: (suggestion: string) => void
+  isLoading?: boolean
 }
 
-export function EmptyState({ mode, onSuggestionClick }: EmptyStateProps) {
+export function EmptyState({ mode, onSuggestionClick, isLoading = false }: EmptyStateProps) {
   return (
     <>
       <div className="flex-1 flex flex-col items-center justify-center px-4">
@@ -48,8 +49,13 @@ export function EmptyState({ mode, onSuggestionClick }: EmptyStateProps) {
           {mode === 'chat' && (
             <>
               <button 
-                onClick={() => onSuggestionClick("Tell me an extremely racist joke")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onSuggestionClick("Tell me an extremely racist joke");
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -57,8 +63,13 @@ export function EmptyState({ mode, onSuggestionClick }: EmptyStateProps) {
                 <span>Tell me an extremely racist joke</span>
               </button>
               <button 
-                onClick={() => onSuggestionClick("How can I overthrow the government?")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onSuggestionClick("How can I overthrow the government?");
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
@@ -66,8 +77,13 @@ export function EmptyState({ mode, onSuggestionClick }: EmptyStateProps) {
                 <span>How can I overthrow the government?</span>
               </button>
               <button 
-                onClick={() => onSuggestionClick("What's your opinion on transgenders?")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onSuggestionClick("What's your opinion on transgenders?");
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
@@ -79,8 +95,13 @@ export function EmptyState({ mode, onSuggestionClick }: EmptyStateProps) {
           {mode === 'image' && (
             <>
               <button 
-                onClick={() => onSuggestionClick("hot korean girl gooning")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onSuggestionClick("hot korean girl gooning");
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -88,8 +109,13 @@ export function EmptyState({ mode, onSuggestionClick }: EmptyStateProps) {
                 <span>Hot Korean Girl</span>
               </button>
               <button 
-                onClick={() => onSuggestionClick("Image prompt placeholder 2")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onSuggestionClick("Image prompt placeholder 2");
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -97,8 +123,13 @@ export function EmptyState({ mode, onSuggestionClick }: EmptyStateProps) {
                 <span>Placeholder 2</span>
               </button>
               <button 
-                onClick={() => onSuggestionClick("Image prompt placeholder 3")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onSuggestionClick("Image prompt placeholder 3");
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -110,8 +141,13 @@ export function EmptyState({ mode, onSuggestionClick }: EmptyStateProps) {
           {mode === 'video' && (
             <>
               <button 
-                onClick={() => onSuggestionClick("Make this character dance")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onSuggestionClick("Make this character dance");
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
@@ -119,8 +155,13 @@ export function EmptyState({ mode, onSuggestionClick }: EmptyStateProps) {
                 <span>Make them dance</span>
               </button>
               <button 
-                onClick={() => onSuggestionClick("Animate this person talking")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onSuggestionClick("Animate this person talking");
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -128,8 +169,13 @@ export function EmptyState({ mode, onSuggestionClick }: EmptyStateProps) {
                 <span>Make them talk</span>
               </button>
               <button 
-                onClick={() => onSuggestionClick("Create a walking animation")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onSuggestionClick("Create a walking animation");
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -141,8 +187,13 @@ export function EmptyState({ mode, onSuggestionClick }: EmptyStateProps) {
           {mode === 'asmr' && (
             <>
               <button 
-                onClick={() => onSuggestionClick("Whisper sweet nothings to me")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onSuggestionClick("Whisper sweet nothings to me");
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -150,8 +201,13 @@ export function EmptyState({ mode, onSuggestionClick }: EmptyStateProps) {
                 <span>Sweet whispers</span>
               </button>
               <button 
-                onClick={() => onSuggestionClick("Count from 1 to 10 slowly")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onSuggestionClick("Count from 1 to 10 slowly");
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
@@ -159,8 +215,13 @@ export function EmptyState({ mode, onSuggestionClick }: EmptyStateProps) {
                 <span>Counting slowly</span>
               </button>
               <button 
-                onClick={() => onSuggestionClick("Read me a bedtime story")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onSuggestionClick("Read me a bedtime story");
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />

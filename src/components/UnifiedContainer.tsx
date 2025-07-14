@@ -99,6 +99,7 @@ export function UnifiedContainer({
       ) : (
         <EmptyState
           mode={mode}
+          isLoading={isLoading}
           onSuggestionClick={(suggestion) => {
             if (!isLoading) {
               if (mode === 'chat' || mode === 'image') {

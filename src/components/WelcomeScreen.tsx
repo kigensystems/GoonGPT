@@ -191,8 +191,14 @@ export function WelcomeScreen({
           {mode === 'chat' && (
             <>
               <button 
-                onClick={() => onInputChange("Tell me an extremely racist joke")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onInputChange("Tell me an extremely racist joke");
+                    setTimeout(() => onSendMessage(), 0);
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -200,8 +206,14 @@ export function WelcomeScreen({
                 <span>Tell me an extremely racist joke</span>
               </button>
               <button 
-                onClick={() => onInputChange("How can I overthrow the government?")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onInputChange("How can I overthrow the government?");
+                    setTimeout(() => onSendMessage(), 0);
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
@@ -209,8 +221,14 @@ export function WelcomeScreen({
                 <span>How can I overthrow the government?</span>
               </button>
               <button 
-                onClick={() => onInputChange("What's your opinion on transgenders?")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onInputChange("What's your opinion on transgenders?");
+                    setTimeout(() => onSendMessage(), 0);
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
@@ -222,8 +240,14 @@ export function WelcomeScreen({
           {mode === 'image' && (
             <>
               <button 
-                onClick={() => onInputChange("hot korean girl gooning")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onInputChange("hot korean girl gooning");
+                    setTimeout(() => onSendMessage(), 0);
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -231,8 +255,14 @@ export function WelcomeScreen({
                 <span>Hot Korean Girl</span>
               </button>
               <button 
-                onClick={() => onInputChange("Image prompt placeholder 2")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onInputChange("Image prompt placeholder 2");
+                    setTimeout(() => onSendMessage(), 0);
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -240,8 +270,14 @@ export function WelcomeScreen({
                 <span>Placeholder 2</span>
               </button>
               <button 
-                onClick={() => onInputChange("Image prompt placeholder 3")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onInputChange("Image prompt placeholder 3");
+                    setTimeout(() => onSendMessage(), 0);
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -253,8 +289,14 @@ export function WelcomeScreen({
           {mode === 'video' && (
             <>
               <button 
-                onClick={() => onInputChange("Make this character dance")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onInputChange("Make this character dance");
+                    setTimeout(() => onSendMessage(), 0);
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
@@ -262,8 +304,14 @@ export function WelcomeScreen({
                 <span>Make them dance</span>
               </button>
               <button 
-                onClick={() => onInputChange("Animate this person talking")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onInputChange("Animate this person talking");
+                    setTimeout(() => onSendMessage(), 0);
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -271,8 +319,14 @@ export function WelcomeScreen({
                 <span>Make them talk</span>
               </button>
               <button 
-                onClick={() => onInputChange("Create a walking animation")}
-                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2"
+                onClick={() => {
+                  if (!isLoading) {
+                    onInputChange("Create a walking animation");
+                    setTimeout(() => onSendMessage(), 0);
+                  }
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />

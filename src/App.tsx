@@ -32,6 +32,7 @@ function AppContent() {
   
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false) // Immediate protection
   
   // Debug: Log messages state changes
   useEffect(() => {
@@ -53,7 +54,15 @@ function AppContent() {
 
   const sendMessage = async (content?: string) => {
     const messageContent = content || input
-    console.log('sendMessage called!', { mode, messageContent, isLoading })
+    console.log('sendMessage called!', { mode, messageContent, isLoading, isProcessing })
+    
+    // IMMEDIATE protection - don't wait for React re-render
+    if (isProcessing || isLoading) {
+      console.log('BLOCKED: Already processing')
+      return;
+    }
+    setIsProcessing(true) // Immediate synchronous block
+    
     if (mode === 'deepfake') {
       // DeepFake doesn't use text input
       sendDeepfake();
@@ -72,7 +81,10 @@ function AppContent() {
       return;
     }
     
-    if (!messageContent.trim() || isLoading) return
+    if (!messageContent.trim()) {
+      setIsProcessing(false)
+      return
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -174,10 +186,12 @@ function AppContent() {
         }])
       }
       setIsLoading(false)
+      setIsProcessing(false)
     }
     
     if (mode === 'image') {
       setIsLoading(false)
+      setIsProcessing(false)
     }
   }
 
@@ -254,6 +268,7 @@ function AppContent() {
       setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
+      setIsProcessing(false)
     }
   }
 
@@ -303,6 +318,7 @@ function AppContent() {
       setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
+      setIsProcessing(false)
     }
   }
 
@@ -334,6 +350,7 @@ function AppContent() {
     setMessages(prev => [...prev, disabledMessage]);
     
     setIsLoading(false);
+    setIsProcessing(false);
     
     // Clear images after showing disabled message
     setDeepfakeBaseImage(null);
@@ -400,9 +417,8 @@ function AppContent() {
             isLoading={isLoading}
             onSendMessage={sendMessage}
             onSuggestionClick={(suggestion) => {
-              if (!isLoading) {
-                sendMessage(suggestion);
-              }
+              // Remove this check - sendMessage now handles it with immediate protection
+              sendMessage(suggestion);
             }}
             videoUploadedImage={videoUploadedImage}
             onVideoImageUpload={setVideoUploadedImage}
