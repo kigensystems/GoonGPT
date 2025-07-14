@@ -1,54 +1,253 @@
-#Project Overview
-	•	GoonGPT is an NSFW-oriented AI chatbot and image generation web app. It offers an uncensored, unfiltered ChatGPT-like experience (18+ audience), with an emphasis on anything-goes content and a UI similar to ChatGPT.
+# CLAUDE.md – Development Standards & AI Collaboration Guide
 
-#Tech Stack
-	•	Build Tool: Vite (bundler/dev server for fast TS apps)
-	•	Frontend Framework: React 18+ (TypeScript + JSX) – (UI built to mimic ChatGPT interface)
-	•	Language: TypeScript 5.x (strict mode enabled)
-	•	Styling: Tailwind CSS 3.x for UI styling
-	•	Backend: Netlify Functions (Node.js 18 runtime) for serverless API endpoints
-	•	AI Models Service: ModelsLab API for AI features (LLM chat completions, Stable Diffusion image generation)
+This project uses:
+- TypeScript + Vite
+- Tailwind CSS
+- Netlify (frontend hosting)
+- Netlify Functions for backend
+- Supabase (auth + database)
+- Claude Code for AI collaboration
 
-#Project Structure
-	•	src/components/ – Reusable UI components (chat interface elements, message bubbles, input box, image galleries, etc.)
-	•	src/pages/ – Main pages or views (e.g. Chat view, ImageGen view) if using a router; otherwise integrated in a single-page app.
-	•	src/lib/ – Core logic and utilities (e.g., API client modules for calling ModelsLab endpoints, helper functions, context providers).
-	•	src/assets/ – Static assets like icons or default images (if any).
-	•	src/styles/ – Global styles or Tailwind configuration (if not solely in tailwind.config.js).
-	•	public/ – Public static files (favicon, maybe static html).
-	•	netlify/functions/ – Serverless function handlers for backend API calls (e.g., chat.ts for chat completions, generateImage.ts for text-to-image, etc.). These functions securely proxy requests to the ModelsLab API (keeping API keys hidden).
-	•	Configuration Files: Root-level config files like package.json (npm scripts), tailwind.config.js (Tailwind setup), and possibly netlify.toml (Netlify settings).
+UI/UX is our highest priority. Everything we build should feel fast, elegant, and intentional.
 
-#Commands
-	•	Install Dependencies: npm install (install all project dependencies)
-	•	Development Server: npm run dev (start Vite dev server for the front-end; likely on localhost)
-	•	Build for Production: npm run build (build the app into static assets in dist/ for deployment)
-	•	Serve Preview: npm run preview (optional – serve the built app locally for preview, if configured by Vite)
-	•	Netlify Dev (Optional): netlify dev (run local dev server with Netlify functions support for testing backend calls)
-	•	(No test or lint commands yet – project is in early development stage. Add in future if applicable.)
+---
 
-#Code Style & Conventions
-	•	General Style: Follow TypeScript best practices (strict types, no implicit any, etc.). Use ESLint/Prettier formatting rules (standard config) – e.g., 2-space indentation, semicolons, single quotes (if configured).
-	•	React Practices: Use functional components with Hooks (no class components). Prefer arrow function components. Name components with PascalCase and files to match (e.g. ChatBox.tsx).
-	•	State Management: Use React’s built-in state and context for simplicity (if needed) before considering external state libraries.
-	•	Imports: Use ES Modules import/export. Destructure imports when possible (e.g. import { useState } from 'react'). Keep import order organized (libraries first, then internal modules).
-	•	CSS/Stying: Use Tailwind utility classes for styling; avoid inline styles or external CSS files unless necessary. Consistent naming for custom CSS classes or ids (kebab-case).
-	•	File Naming: Use clear, descriptive names. For TypeScript files containing JSX, use .tsx extension. Use lowercase for file and directory names except React components (PascalCase).
+## 🚧 CRITICAL WORKFLOW
 
-#Repository Etiquette
-	•	Branch Strategy: Use a main branch (e.g. main or master) for stable deployment; active development in dev branch. (Since this is a personal project, this can be flexible.)
-	•	Commits: Write descriptive commit messages (state the change or feature briefly). No strict format enforced yet, but consistency is encouraged.
-	•	(No formal code review process – solo developer.)
+🧭 We always follow this sequence:
 
-#Core Files & Utilities
-	•	src/lib/apiClient.ts – (For example) A utility module to call ModelsLab API (wrapping fetch calls for chat or image generation). Claude should use this when needing to integrate API calls.
-	•	models.d.ts – (If exists) Type definitions for ModelsLab API responses (e.g., interfaces for chat response, image generation options). Helps with type-safe API usage.
-	•	Environment Variables: The ModelsLab API key and any secrets are stored in Netlify environment settings (not in code). The code likely reads them via process.env.MODELSLAB_API_KEY within Netlify functions.
-	•	tailwind.config.js – Tailwind CSS configuration (colors, theme customizations) – ensure class names used conform to this config.
+**Research → Plan → Implement**
 
-#Do Not Touch / Avoid
-	•	No Content Filtering: Do not add or enable content moderation or censorship. GoonGPT is intentionally unfiltered, so refrain from implementing filters that block NSFW content.
-	•	Don’t Expose Secrets: Do not commit API keys or sensitive info in the repository. Keep using environment variables for secrets (Claude should never print or log the actual API key in code).
-	•	Avoid Breaking UI/UX: Do not drastically change the chat UI layout without consultation – it should remain similar to ChatGPT’s layout for familiarity.
-	•	Don’t Modify Configs Without Need: Avoid arbitrary changes to critical config files (Webpack/Vite config, Tailwind config, etc.) unless it’s required for a feature.
-	•	Preserve Legacy (N/A): (No legacy code yet, but in future, treat any stable or generated code with caution unless improvements are intended.)
+> Claude must always say:  
+> “Let me research the codebase and create a plan before implementing.”
+
+❗ Claude may not generate or change code until the plan is reviewed and approved.
+
+---
+
+## ✅ AUTOMATED CHECKS ARE MANDATORY
+
+All pre-commit hooks are enforced. Everything must be ✅ GREEN.
+
+- ❌ Hook failures are BLOCKING – stop immediately
+- 🔧 Fix formatting issues: `make fmt`
+- 🧪 Fix test failures: `make test`
+- 🔍 Fix linting issues: `make lint`
+- 🛑 Never skip or ignore errors
+- 💯 Your code is complete when:
+  - All tests pass
+  - All linters pass
+  - Feature works end-to-end
+  - No unused/legacy code remains
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+  components/     → Reusable React components (UI-first)
+  pages/          → Next.js-style page routing
+  styles/         → Tailwind utilities and design tokens
+  api/            → API routes (via Netlify Functions)
+  utils/          → Client-side helpers
+netlify/functions/ → Serverless backend logic (TS)
+supabase/         → Edge functions, SQL, policies
+public/           → Static assets
+```
+
+🧠 Claude must infer structure and reuse patterns across files.
+Never invent folder layouts—reuse existing organization.
+
+---
+
+## 🎨 UI/UX RULES (Top Priority)
+
+- All new UIs must be pixel-perfect and responsive
+- Tailwind-only: no global CSS (except for tokens/utilities)
+- Use `clsx()` for conditional styling
+- Transitions should feel native, subtle, fast
+- Claude must ask: "Would you like animation or hover effects?" for new components
+- Use accessible HTML + ARIA when relevant
+- Claude must confirm component usage patterns before generating new ones
+- Use SVGs for icons where possible (avoid external icon fonts)
+
+---
+
+## 💻 TECH STACK RULES
+
+### TypeScript
+- No `any` or `unknown` types – infer or constrain types
+- Use discriminated unions for state machines
+- No default exports – always use named exports
+- Component props must be explicitly typed
+
+### Vite
+- Fast builds expected – no heavy polyfills
+- Code splitting encouraged if modules grow large
+
+### Tailwind
+- Never duplicate class strings – extract into `className` helpers if reused
+- Avoid arbitrary values unless necessary (e.g., `[40px]`)
+- Use design tokens (`theme('colors.primary')`) where possible
+
+### Netlify Functions
+- Use TypeScript + named handlers
+- Every function should be testable (pure logic extracted)
+- Use `netlify/functions/utils.ts` for common server logic
+- Claude may generate serverless functions only in this directory
+
+### Supabase
+- Never hardcode secrets – use `process.env`
+- All DB writes must be authenticated
+- No raw SQL unless inside Supabase Edge Functions
+- Claude must ask: “Is this a client-side or backend DB call?” before querying
+
+---
+
+## 🧠 CLAUDE BEHAVIOR
+
+### Claude Must:
+- Ask before creating files or directories
+- Use @file references when accessing specific code
+- Label all major tasks with headers (e.g., `## Plan`, `## Implementation`, `## Refactor`)
+- Summarize what it’s doing before modifying code
+- Never leave placeholders or partial implementations
+- Never edit files without showing a plan and asking approval
+
+### Never Do:
+- Never duplicate old + new code – delete what’s replaced
+- Never use `any` or `interface {}` types
+- Never keep unused code or comments (use git if needed)
+- Never modify formatting manually – run formatter
+- Never name files with `v2`, `new`, `copy`, etc.
+
+---
+
+## 🧪 TESTING STRATEGY
+
+### When:
+- ✅ Complex logic → tests first
+- ✅ CRUD logic → tests after
+- ✅ High-traffic path → include benchmarks
+
+### Standards:
+- Unit tests must be deterministic
+- Use `describe()` and `it()` for structure
+- Prefer `vitest` with `@testing-library/react` for UI
+- No `console.log` in tests – use assertions
+- Table-driven tests encouraged for business logic
+- Use `mockServiceWorker` or Supabase stubs for integration
+
+---
+
+## 🔁 CLAUDE SUBAGENTS
+
+When tasks are large or multi-layered, Claude must say:  
+> “I'll spawn agents to tackle different aspects of this problem.”
+
+### Examples:
+- One agent reads the DB schema, another scans the API routes
+- One agent implements a component, another writes tests
+- One agent refactors old logic, another benchmarks performance
+
+Claude must report outputs clearly:
+- Prefix each result: `🔎 DB Agent:`, `🧪 Test Agent:`, `🔧 Refactor Agent:`
+
+Subagents may not modify code unless authorized.
+
+---
+
+## 📑 TASK TRACKING
+
+Maintain a `TODO.md` file with clear sections:
+
+```md
+## Current Task
+- [ ] Add avatar upload to user profiles
+
+## Completed
+- [x] Refactored profile view
+- [x] Added file input to UI
+- [x] Connected Supabase storage
+
+## Next Steps
+- [ ] Add loading state
+- [ ] Improve mobile layout
+```
+
+Claude must pause at each milestone and ask:  
+> “Would you like to update TODO.md or continue?”
+
+---
+
+## 🧠 CONTEXT STABILITY
+
+If Claude loses memory or context seems stale:
+- Re-read this CLAUDE.md
+- Ask for summary from `PROGRESS.md`
+- Validate: “What have we done so far? What’s next?”
+
+---
+
+## 🔒 SECURITY & PERFORMANCE
+
+- Always validate user inputs (client and backend)
+- Use `crypto.getRandomValues()` (not `Math.random`)
+- Use `prepared` Supabase queries or edge functions
+- Never expose secrets or tokens in client code
+- For perf: benchmark before optimizing
+- Use `requestIdleCallback`, lazy imports, and Suspense for UI perf
+
+---
+
+## 💬 CLAUDE COMMUNICATION
+
+### Always Communicate:
+- “Here’s what I plan to do. Approve?”
+- “Done implementing. All tests passing.”
+- “Found a better pattern. Want to apply it?”
+
+### Ask Before:
+- Creating or renaming files
+- Adding libraries
+- Changing existing data models
+
+---
+
+## 💣 FAILURE HANDLING
+
+When hooks fail:
+
+1. ❌ STOP – do not continue
+2. ✅ Run: `make fmt && make lint && make test`
+3. 🛠 Fix all errors
+4. ✅ Verify fixes
+5. 🧭 Resume original task
+
+---
+
+## 🧱 ARCHITECTURE RULES
+
+- Clear > Clever
+- Compose logic > Inherit
+- Favor composition over abstraction
+- Reuse components over rewriting
+- No shared “utils” bloat – colocate helpers
+- All exported types/functions must have JSDoc
+
+---
+
+## 🚀 PRODUCTION-QUALITY CODE =
+
+✅ Feature works  
+✅ All tests pass  
+✅ All linters pass  
+✅ Old code removed  
+✅ Beautiful UI/UX  
+✅ CLAUDE.md followed
+
+---
+
+REMINDER:  
+If this file hasn’t been referenced in 30+ minutes, re-read it before continuing.
