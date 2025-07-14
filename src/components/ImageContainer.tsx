@@ -230,10 +230,16 @@ export function ImageContainer({
             </div>
           )}
           
-          {/* Suggestion prompts for image mode */}
+          <ChatInput 
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+            placeholder="Describe the image you want to generate"
+          />
+          
+          {/* Suggestion prompts for image mode - moved below input to match WelcomeScreen */}
           {currentMode === 'image' && (
-            <div className="max-w-5xl mx-auto">
-              <div className="flex gap-2 flex-wrap justify-center mb-4">
+            <div className="max-w-5xl mx-auto mt-4">
+              <div className="flex gap-2 flex-wrap justify-center">
                 <button 
                   onClick={() => onSuggestionClick?.("hot korean girl gooning")}
                   className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 flex-shrink-0"
@@ -264,12 +270,6 @@ export function ImageContainer({
               </div>
             </div>
           )}
-          
-          <ChatInput 
-            onSendMessage={handleSendMessage}
-            isLoading={isLoading}
-            placeholder="Describe the image you want to generate"
-          />
         </div>
       </div>
     </div>

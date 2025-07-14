@@ -206,10 +206,16 @@ export function ChatContainer({ initialMessages = [], onMessagesChange, currentM
             </div>
           )}
           
-          {/* Suggestion prompts for chat mode */}
+          <ChatInput 
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+            placeholder="Ask anything"
+          />
+          
+          {/* Suggestion prompts for chat mode - moved below input to match WelcomeScreen */}
           {currentMode === 'chat' && (
-            <div className="max-w-5xl mx-auto">
-              <div className="flex gap-2 flex-wrap justify-center mb-4">
+            <div className="max-w-5xl mx-auto mt-4">
+              <div className="flex gap-2 flex-wrap justify-center">
               <button 
                 onClick={() => onSuggestionClick?.("Tell me an extremely racist joke")}
                 className="px-4 py-2 text-sm border border-border rounded-full hover:bg-surface transition-colors flex items-center gap-2 flex-shrink-0"
@@ -240,12 +246,6 @@ export function ChatContainer({ initialMessages = [], onMessagesChange, currentM
               </div>
             </div>
           )}
-          
-          <ChatInput 
-            onSendMessage={handleSendMessage}
-            isLoading={isLoading}
-            placeholder="Ask anything"
-          />
         </div>
       </div>
     </div>
