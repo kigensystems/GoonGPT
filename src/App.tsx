@@ -144,8 +144,8 @@ function AppContent() {
       // Real chat response using ModelsLab API
       try {
         // Use mapped prompt for chat if available
-        const backendPrompt = getMappedPrompt(input, 'chat')
-        console.log('Chat prompt mapping:', { original: input, mapped: backendPrompt })
+        const backendPrompt = getMappedPrompt(messageContent, 'chat')
+        console.log('Chat prompt mapping:', { original: messageContent, mapped: backendPrompt })
         
         const response = await chatClient.chat(
           backendPrompt,
