@@ -400,8 +400,9 @@ function AppContent() {
             isLoading={isLoading}
             onSendMessage={sendMessage}
             onSuggestionClick={(suggestion) => {
-              setInput(suggestion);
-              setTimeout(() => sendMessage(), 0);
+              if (!isLoading) {
+                sendMessage(suggestion);
+              }
             }}
             videoUploadedImage={videoUploadedImage}
             onVideoImageUpload={setVideoUploadedImage}
