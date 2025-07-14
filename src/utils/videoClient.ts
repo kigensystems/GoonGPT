@@ -10,10 +10,19 @@ interface VideoGenerationResponse {
 
 export class VideoClient {
   private baseUrl: string;
+  private abortController: AbortController | null = null;
   
   constructor() {
     // Use Netlify dev server URL in development, relative path in production
     this.baseUrl = (import.meta as any).env?.DEV ? 'http://localhost:8888' : '';
+  }
+  
+  // Cancel ongoing video generation
+  cancel() {
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
+    }
   }
 
   // Video generation using ModelsLab img2video_ultra API (NSFW-enabled)
@@ -29,6 +38,12 @@ export class VideoClient {
     } = {}
   ): Promise<any> {
     try {
+      // Cancel any ongoing request
+      this.cancel();
+      
+      // Create new AbortController for this request
+      this.abortController = new AbortController();
+      
       // Always use Netlify function for consistent behavior
       const response = await fetch(`${this.baseUrl}/.netlify/functions/video`, {
         method: 'POST',
@@ -44,6 +59,7 @@ export class VideoClient {
           fps: options.fps || '16',
           wallet_address: options.wallet_address
         }),
+        signal: this.abortController.signal
       });
 
       if (!response.ok) {
@@ -97,8 +113,18 @@ export class VideoClient {
         throw new Error(result.details || 'Video generation failed');
       }
     } catch (error) {
+      // Handle abort specifically
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Video generation cancelled by user');
+        throw new Error('Video generation cancelled');
+      }
       console.error('Error generating video:', error);
       throw error;
+    } finally {
+      // Clean up abort controller
+      if (this.abortController) {
+        this.abortController = null;
+      }
     }
   }
 
@@ -117,7 +143,8 @@ export class VideoClient {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-          }
+          },
+          signal: this.abortController?.signal
         });
 
         if (!response.ok) {
@@ -189,6 +216,7 @@ export class VideoClient {
           body: JSON.stringify({ 
             fetch_url: fetchUrl
           }),
+          signal: this.abortController?.signal
         });
 
         if (!response.ok) {

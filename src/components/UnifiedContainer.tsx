@@ -14,6 +14,7 @@ interface UnifiedContainerProps {
   messages: Message[]
   onModeChange?: (mode: Mode) => void
   isLoading?: boolean
+  onCancel?: () => void
   
   // Chat/Image specific
   onSendMessage?: (content: string) => void
@@ -45,6 +46,7 @@ export function UnifiedContainer({
   messages,
   onModeChange,
   isLoading = false,
+  onCancel,
   onSendMessage,
   onSuggestionClick,
   videoUploadedImage,
@@ -144,6 +146,7 @@ export function UnifiedContainer({
             onSendMessage={handleSendMessage}
             placeholder={mode === 'image' ? "Describe the image you want to generate" : "Ask anything"}
             isLoading={isLoading}
+            onCancel={onCancel}
           />
         ) : mode === 'video' ? (
           <VideoInput
@@ -157,6 +160,7 @@ export function UnifiedContainer({
             videoDuration={videoDuration}
             setVideoDuration={onVideoDurationChange!}
             isLoading={isLoading}
+            onCancel={onCancel}
           />
         ) : mode === 'asmr' ? (
           <ChatInput
@@ -165,6 +169,7 @@ export function UnifiedContainer({
             onSendMessage={(text) => onSendAsmr!(text)}
             placeholder="Enter text to convert to ASMR whispers..."
             isLoading={isLoading}
+            onCancel={onCancel}
           />
         ) : mode === 'deepfake' ? (
           <DeepFakeInput

@@ -52,6 +52,18 @@ function AppContent() {
   const [videoDuration, setVideoDuration] = useState<number>(81)
 
 
+  const cancelGeneration = () => {
+    console.log('Cancelling generation...')
+    if (mode === 'image') {
+      imageClient.cancel()
+    } else if (mode === 'video') {
+      videoClient.cancel()
+    }
+    // For other modes, just reset the loading state
+    setIsLoading(false)
+    setIsProcessing(false)
+  }
+
   const sendMessage = async (content?: string) => {
     const messageContent = content || input
     console.log('sendMessage called!', { mode, messageContent, isLoading, isProcessing })
@@ -140,6 +152,8 @@ function AppContent() {
         // Replace processing message with error message
         const errorMessage = (error as any).rateLimited 
           ? (error as Error).message
+          : (error as Error).message === 'Image generation cancelled'
+          ? 'Image generation was cancelled.'
           : 'Sorry, there was an error generating the image. Please try again.'
         
         setMessages(prev => {
@@ -255,8 +269,13 @@ function AppContent() {
       // Clear uploaded image after successful generation
       setVideoUploadedImage(null)
     } catch (error) {
+      // Remove processing message first
+      setMessages(prev => prev.filter(msg => msg.id !== processingMessage.id))
+      
       const errorContent = (error as any).rateLimited 
         ? (error as Error).message
+        : (error as Error).message === 'Video generation cancelled'
+        ? 'Video generation was cancelled.'
         : `Sorry, there was an error generating the video: ${error instanceof Error ? error.message : 'Unknown error'}. Please upload an image and describe the video you want.`
       
       const errorMessage: Message = {
@@ -415,6 +434,7 @@ function AppContent() {
             messages={messages}
             onModeChange={setMode}
             isLoading={isLoading}
+            onCancel={cancelGeneration}
             onSendMessage={sendMessage}
             onSuggestionClick={(suggestion) => {
               // Remove this check - sendMessage now handles it with immediate protection
@@ -442,6 +462,7 @@ function AppContent() {
             onInputChange={setInput}
             onSendMessage={sendMessage}
             isLoading={isLoading}
+            onCancel={cancelGeneration}
             deepfakeBaseImage={deepfakeBaseImage}
             deepfakeFaceImage={deepfakeFaceImage}
             onDeepfakeBaseImageUpload={setDeepfakeBaseImage}

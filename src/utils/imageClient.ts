@@ -11,10 +11,19 @@ interface ImageGenerationResponse {
 
 export class ImageClient {
   private baseUrl: string;
+  private abortController: AbortController | null = null;
   
   constructor() {
     // Use Netlify dev server URL in development, relative path in production
     this.baseUrl = (import.meta as any).env?.DEV ? 'http://localhost:8888' : '';
+  }
+  
+  // Cancel ongoing image generation
+  cancel() {
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
+    }
   }
 
   // Image generation using ModelsLab API
@@ -33,6 +42,12 @@ export class ImageClient {
     } = {}
   ): Promise<any> {
     try {
+      // Cancel any ongoing request
+      this.cancel();
+      
+      // Create new AbortController for this request
+      this.abortController = new AbortController();
+      
       // Always use Netlify function for consistent behavior
       const response = await fetch(`${this.baseUrl}/.netlify/functions/image`, {
         method: 'POST',
@@ -45,6 +60,7 @@ export class ImageClient {
           height,
           ...options
         }),
+        signal: this.abortController.signal
       });
 
       if (!response.ok) {
@@ -88,8 +104,18 @@ export class ImageClient {
         throw new Error(result.details || 'Image generation failed');
       }
     } catch (error) {
+      // Handle abort specifically
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Image generation cancelled by user');
+        throw new Error('Image generation cancelled');
+      }
       console.error('Error generating image:', error);
       throw error;
+    } finally {
+      // Clean up abort controller
+      if (this.abortController) {
+        this.abortController = null;
+      }
     }
   }
 
