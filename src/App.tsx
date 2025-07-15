@@ -62,19 +62,17 @@ function AppContent() {
 
 
   const cancelGeneration = () => {
-    console.log('Cancelling generation for mode:', mode)
-    // Clear the current request ID for this mode only
+    // Only allow cancellation for video mode
+    if (mode !== 'video') return
+    
+    console.log('Cancelling video generation')
+    // Clear the current request ID for video mode only
     setCurrentRequestIds(prev => ({
       ...prev,
-      [mode]: null
+      video: null
     }))
     
-    if (mode === 'image') {
-      imageClient.cancel()
-    } else if (mode === 'video') {
-      videoClient.cancel()
-    }
-    // For other modes, just reset the loading state
+    videoClient.cancel()
     setIsLoading(false)
     setIsProcessing(false)
   }

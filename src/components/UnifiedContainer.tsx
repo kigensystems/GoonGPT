@@ -146,7 +146,6 @@ export function UnifiedContainer({
             onSendMessage={handleSendMessage}
             placeholder={mode === 'image' ? "Describe the image you want to generate" : "Ask anything"}
             isLoading={isLoading}
-            onCancel={onCancel}
           />
         ) : mode === 'video' ? (
           <VideoInput
@@ -169,7 +168,6 @@ export function UnifiedContainer({
             onSendMessage={(text) => onSendAsmr!(text)}
             placeholder="Enter text to convert to ASMR whispers..."
             isLoading={isLoading}
-            onCancel={onCancel}
           />
         ) : mode === 'deepfake' ? (
           <DeepFakeInput

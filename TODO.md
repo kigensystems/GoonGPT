@@ -76,6 +76,12 @@
   - Each mode (chat/image/video/asmr/deepfake) tracks its own request
   - Cancelling in one mode no longer affects other modes
   - Properly handles loading states and message cleanup
+- [x] **Removed cancel functionality from non-video modes**
+  - Removed cancel button UI from chat, image, and ASMR modes
+  - Removed AbortController from imageClient
+  - Updated cancelGeneration() to only work for video mode
+  - Video mode retains full cancel functionality with isolated behavior
+  - Build passes with no TypeScript errors
 - [x] **Maintained CLAUDE.md compliance**
   - Always ran builds before committing
   - Fixed all TypeScript errors immediately
