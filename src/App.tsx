@@ -138,9 +138,15 @@ function AppContent() {
         })
       } catch (error) {
         // Replace processing message with error message
-        const errorMessage = (error as any).rateLimited 
-          ? (error as Error).message
-          : 'Sorry, there was an error generating the image. Please try again.'
+        let errorMessage: string;
+        
+        if ((error as any).rateLimited) {
+          errorMessage = (error as Error).message;
+        } else if ((error as Error).message?.includes('504') || (error as Error).message?.includes('timeout')) {
+          errorMessage = 'The AI service is taking longer than usual to respond. This happens when the service is under heavy load. Please try again in a moment.';
+        } else {
+          errorMessage = 'Sorry, there was an error generating the image. Please try again.';
+        }
         
         setMessages(prev => {
           const filtered = prev.filter(msg => msg.id !== processingMessage.id)
@@ -177,9 +183,15 @@ function AppContent() {
         }])
       } catch (error) {
         // Add error message with rate limiting awareness
-        const errorMessage = (error as any).rateLimited 
-          ? (error as Error).message
-          : 'Sorry, there was an error processing your message. Please try again.'
+        let errorMessage: string;
+        
+        if ((error as any).rateLimited) {
+          errorMessage = (error as Error).message;
+        } else if ((error as Error).message?.includes('504') || (error as Error).message?.includes('timeout')) {
+          errorMessage = 'The AI service is taking longer than usual to respond. This happens when the service is under heavy load. Please try again in a moment.';
+        } else {
+          errorMessage = 'Sorry, there was an error processing your message. Please try again.';
+        }
         
         setMessages(prev => [...prev, {
           id: (Date.now() + 1).toString(),
