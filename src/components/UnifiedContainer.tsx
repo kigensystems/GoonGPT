@@ -14,7 +14,6 @@ interface UnifiedContainerProps {
   messages: Message[]
   onModeChange?: (mode: Mode) => void
   isLoading?: boolean
-  onCancel?: () => void
   
   // Chat/Image specific
   onSendMessage?: (content: string) => void
@@ -46,7 +45,6 @@ export function UnifiedContainer({
   messages,
   onModeChange,
   isLoading = false,
-  onCancel,
   onSendMessage,
   onSuggestionClick,
   videoUploadedImage,
@@ -159,7 +157,6 @@ export function UnifiedContainer({
             videoDuration={videoDuration}
             setVideoDuration={onVideoDurationChange!}
             isLoading={isLoading}
-            onCancel={onCancel}
           />
         ) : mode === 'asmr' ? (
           <ChatInput
