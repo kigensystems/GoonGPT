@@ -254,3 +254,12 @@ export const authRateLimiter = createUserRateLimiter({
   actionType: 'auth',
   message: 'Too many authentication attempts. Please try again later.'
 });
+
+// ASMR rate limiter
+export const asmrRateLimiter = createUserRateLimiter({
+  windowMs: 60000, // 1 minute
+  maxRequests: 10, // 10 requests per minute for authenticated users
+  anonymousMaxRequests: 5, // 5 requests per minute for anonymous users
+  actionType: 'asmr',
+  message: 'Too many ASMR requests. Please try again later.'
+});

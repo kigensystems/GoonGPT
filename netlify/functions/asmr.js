@@ -1,6 +1,8 @@
 // Netlify Function: ASMR text-to-audio endpoint
 // Uses ModelsLab API for ASMR voice generation
 
+import { asmrRateLimiter } from './utils/rateLimiter.js';
+
 export async function handler(event) {
   // Get CORS headers first
   const origin = event.headers.origin || event.headers.Origin;
@@ -17,6 +19,12 @@ export async function handler(event) {
       headers,
       body: '',
     };
+  }
+
+  // Apply rate limiting
+  const rateLimitResponse = await asmrRateLimiter(event);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
   }
 
   // Check for required environment variables
