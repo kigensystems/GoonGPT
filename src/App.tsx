@@ -151,6 +151,9 @@ function AppContent() {
             timestamp: new Date()
           }]
         })
+      } finally {
+        setIsLoading(false)
+        setIsProcessing(false)
       }
     } else {
       // Real chat response using ModelsLab API
@@ -184,9 +187,10 @@ function AppContent() {
           content: errorMessage,
           timestamp: new Date()
         }])
+      } finally {
+        setIsLoading(false)
+        setIsProcessing(false)
       }
-      setIsLoading(false)
-      setIsProcessing(false)
     }
   }
 
