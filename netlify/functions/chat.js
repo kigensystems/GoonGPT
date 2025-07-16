@@ -74,6 +74,9 @@ export async function handler(event) {
       stream: stream
     };
 
+    console.log('Calling ModelsLab API at:', new Date().toISOString());
+    const startTime = Date.now();
+    
     const response = await fetch('https://modelslab.com/api/uncensored-chat/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -83,9 +86,17 @@ export async function handler(event) {
       body: JSON.stringify(requestBody),
     });
 
+    const responseTime = Date.now() - startTime;
+    console.log(`ModelsLab API responded in ${responseTime}ms with status: ${response.status}`);
+
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('ModelsLab API error:', errorData);
+      console.error('ModelsLab API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        responseTime: responseTime,
+        errorData: errorData
+      });
       throw new Error(`ModelsLab API error: ${response.status} ${response.statusText}`);
     }
 
@@ -118,13 +129,28 @@ export async function handler(event) {
     throw new Error('Unexpected response format from ModelsLab API');
 
   } catch (error) {
-    console.error('Chat API error:', error);
+    console.error('Chat API error:', {
+      errorType: error.constructor.name,
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Check if it's a timeout error
+    const isTimeout = error.message?.toLowerCase().includes('timeout') || 
+                     error.message?.toLowerCase().includes('timedout') ||
+                     error.code === 'ETIMEDOUT' ||
+                     error.code === 'ECONNABORTED';
+    
     return {
-      statusCode: 500,
+      statusCode: isTimeout ? 504 : 500,
       headers,
       body: JSON.stringify({ 
-        error: 'Failed to generate chat completion',
-        details: error.message 
+        error: isTimeout 
+          ? 'The AI service is taking too long to respond. Please try again.'
+          : 'Failed to generate chat completion',
+        details: error.message,
+        timestamp: new Date().toISOString()
       }),
     };
   }

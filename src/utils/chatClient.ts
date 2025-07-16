@@ -40,6 +40,9 @@ export class ChatClient {
       wallet_address?: string;
     } = {}
   ): Promise<ChatCompletionResponse> {
+    console.log('[ChatClient] Sending request at:', new Date().toISOString());
+    const startTime = Date.now();
+    
     try {
       const response = await fetch(`${this.baseUrl}/.netlify/functions/chat`, {
         method: 'POST',
@@ -56,14 +59,23 @@ export class ChatClient {
         }),
       });
 
+      const responseTime = Date.now() - startTime;
+      console.log(`[ChatClient] Response received in ${responseTime}ms with status: ${response.status}`);
+
       if (!response.ok) {
         let errorData;
         try {
           errorData = await response.json();
         } catch (e) {
           // Handle non-JSON responses (like 504 Gateway Timeout)
-          errorData = { error: `HTTP error! status: ${response.status}` };
+          console.error('[ChatClient] Failed to parse error response:', e);
+          errorData = { 
+            error: `HTTP error! status: ${response.status}`,
+            timestamp: new Date().toISOString()
+          };
         }
+        
+        console.error('[ChatClient] Error response:', errorData);
         
         // Handle rate limiting specifically
         if (response.status === 429) {
@@ -92,6 +104,11 @@ export class ChatClient {
       }
 
       const result = await response.json();
+      console.log('[ChatClient] Success:', { 
+        hasChoices: !!result.choices,
+        choiceCount: result.choices?.length,
+        success: result.success 
+      });
       
       if (result.success) {
         return result;
@@ -99,7 +116,12 @@ export class ChatClient {
         throw new Error(result.details || 'Chat completion failed');
       }
     } catch (error) {
-      console.error('Error in chat completion:', error);
+      const totalTime = Date.now() - startTime;
+      console.error('[ChatClient] Error after', totalTime + 'ms:', {
+        error: error,
+        message: (error as Error).message,
+        stack: (error as Error).stack
+      });
       throw error;
     }
   }
