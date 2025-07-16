@@ -309,6 +309,8 @@ function AppContent() {
       
       const result = await asmrClient.generateAudio(backendPrompt, user?.wallet_address)
       
+      console.log('ASMR generation result:', result)
+      
       if (result.success && result.audio_url) {
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),

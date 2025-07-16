@@ -13,6 +13,15 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
+  // Debug logging for audio messages
+  if (message.audioUrl) {
+    console.log('[ChatMessage] Rendering message with audio:', {
+      messageId: message.id,
+      audioUrl: message.audioUrl,
+      content: message.content
+    })
+  }
+  
   return (
     <div className={`mb-6 ${message.role === 'user' ? 'flex justify-end' : ''}`}>
       <div className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
@@ -48,6 +57,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 src={message.videoUrl} 
                 controls
                 className="mt-4 rounded-lg max-w-md"
+              />
+            )}
+            {message.audioUrl && (
+              <audio 
+                src={message.audioUrl} 
+                controls
+                className="mt-4 w-full max-w-md"
               />
             )}
           </div>

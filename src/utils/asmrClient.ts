@@ -28,6 +28,13 @@ export const asmrClient = {
         details: 'Failed to parse response' 
       }))
 
+      console.log('[ASMRClient] Response:', {
+        status: response.status,
+        data: data,
+        hasAudioUrl: !!data.audio_url,
+        audioUrl: data.audio_url
+      })
+
       if (!response.ok) {
         console.error('ASMR API error:', response.status, data)
         throw new Error(data.error || `HTTP ${response.status}: ${data.details || 'Unknown error'}`)
