@@ -119,12 +119,18 @@ export async function handler(event) {
 
     // Handle processing status
     if (result.status === 'processing') {
-      console.log('ASMR audio is processing, using future_links');
-      const audioUrl = result.future_links && result.future_links[0] 
-        ? result.future_links[0] 
-        : result.proxy_links && result.proxy_links[0] 
-        ? result.proxy_links[0]
-        : null;
+      console.log('ASMR audio is processing');
+      // Prefer proxy_links for better CORS compatibility
+      let audioUrl;
+      if (result.proxy_links && result.proxy_links[0]) {
+        audioUrl = result.proxy_links[0];
+        console.log('Using proxy URL (processing):', audioUrl);
+      } else if (result.future_links && result.future_links[0]) {
+        audioUrl = result.future_links[0];
+        console.log('Using future_links URL:', audioUrl);
+      } else {
+        audioUrl = null;
+      }
       
       if (audioUrl) {
         return {
@@ -133,21 +139,35 @@ export async function handler(event) {
           body: JSON.stringify({
             success: true,
             audio_url: audioUrl,
-            message: `Audio will be ready in approximately ${result.eta || 5} seconds`
+            message: `Audio will be ready in approximately ${result.eta || 5} seconds`,
+            eta: result.eta || 5
           }),
         };
       }
     }
 
     // Return successful response for immediate generation
-    const audioUrl = result.output && result.output[0] ? result.output[0] : result.audio_url;
+    // Prefer proxy_links for better CORS compatibility
+    let audioUrl;
+    if (result.proxy_links && result.proxy_links[0]) {
+      audioUrl = result.proxy_links[0];
+      console.log('Using proxy URL:', audioUrl);
+    } else if (result.output && result.output[0]) {
+      audioUrl = result.output[0];
+      console.log('Using direct output URL:', audioUrl);
+    } else {
+      audioUrl = result.audio_url;
+      console.log('Using audio_url field:', audioUrl);
+    }
+    
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
         audio_url: audioUrl,
-        message: 'ASMR audio generated successfully'
+        message: 'ASMR audio generated successfully',
+        eta: result.eta || 0
       }),
     };
 

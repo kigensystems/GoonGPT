@@ -1,6 +1,7 @@
 import { RefObject } from 'react'
 import { ChatMessage, Message } from './ChatMessage'
 import { VideoMessage } from './VideoMessage'
+import { AsmrMessage } from './AsmrMessage'
 
 export type Mode = 'chat' | 'image' | 'video' | 'asmr' | 'deepfake'
 
@@ -18,6 +19,8 @@ export function MessageList({ messages, mode, isLoading, messagesEndRef }: Messa
         {messages.map((message) => (
           mode === 'video' ? (
             <VideoMessage key={message.id} message={message} />
+          ) : mode === 'asmr' && message.audioUrl ? (
+            <AsmrMessage key={message.id} message={message} />
           ) : (
             <ChatMessage key={message.id} message={message} />
           )

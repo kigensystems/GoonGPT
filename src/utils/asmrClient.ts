@@ -30,9 +30,11 @@ export const asmrClient = {
 
       console.log('[ASMRClient] Response:', {
         status: response.status,
+        contentType: response.headers.get('content-type'),
         data: data,
         hasAudioUrl: !!data.audio_url,
-        audioUrl: data.audio_url
+        audioUrl: data.audio_url,
+        eta: data.eta
       })
 
       if (!response.ok) {
@@ -43,6 +45,15 @@ export const asmrClient = {
       // Handle async processing (202 status)
       if (response.status === 202) {
         console.log('ASMR audio generation in progress:', data)
+        // Return the data with processing status instead of throwing error
+        if (data.audio_url) {
+          return {
+            success: true,
+            audio_url: data.audio_url,
+            message: data.message || 'Audio generation in progress',
+            eta: data.eta
+          }
+        }
         throw new Error(data.message || 'Audio generation in progress, please try again')
       }
 
