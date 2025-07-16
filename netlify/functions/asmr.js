@@ -2,40 +2,7 @@
 // Uses ModelsLab API for ASMR voice generation
 
 export async function handler(event) {
-  // Check for required environment variables
-  console.log('ASMR Environment check:', {
-    hasKey: !!process.env.MODELSLAB_API_KEY,
-    keyLength: process.env.MODELSLAB_API_KEY?.length,
-    hasVoiceId: !!process.env.ASMR_VOICE_ID,
-    voiceId: process.env.ASMR_VOICE_ID,
-    nodeEnv: process.env.NODE_ENV
-  });
-  
-  if (!process.env.MODELSLAB_API_KEY) {
-    console.error('MODELSLAB_API_KEY is not set');
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Server configuration error' }),
-    };
-  }
-
-  if (!process.env.ASMR_VOICE_ID) {
-    console.error('ASMR_VOICE_ID is not set - voice must be uploaded first');
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'ASMR voice not configured' }),
-    };
-  }
-
-  // Only allow POST requests
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
-  }
-
-  // Get CORS headers based on origin
+  // Get CORS headers first
   const origin = event.headers.origin || event.headers.Origin;
   const headers = {
     'Access-Control-Allow-Origin': origin || 'http://localhost:5173',
@@ -49,6 +16,48 @@ export async function handler(event) {
       statusCode: 200,
       headers,
       body: '',
+    };
+  }
+
+  // Check for required environment variables
+  console.log('ASMR Environment check:', {
+    hasKey: !!process.env.MODELSLAB_API_KEY,
+    keyLength: process.env.MODELSLAB_API_KEY?.length,
+    hasVoiceId: !!process.env.ASMR_VOICE_ID,
+    voiceId: process.env.ASMR_VOICE_ID,
+    nodeEnv: process.env.NODE_ENV
+  });
+  
+  if (!process.env.MODELSLAB_API_KEY) {
+    console.error('MODELSLAB_API_KEY is not set');
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ 
+        error: 'Server configuration error - API key missing',
+        details: 'MODELSLAB_API_KEY environment variable is not set'
+      }),
+    };
+  }
+
+  if (!process.env.ASMR_VOICE_ID) {
+    console.error('ASMR_VOICE_ID is not set - voice must be uploaded first');
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ 
+        error: 'ASMR voice not configured',
+        details: 'ASMR_VOICE_ID environment variable is not set'
+      }),
+    };
+  }
+
+  // Only allow POST requests
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' }),
     };
   }
 
