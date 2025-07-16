@@ -120,9 +120,12 @@ export async function handler(event) {
     // Handle processing status
     if (result.status === 'processing') {
       console.log('ASMR audio is processing');
-      // Prefer proxy_links for better CORS compatibility
+      // Try different URL sources
       let audioUrl;
-      if (result.proxy_links && result.proxy_links[0]) {
+      if (result.output && result.output[0]) {
+        audioUrl = result.output[0];
+        console.log('Using output URL (processing):', audioUrl);
+      } else if (result.proxy_links && result.proxy_links[0]) {
         audioUrl = result.proxy_links[0];
         console.log('Using proxy URL (processing):', audioUrl);
       } else if (result.future_links && result.future_links[0]) {
@@ -147,14 +150,14 @@ export async function handler(event) {
     }
 
     // Return successful response for immediate generation
-    // Prefer proxy_links for better CORS compatibility
+    // Prefer direct output URL for better compatibility
     let audioUrl;
-    if (result.proxy_links && result.proxy_links[0]) {
-      audioUrl = result.proxy_links[0];
-      console.log('Using proxy URL:', audioUrl);
-    } else if (result.output && result.output[0]) {
+    if (result.output && result.output[0]) {
       audioUrl = result.output[0];
       console.log('Using direct output URL:', audioUrl);
+    } else if (result.proxy_links && result.proxy_links[0]) {
+      audioUrl = result.proxy_links[0];
+      console.log('Using proxy URL:', audioUrl);
     } else {
       audioUrl = result.audio_url;
       console.log('Using audio_url field:', audioUrl);

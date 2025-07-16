@@ -41,8 +41,10 @@ export function AsmrMessage({ message }: AsmrMessageProps) {
       setError(null)
     }
 
-    const handleError = () => {
-      console.log(`Audio load error, retry count: ${retryCount}`)
+    const handleError = (e: Event) => {
+      const audioElement = e.target as HTMLAudioElement
+      console.log(`Audio load error, retry count: ${retryCount}, URL: ${audioElement.src}`)
+      console.log('Audio error:', audioElement.error)
       
       // If audio is still processing (within first 10 seconds), retry
       if (retryCount < 5) {
@@ -52,7 +54,8 @@ export function AsmrMessage({ message }: AsmrMessageProps) {
           audio.load() // Reload the audio element
         }, 2000) // Retry every 2 seconds
       } else {
-        setError('Failed to load audio. It may still be processing.')
+        const errorMsg = audioElement.error?.message || 'Unknown error'
+        setError(`Failed to load audio: ${errorMsg}`)
         setIsLoading(false)
       }
     }
@@ -145,7 +148,12 @@ export function AsmrMessage({ message }: AsmrMessageProps) {
             {/* Audio Player */}
             {message.audioUrl && (
               <div className="mt-3 bg-surface rounded-lg p-4 max-w-md">
-                <audio ref={audioRef} src={message.audioUrl} preload="metadata" />
+                <audio 
+                  ref={audioRef} 
+                  src={message.audioUrl} 
+                  preload="metadata" 
+                  crossOrigin="anonymous"
+                />
                 
                 {/* Play Controls */}
                 <div className="flex items-center gap-3 mb-3">

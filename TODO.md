@@ -2,6 +2,69 @@
 - [ ] Monitor production for any remaining issues
 - [ ] Consider implementing request queuing for better UX
 
+## Cleanup - Unused Code Removal
+
+### Components Deleted ✅ (Replaced by UnifiedContainer)
+- [x] Deleted `src/components/AsmrContainer.tsx` - Replaced by UnifiedContainer
+- [x] Deleted `src/components/AsmrInput.tsx` - Not imported anywhere
+- [x] Deleted `src/components/ChatContainer.tsx` - Replaced by UnifiedContainer
+- [x] Deleted `src/components/DeepFakeContainer.tsx` - Replaced by UnifiedContainer
+- [x] Deleted `src/components/ImageContainer.tsx` - Replaced by UnifiedContainer
+- [x] Deleted `src/components/UserProfile.tsx` - Not imported anywhere (duplicate of ProfilePage)
+- [x] Deleted `src/components/VideoContainer.tsx` - Replaced by UnifiedContainer
+
+### Index Files Deleted ✅ (Orphaned)
+- [x] Deleted `src/components/chat/index.ts` - Exports unused components, never imported
+- [x] Deleted `src/components/video/index.ts` - Exports unused components, never imported
+
+### Utilities Deleted ✅
+- [x] Deleted `src/utils/deepfakeClient.ts` - Never imported despite deepfake UI existing
+
+### Backend Files Addressed ✅
+- [x] Deleted `netlify/functions/validate-session.js` - Never called from frontend
+- [x] Verified `netlify/functions/image.mjs` exists - imageClient works correctly (Netlify serves .mjs as /image endpoint)
+
+### Impact
+- Removing ~1,500+ lines of unused code
+- All functionality preserved through UnifiedContainer architecture
+- Cleaner, more maintainable codebase
+
+## Critical Issues Found - Frontend & Backend Analysis
+
+### Frontend Issues - High Priority 🔴
+- [ ] **Fix ID collision risk** - Replace Date.now().toString() with uuid/nanoid (App.tsx: lines 90, 103, 218, 230, 293, 350)
+- [ ] **Fix race conditions** - Use functional setState for all message updates in App.tsx
+- [ ] **Add isProcessing protection** to sendVideo and sendAsmr functions
+- [ ] **Add HTML sanitization** for message content to prevent XSS
+
+### Frontend Issues - Medium Priority 🟡
+- [ ] **Replace alert() calls** with toast notifications (found in 12+ components)
+- [ ] **Fix memory leaks** - Clean up setTimeout in EarnableActionCard.tsx:64, UserRegistration.tsx:52, AsmrMessage.tsx:52
+- [ ] **Add feature-specific error boundaries** for better error isolation
+
+### Frontend Issues - Low Priority 🟢
+- [ ] **Reduce TokenDashboard polling** from 2s to 10s+ (TokenDashboard.tsx:64)
+- [ ] **Centralize file validation** logic across upload components
+- [ ] **Add loading states** for profile updates and token earnings
+
+### Backend Issues - Critical Security 🚨
+- [ ] **Fix error detail exposure** - Remove error.message from production (asmr.js:184, auth-wallet.js:132)
+- [ ] **Remove sensitive console.logs** exposing API keys (chat.js:14-17, asmr.js:32-36)
+- [ ] **Add SQL injection prevention** - Use parameterized queries
+- [ ] **Fix CORS headers** - Don't use request origin directly (chat.js:39)
+- [ ] **Add request size limits** to prevent DoS attacks
+
+### Backend Issues - High Priority 🔴
+- [ ] **Add comprehensive error handling** - Wrap all async handlers in try-catch
+- [ ] **Fix ID collision in video.js** - Line 57 uses Date.now() for track_id
+
+### Backend Issues - Medium Priority 🟡
+- [ ] **Fix memory leak in rateLimiter** - setInterval runs forever (line 10)
+- [ ] **Add Content-Type validation** before JSON.parse()
+
+### Backend Issues - Low Priority 🟢
+- [ ] **Standardize error response format** across all functions
+
 ## Completed - Component Refactoring (40% App.tsx Reduction)
 - [x] Hook validation pipeline implemented
 - [x] CLAUDE.md established with standards
