@@ -50,6 +50,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 src={message.imageUrl} 
                 alt="Generated image" 
                 className="mt-4 rounded-lg max-w-md"
+                onError={(e) => {
+                  console.error('Image failed to load:', message.imageUrl)
+                  console.error('Error event:', e)
+                }}
+                onLoad={() => {
+                  console.log('Image loaded successfully:', message.imageUrl)
+                }}
               />
             )}
             {message.videoUrl && (

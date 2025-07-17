@@ -175,15 +175,20 @@ function AppContent() {
           }
         } else {
           // Immediate result - replace processing message
+          const finalImageUrl = result.images?.[0] || result.imageUrl
+          console.log('Setting image URL in message:', finalImageUrl)
+          
           setMessages(prev => {
             const filtered = prev.filter(msg => msg.id !== processingMessage.id)
-            return [...filtered, {
+            const newMessage = {
               id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
-              role: 'assistant',
+              role: 'assistant' as const,
               content: 'Here is your generated image:',
-              imageUrl: result.images?.[0] || result.imageUrl,
+              imageUrl: finalImageUrl,
               timestamp: new Date()
-            }]
+            }
+            console.log('New message with image:', newMessage)
+            return [...filtered, newMessage]
           })
         }
       } catch (error) {

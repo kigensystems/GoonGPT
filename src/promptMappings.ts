@@ -21,7 +21,7 @@ export const imagePromptMappings: Record<string, string> = {
 ,
 
   // Update placeholder prompts with actual NSFW content
-  "Image prompt placeholder 2":
+  "Anime Gangbang":
     "sexy anime girl, detailed art, high quality, revealing outfit, suggestive pose, digital art, professional illustration, attractive character, detailed anatomy",
   "Image prompt placeholder 3":
     "hot celebrity lookalike, photorealistic, high detail, attractive pose, professional photography, studio lighting, revealing clothing, suggestive, 8k quality",
