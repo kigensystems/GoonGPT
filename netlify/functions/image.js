@@ -116,10 +116,10 @@ export async function handler(event) {
     console.log("API Key exists:", !!process.env.MODELSLAB_API_KEY);
     console.log("API Key length:", process.env.MODELSLAB_API_KEY?.length);
 
-  
     const requestBody = {
       key: process.env.MODELSLAB_API_KEY,
       model_id: "wai-nsfw-illustrious-sdxl",
+      version: "13",
       prompt: prompt,
       negative_prompt:
         "blurry, deformed, ugly, mutated hands, extra limbs, poorly drawn face, bad anatomy, watermark, text, low resolution, overexposed, underexposed, censored, clothing, cartoonish, anime style, bored expression, closed eyes, pain, watermark",
@@ -127,15 +127,15 @@ export async function handler(event) {
       height: String(height),
       samples: String(samples),
       negative_prompt:
-        "bad quality, worst quality, blurry, deformed, ugly, mutated hands, extra limbs, poorly drawn face, bad anatomy, watermark, text, low resolution, overexposed, underexposed, censored, clothing, cartoonish, anime style, bored expression, closed eyes, pain",
+        "bad anatomy, extra limbs, watermark, lowres",
       lora_model: "add_detail,ahegao_faces_sdxl",
       lora_strength: "0.7,0.8",
 
-      num_inference_steps: 20,
-      safety_checker: "no",
+      num_inference_steps: 24,
+      safety_checker: "false",
       enhance_prompt: "yes",
-      guidance_scale: 5.5,
-      scheduler: "Euler a",
+      guidance_scale: 6,
+      scheduler: "euler a",
       clip_skip: 2,
       use_karras_sigmas: "yes",
       tomesd: "yes",
