@@ -66,7 +66,7 @@ export async function handler(event) {
       key: process.env.MODELSLAB_API_KEY,
       model_id: 'Photorealistic-NSFW-flux',
       prompt: prompt,
-      negative_prompt: negative_prompt || 'blurry, deformed, ugly',
+      negative_prompt: negative_prompt || 'blurry, deformed, ugly, mutated hands, extra limbs, poorly drawn face, bad anatomy, watermark, text, low resolution, underexposed, censored, clothing',
       width: String(width),
       height: String(height),
       samples: samples,
