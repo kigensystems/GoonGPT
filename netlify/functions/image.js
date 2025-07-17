@@ -105,8 +105,6 @@ export async function handler(event) {
       tomesd: 'yes',
       use_karras_sigmas: 'yes',
       vae: null,
-      lora_model: "add_detail",
-      lora_strength: "0.7",
       multi_lingual: 'no',
       panorama: 'no',
       self_attention: 'no',
