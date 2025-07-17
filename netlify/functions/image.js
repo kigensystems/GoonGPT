@@ -119,7 +119,7 @@ export async function handler(event) {
   
     const requestBody = {
       key: process.env.MODELSLAB_API_KEY,
-      model_id: "pyros-nsfw-sdxl",
+      model_id: "wai-nsfw-illustrious-sdxl",
       prompt: prompt,
       negative_prompt:
         "blurry, deformed, ugly, mutated hands, extra limbs, poorly drawn face, bad anatomy, watermark, text, low resolution, overexposed, underexposed, censored, clothing, cartoonish, anime style, bored expression, closed eyes, pain, watermark",
