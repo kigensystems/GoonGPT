@@ -49,16 +49,17 @@ export async function handler(event) {
   }
 
   if (!process.env.ASMR_VOICE_ID) {
-    console.error('ASMR_VOICE_ID is not set - voice must be uploaded first');
+    console.error('ASMR_VOICE_ID is not set - ASMR feature is not configured');
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({ 
-        error: 'ASMR voice not configured',
-        details: 'ASMR_VOICE_ID environment variable is not set'
+        error: 'ASMR feature not configured',
+        details: 'ASMR_VOICE_ID environment variable is not set. Set it to "asmrfemale" to enable ASMR.'
       }),
     };
   }
+
 
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
@@ -81,16 +82,22 @@ export async function handler(event) {
       };
     }
 
-    console.log('ASMR generation request:', { textLength: text.length });
+    console.log('ASMR generation request:', { 
+      textLength: text.length, 
+      customVoiceUrl: 'https://goongpt.pro/asmr/asmr_combined.wav',
+      asmrEnabled: !!process.env.ASMR_VOICE_ID
+    });
 
     // ModelsLab API call for text-to-audio
     const requestBody = {
       key: process.env.MODELSLAB_API_KEY,
       prompt: text,
-      voice_id: process.env.ASMR_VOICE_ID,
+      init_audio: 'https://goongpt.pro/asmr/asmr_combined.wav',
       language: 'english',
       speed: 1.0,
     };
+
+    console.log('ASMR API Request Body:', JSON.stringify(requestBody, null, 2));
 
     const response = await fetch('https://modelslab.com/api/v6/voice/text_to_audio', {
       method: 'POST',
