@@ -111,7 +111,7 @@ export async function handler(event) {
     console.log("Style:", style);
     console.log(
       "Model:",
-      style === "anime" ? "pony-diffusion-v6-xl" : "Photorealistic-NSFW-flux"
+      style === "anime" ? "realcartoon-xl-v4" : "Photorealistic-NSFW-flux"
     );
     console.log("API Key exists:", !!process.env.MODELSLAB_API_KEY);
     console.log("API Key length:", process.env.MODELSLAB_API_KEY?.length);
@@ -122,20 +122,19 @@ export async function handler(event) {
       // Anime style configuration
       requestBody = {
         key: process.env.MODELSLAB_API_KEY,
-        model_id: "pony-diffusion-v6-xl",
+        model_id: "realcartoon-xl-v4",
         prompt: prompt,
         negative_prompt:
-          "score_6, score_5, score_4, worst quality, low quality, normal quality, bad anatomy, extra limbs, watermark, lowres, blurry, deformed, ugly, mutated hands, poorly drawn face, text, overexposed, underexposed, censored, clothing, monochrome, grayscale",
+          "low quality, bad anatomy, extra limbs, watermark, lowres, blurry, deformed, ugly, mutated hands, poorly drawn face, text, overexposed, underexposed, censored, clothing, monochrome, grayscale",
         width: String(width),
         height: String(height),
         samples: String(samples),
-        num_inference_steps: 20,
+        num_inference_steps: 18,
         safety_checker: "false",
         enhance_prompt: "yes",
-        guidance_scale: 2.5,
-        scheduler: "DPMSolverSinglestepScheduler, KarrasVeScheduler",
+        guidance_scale: 6,
+        scheduler: "EulerAncestralDiscreteScheduler",
         clip_skip: 1,
-        use_karras_sigmas: "yes",
         tomesd: "yes",
         seed: seed || null,
       };

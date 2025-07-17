@@ -27,13 +27,15 @@ export const imagePromptMappings: Record<string, string> = {
 };
 
 export const asmrPromptMappings: Record<string, string> = {
-  // ASMR generation mappings - display text → enhanced prompt
-  "Good night, sweet dreams. Rest well and let all your worries drift away.":
-    "In a soft, whispering voice: Good night, sweet dreams. Rest well and let all your worries drift away. You are safe and loved.",
-  "You are amazing, beautiful, and worthy of all the love in the world. Take a deep breath and relax.":
-    "Whispered gently with caring tone: You are amazing, beautiful, and worthy of all the love in the world. Take a deep breath and relax. Feel the peace wash over you.",
-  "Let me take care of you. Close your eyes and focus on my voice. Everything is going to be okay.":
-    "In an intimate, caring whisper: Let me take care of you. Close your eyes and focus on my voice. Everything is going to be okay. I'm here with you.",
+  // ASMR suggestion pill mappings - what the button sends → enhanced prompt
+  "Whisper sweet nothings to me":
+    "In an intimate, breathy whisper with lots of mouth sounds and gentle breathing: Tell me how special I am, how much you care about me, and whisper loving affirmations. Include soft 'shh' sounds, gentle humming, and intimate personal attention triggers.",
+  
+  "Count from 1 to 10 slowly":
+    "In an extremely slow, relaxing whisper with deliberate pauses between each number: Count from 1 to 10, taking at least 5 seconds per number. Include soft breathing sounds between numbers, gentle mouth sounds, and occasional reassuring whispers like 'relax' or 'let go'.",
+  
+  "Read me a bedtime story":
+    "In a soft, sleepy whisper perfect for bedtime: Tell a calming, dreamy story about floating on clouds or walking through a peaceful forest. Use lots of soft 's' sounds, gentle page-turning sounds, and occasionally yawn. Make it very slow and hypnotic with repetitive, soothing phrases.",
 
   // Add more ASMR mappings as needed
   // These enhance the emotional tone and whispering instructions

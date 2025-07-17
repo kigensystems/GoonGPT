@@ -51,7 +51,7 @@ export async function handler(event) {
   }
 
   try {
-    const { messages, model = 'ModelsLab/Llama-3.1-8b-Uncensored-Dare', temperature = 0.7, max_tokens = 1000, stream = false } = JSON.parse(event.body);
+    const { messages, model = 'ModelsLab/Llama-3.1-8b-Uncensored-Dare', temperature = 0.3, max_tokens = 400, stream = false } = JSON.parse(event.body);
     
     // Validate input
     const validation = validateChatInput(messages);
