@@ -86,7 +86,7 @@ function AppContent() {
     }
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       role: 'user',
       content: messageContent,
       timestamp: new Date()
@@ -99,7 +99,7 @@ function AppContent() {
     if (mode === 'image') {
       // Show processing message
       const processingMessage: Message = {
-        id: Date.now().toString(),
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         role: 'assistant',
         content: 'Generating your image...',
         timestamp: new Date()
@@ -128,7 +128,7 @@ function AppContent() {
         setMessages(prev => {
           const filtered = prev.filter(msg => msg.id !== processingMessage.id)
           return [...filtered, {
-            id: (Date.now() + 1).toString(),
+            id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
             role: 'assistant',
             content: 'Here is your generated image:',
             imageUrl: result.images?.[0] || result.imageUrl,
@@ -150,7 +150,7 @@ function AppContent() {
         setMessages(prev => {
           const filtered = prev.filter(msg => msg.id !== processingMessage.id)
           return [...filtered, {
-            id: (Date.now() + 1).toString(),
+            id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
             role: 'assistant',
             content: errorMessage,
             timestamp: new Date()
@@ -175,7 +175,7 @@ function AppContent() {
         
         // Add the response message
         setMessages(prev => [...prev, {
-          id: (Date.now() + 1).toString(),
+          id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
           role: 'assistant',
           content: response,
           timestamp: new Date()
@@ -193,7 +193,7 @@ function AppContent() {
         }
         
         setMessages(prev => [...prev, {
-          id: (Date.now() + 1).toString(),
+          id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
           role: 'assistant',
           content: errorMessage,
           timestamp: new Date()
@@ -214,7 +214,7 @@ function AppContent() {
     if (!prompt.trim() || isLoading) return
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       role: 'user',
       content: prompt,
       timestamp: new Date()
@@ -226,7 +226,7 @@ function AppContent() {
 
     // First show processing message
     const processingMessage: Message = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       role: 'assistant',
       content: 'Your video is being generated. This may take up to 60 seconds...',
       timestamp: new Date()
@@ -254,7 +254,7 @@ function AppContent() {
       console.log('Video generation result:', result)
 
       const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
         role: 'assistant',
         content: 'Here is your generated video:',
         videoUrl: result.videoUrl,
@@ -273,7 +273,7 @@ function AppContent() {
         : `Sorry, there was an error generating the video: ${error instanceof Error ? error.message : 'Unknown error'}. Please upload an image and describe the video you want.`
       
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
         role: 'assistant',
         content: errorContent,
         timestamp: new Date()
@@ -289,7 +289,7 @@ function AppContent() {
     if (!text.trim() || isLoading) return
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       role: 'user',
       content: text,
       timestamp: new Date()
@@ -312,7 +312,7 @@ function AppContent() {
       
       if (result.success && result.audio_url) {
         const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
+          id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
           role: 'assistant',
           content: 'Here is your ASMR audio:',
           audioUrl: result.audio_url,
@@ -325,7 +325,7 @@ function AppContent() {
     } catch (error) {
       console.error('ASMR generation error:', error)
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
         role: 'assistant',
         content: 'Sorry, there was an error generating your ASMR audio. Please try again.',
         timestamp: new Date()
@@ -346,7 +346,7 @@ function AppContent() {
     if (isLoading) return;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       role: 'user',
       content: 'Requesting face swap...',
       timestamp: new Date()
@@ -357,7 +357,7 @@ function AppContent() {
 
     // Show disabled message instead of processing
     const disabledMessage: Message = {
-      id: (Date.now() + 1).toString(),
+      id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
       role: 'assistant',
       content: 'Currently disabled due to server load, upgrade to a subscription plan for unlimited usage',
       timestamp: new Date()

@@ -18,13 +18,6 @@ export async function handler(event) {
       body: JSON.stringify({ error: 'Server configuration error' }),
     };
   }
-  // Only allow POST requests
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
-  }
 
   // CORS headers
   const headers = {
@@ -39,6 +32,15 @@ export async function handler(event) {
       statusCode: 200,
       headers,
       body: '',
+    };
+  }
+
+  // Only allow POST requests
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' }),
     };
   }
 
