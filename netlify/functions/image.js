@@ -66,29 +66,30 @@ export async function handler(event) {
       };
     }
 
-    console.log('Generating image with fluxdev model + uncensored lora');
+    console.log('Generating image with pyros-nsfw-sdxl model + multi-lora');
     console.log('Prompt:', prompt);
     console.log('API Key exists:', !!process.env.MODELSLAB_API_KEY);
     console.log('API Key length:', process.env.MODELSLAB_API_KEY?.length);
 
-    // ModelsLab API call for text2img with fluxdev model
+    // ModelsLab API call for text2img with pyros-nsfw-sdxl model
     const requestBody = {
       key: process.env.MODELSLAB_API_KEY,
-      model_id: 'fluxdev',
+      model_id: 'pyros-nsfw-sdxl',
       prompt: prompt,
-      negative_prompt: negative_prompt || 'blurry, deformed, ugly, mutated hands, extra limbs, poorly drawn face, bad anatomy, watermark, text, low resolution, overexposed, underexposed, censored, clothing, cartoonish, anime style, bored expression, closed eyes, pain',
+      negative_prompt: negative_prompt || 'blurry, deformed, ugly, mutated hands, extra limbs, poorly drawn face, bad anatomy, watermark, text, low resolution, overexposed, underexposed, censored, clothing, cartoonish, anime style, bored expression, closed eyes, pain, watermark',
       width: String(width),
       height: String(height),
       samples: String(samples),
-      num_inference_steps: "20",
+      num_inference_steps: "30",
       safety_checker: 'no',
-      guidance_scale: 7.5,
+      enhance_prompt: 'yes',
+      guidance_scale: 6.0,
       seed: seed || null,
       tomesd: 'yes',
       use_karras_sigmas: 'yes',
       vae: null,
-      lora_strength: "1.0",
-      lora_model: "uncensored-flux-lora",
+      lora_strength: "0.6,0.8",
+      lora_model: "add_detail,orgasm_face_for_pyros_nsfw_sdxl",
       multi_lingual: 'no',
       panorama: 'no',
       self_attention: 'no',
