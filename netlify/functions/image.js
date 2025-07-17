@@ -127,8 +127,6 @@ export async function handler(event) {
       height: String(height),
       samples: String(samples),
       negative_prompt: "bad anatomy, extra limbs, watermark, lowres",
-      lora_model: "add_detail,ahegao_faces_sdxl",
-      lora_strength: "0.7,0.8",
 
       num_inference_steps: 24,
       safety_checker: "false",
