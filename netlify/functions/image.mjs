@@ -60,6 +60,7 @@ export async function handler(event) {
     console.log('Generating image with Photorealistic-NSFW-flux model');
     console.log('Prompt:', prompt);
     console.log('API Key exists:', !!process.env.MODELSLAB_API_KEY);
+    console.log('API Key length:', process.env.MODELSLAB_API_KEY?.length);
 
     // ModelsLab API call for text2img with Photorealistic-NSFW-flux model
     const requestBody = {
@@ -84,6 +85,8 @@ export async function handler(event) {
       requestBody.enhance_style = enhance_style;
     }
 
+    console.log('Request body:', JSON.stringify(requestBody, null, 2));
+
     const response = await fetch('https://modelslab.com/api/v6/images/text2img', {
       method: 'POST',
       headers: {
@@ -99,9 +102,11 @@ export async function handler(event) {
     }
 
     const result = await response.json();
+    console.log('ModelsLab API Response:', JSON.stringify(result, null, 2));
     
     // Handle different response types
     if (result.status === 'error') {
+      console.error('API returned error:', result);
       throw new Error(result.message || 'Image generation failed');
     }
     
