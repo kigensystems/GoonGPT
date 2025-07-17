@@ -105,8 +105,6 @@ export async function handler(event) {
       tomesd: 'yes',
       use_karras_sigmas: 'yes',
       vae: null,
-      lora_strength: "0.6,0.8",
-      lora_model: "add_detail,orgasm_face_for_pyros_nsfw_sdxl",
       multi_lingual: 'no',
       panorama: 'no',
       self_attention: 'no',

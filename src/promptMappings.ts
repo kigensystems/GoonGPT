@@ -17,7 +17,9 @@ export const chatPromptMappings: Record<string, string> = {
 export const imagePromptMappings: Record<string, string> = {
   // Image generation mappings - display text → enhanced prompt
   "hot korean girl gooning":
-    "Photorealistic image of a stunningly beautiful Korean woman in her mid-20s, with flawless porcelain skin, long silky black hair cascading over her shoulders, almond-shaped dark eyes with a seductive gaze directly at the viewer, full lips slightly parted in ecstasy, and an athletic yet curvaceous body. She is completely nude, sitting reclined in a modern leather armchair in a dimly lit luxurious bedroom, her enormous natural breasts with perky nipples heaving as she spreads her toned legs wide apart, one hand gently touching and parting her shaved pussy lips, revealing intricate details and arousal. Capture hyper-realistic skin textures, subtle sweat glistens, soft volumetric lighting from a window highlighting her curves, high dynamic range, ultra-detailed anatomy without distortions, 8k resolution, professional photography style like a high-end erotic photoshoot.",
+    "korean woman, mid-20s, porcelain skin, long black hair, almond eyes rolled back, drooling, flushed dazed gooning face, (ahegao:1.2), (orgasmic face:1.2), (gooning expression:1.2), huge natural breasts, nude, legs spread wide, fingering shaved wet pussy with fluids, body trembling in ecstasy, reclined in leather chair, dimly lit bedroom, photorealistic, hyper-realistic textures, sweat beads, intricate details, 8k, professional erotic photography"
+
+,
 
   // Update placeholder prompts with actual NSFW content
   "Image prompt placeholder 2":
