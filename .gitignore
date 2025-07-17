@@ -33,3 +33,5 @@ dist-ssr
 
 # Development storage
 .dev-storage
+# Local environment variables
+.env.local

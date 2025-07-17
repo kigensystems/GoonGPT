@@ -7,7 +7,8 @@
   command = "npm run dev"
   targetPort = 5173
   port = 8888
-  autoLaunch = true
+  autoLaunch = false
+  framework = "#custom"
 
 [functions]
   # Directory for serverless functions

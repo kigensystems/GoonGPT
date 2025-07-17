@@ -20,8 +20,18 @@ export class ImageClient {
   private baseUrl: string;
   
   constructor() {
-    // Use Netlify dev server URL in development, relative path in production
-    this.baseUrl = (import.meta as any).env?.DEV ? 'http://localhost:8888' : '';
+    // For local dev, use production API unless VITE_USE_LOCAL_FUNCTIONS is set
+    if ((import.meta as any).env?.DEV && (import.meta as any).env?.VITE_USE_LOCAL_FUNCTIONS) {
+      this.baseUrl = 'http://localhost:8888';
+    } else if ((import.meta as any).env?.DEV) {
+      // In dev mode without local functions, use production API
+      this.baseUrl = 'https://goongpt.pro';
+    } else {
+      // Production mode
+      this.baseUrl = '';
+    }
+    
+    console.log('ImageClient using baseUrl:', this.baseUrl || 'relative (production)');
   }
 
   // Image generation using ModelsLab API
