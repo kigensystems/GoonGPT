@@ -5,9 +5,18 @@ import { imageRateLimiter } from './utils/rateLimiter.js';
 import { validateImageInput } from './utils/validation.js';
 
 export async function handler(event) {
+  console.log('=== IMAGE FUNCTION START ===');
+  console.log('Event received:', JSON.stringify({
+    httpMethod: event.httpMethod,
+    path: event.path,
+    headers: event.headers,
+    bodyLength: event.body?.length
+  }, null, 2));
+  
   // Apply rate limiting
   const rateLimitResponse = await imageRateLimiter(event);
   if (rateLimitResponse) {
+    console.log('Rate limited response');
     return rateLimitResponse;
   }
   // Check for required environment variables
@@ -25,6 +34,20 @@ export async function handler(event) {
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json',
   };
+  
+  // Temporary test - return immediately to see if function is called
+  if (event.httpMethod === 'POST' && event.path === '/.netlify/functions/image') {
+    console.log('TEST: Function is being called!');
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({ 
+        test: true, 
+        message: 'Function is working',
+        timestamp: new Date().toISOString()
+      })
+    };
+  }
 
   // Handle preflight
   if (event.httpMethod === 'OPTIONS') {
