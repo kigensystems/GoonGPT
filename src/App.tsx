@@ -5,6 +5,7 @@ import { chatClient } from './utils/chatClient'
 import { videoClient } from './utils/videoClient'
 import { asmrClient } from './utils/asmrClient'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { TokenDataProvider } from './contexts/TokenDataContext'
 import { getMappedPrompt } from './promptMappings'
 import { UserRegistration } from './components/UserRegistration'
 import { FirefoxWarning } from './components/FirefoxWarning'
@@ -601,7 +602,9 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppContent />
+        <TokenDataProvider>
+          <AppContent />
+        </TokenDataProvider>
       </AuthProvider>
     </Router>
   );

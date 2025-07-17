@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useTokenData } from '../contexts/TokenDataContext'
 import { PhantomWalletConnect } from './PhantomWalletConnect'
 import { TokenDashboard } from './TokenDashboard'
 import { EarnableActionCard } from './EarnableActionCard'
 import { UserDropdown } from './UserDropdown'
 import { HowItWorksStepper } from './HowItWorksStepper'
 import { getMockTokenData, formatTokenAmount } from '../utils/mockTokens'
-import { getServerTokenData, type ServerTokenData } from '../utils/tokenAPI'
 
 interface EarnTokensPageProps {
   onNavigateToMode?: (mode: 'chat' | 'image' | 'video') => void
@@ -17,57 +17,14 @@ interface EarnTokensPageProps {
 export function EarnTokensPage({ onNavigateToMode, onNeedRegistration }: EarnTokensPageProps) {
   const navigate = useNavigate()
   const { user, isAuthenticated, logout } = useAuth()
+  const { serverData, refreshData } = useTokenData()
   const [refreshKey, setRefreshKey] = useState(0)
-  const [serverData, setServerData] = useState<ServerTokenData | null>(null)
-  const [useServerData, setUseServerData] = useState(false)
-  const [isVisible, setIsVisible] = useState(true)
   
   // Force refresh of dashboard and server data
   const handleEarnSuccess = () => {
     setRefreshKey(prev => prev + 1)
-    refreshServerData()
+    refreshData()
   }
-  
-  // Fetch server data
-  const refreshServerData = async () => {
-    console.log('🔍 EarnTokensPage: Refreshing server data, isAuthenticated:', isAuthenticated)
-    if (isAuthenticated) {
-      const data = await getServerTokenData()
-      console.log('🔍 EarnTokensPage: Server token data:', data)
-      if (data) {
-        setServerData(data)
-        setUseServerData(true)
-      } else {
-        console.log('⚠️ EarnTokensPage: No server data received, falling back to localStorage')
-        setUseServerData(false)
-      }
-    } else {
-      console.log('⚠️ EarnTokensPage: Not authenticated, using localStorage')
-      setUseServerData(false)
-    }
-  }
-  
-  // Handle visibility change
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      setIsVisible(!document.hidden)
-    }
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [])
-  
-  // Initial data fetch and periodic refresh
-  useEffect(() => {
-    refreshServerData()
-    // Refresh every 30 seconds when tab is visible
-    const interval = setInterval(() => {
-      if (isVisible) {
-        refreshServerData()
-      }
-    }, 30000)
-    return () => clearInterval(interval)
-  }, [isAuthenticated, isVisible])
   
   // Actions that navigate to specific modes
   const handleChatAction = () => {
@@ -95,7 +52,7 @@ export function EarnTokensPage({ onNavigateToMode, onNeedRegistration }: EarnTok
   }
   
   const tokenData = getMockTokenData()
-  const displayBalance = useServerData && serverData ? serverData.token_balance : tokenData.balance
+  const displayBalance = serverData ? serverData.token_balance : tokenData.balance
   
   return (
     <div className="min-h-screen bg-bg-main text-text-primary flex flex-col">
@@ -180,7 +137,7 @@ export function EarnTokensPage({ onNavigateToMode, onNeedRegistration }: EarnTok
                 <p className="text-2xl font-semibold text-accent">
                   Balance: {formatTokenAmount(displayBalance)}
                 </p>
-                {useServerData && serverData && (
+                {serverData && (
                   <div className="bg-surface/50 rounded-lg p-4 max-w-md mx-auto">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-text-secondary">Daily Progress</span>

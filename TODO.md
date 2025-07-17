@@ -11,6 +11,12 @@
   - Implemented exponential backoff for 429 responses
   - UserDropdown now only polls when dropdown is open
   - Reduced request rate from 44/min to 6/min (well under 36/min limit)
+- [x] **Fixed duplicate token fetching on page load**
+  - Created TokenDataContext to share data between components
+  - Prevents multiple simultaneous requests on initial page load
+  - Added 5-second cooldown between fetches
+  - All components now share a single data source
+  - Maintains backward compatibility with localStorage fallback
 
 ### UI/UX Updates
 - [x] **Implemented Anime/Realism toggle for image generation**

@@ -6,7 +6,7 @@ import {
   TierLevel,
   TIER_THRESHOLDS
 } from '../utils/mockTokens'
-import { getServerTokenData, isAuthenticated, type ServerTokenData } from '../utils/tokenAPI'
+import { useTokenData } from '../contexts/TokenDataContext'
 
 interface TokenDashboardProps {
   onUpdate?: () => void
@@ -14,73 +14,40 @@ interface TokenDashboardProps {
 
 export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
   const [tokenData, setTokenData] = useState(getMockTokenData())
-  const [serverData, setServerData] = useState<ServerTokenData | null>(null)
+  const { serverData } = useTokenData()
   const [animateBalance, setAnimateBalance] = useState(false)
-  const [useServerData, setUseServerData] = useState(false)
-  const [isVisible, setIsVisible] = useState(true)
+  const [prevBalance, setPrevBalance] = useState<number | null>(null)
   
-  // Handle visibility change
+  // Watch for balance changes
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      setIsVisible(!document.hidden)
+    const currentBalance = serverData?.token_balance ?? tokenData.balance
+    
+    if (prevBalance !== null && currentBalance !== prevBalance) {
+      setAnimateBalance(true)
+      setTimeout(() => setAnimateBalance(false), 500)
     }
     
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [])
+    setPrevBalance(currentBalance)
+    onUpdate?.()
+  }, [serverData?.token_balance, tokenData.balance, prevBalance, onUpdate])
   
-  // Refresh data periodically and on updates
+  // Update local token data periodically
   useEffect(() => {
-    const refreshData = async () => {
-      // Only refresh if tab is visible
-      if (!isVisible) return
-      console.log('🔍 TokenDashboard: Refreshing data, isAuthenticated:', isAuthenticated())
-      // Try to get server data if user is authenticated
-      if (isAuthenticated()) {
-        const newServerData = await getServerTokenData()
-        console.log('🔍 TokenDashboard: Server data received:', newServerData)
-        if (newServerData) {
-          if (!serverData || newServerData.token_balance !== serverData.token_balance) {
-            if (!serverData || newServerData.token_balance !== serverData.token_balance) {
-              setAnimateBalance(true)
-              setTimeout(() => setAnimateBalance(false), 500)
-            }
-            console.log('✅ TokenDashboard: Using server data, balance:', newServerData.token_balance)
-            setServerData(newServerData)
-            setUseServerData(true)
-            onUpdate?.()
-          }
-          return
-        }
-      }
-      
-      // Fallback to localStorage data
-      console.log('⚠️ TokenDashboard: Falling back to localStorage data')
-      setUseServerData(false)
+    const updateLocalData = () => {
       const newData = getMockTokenData()
-      console.log('🔍 TokenDashboard: localStorage data:', newData.balance)
       if (newData.balance !== tokenData.balance || 
           newData.transactions.length !== tokenData.transactions.length) {
-        if (newData.balance !== tokenData.balance) {
-          setAnimateBalance(true)
-          setTimeout(() => setAnimateBalance(false), 500)
-        }
         setTokenData(newData)
-        onUpdate?.()
       }
     }
     
-    // Initial refresh
-    refreshData()
-    
-    // Set up interval for periodic updates
-    const interval = setInterval(refreshData, 30000) // Check every 30 seconds
-    
+    // Update every 30 seconds
+    const interval = setInterval(updateLocalData, 30000)
     return () => clearInterval(interval)
-  }, [tokenData.balance, tokenData.transactions.length, serverData?.token_balance, onUpdate, isVisible])
+  }, [tokenData.balance, tokenData.transactions.length])
   
   // Use appropriate data source
-  const displayData = useServerData && serverData ? {
+  const displayData = serverData ? {
     balance: serverData.token_balance,
     dailyEarned: serverData.total_tokens_earned, // Use total earned for display
     transactions: [] // No longer tracking transactions
@@ -181,7 +148,7 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
           {formatTokenAmount(displayData.balance)}
         </div>
         <div className="text-sm text-text-muted mt-3">
-          Total Earned: {useServerData && serverData ? serverData.total_tokens_earned : displayData.dailyEarned} Tokens
+          Total Earned: {serverData ? serverData.total_tokens_earned : displayData.dailyEarned} Tokens
         </div>
         
         {/* Redeem Button */}

@@ -71,7 +71,7 @@ export async function handler(event) {
       seed,
       enhance_prompt = true,
       enhance_style,
-      style = 'anime', // Default to anime style
+      style = "anime", // Default to anime style
     } = JSON.parse(event.body);
 
     console.log("=== IMAGE GENERATION REQUEST ===");
@@ -109,29 +109,32 @@ export async function handler(event) {
 
     console.log("=== MODEL CONFIGURATION ===");
     console.log("Style:", style);
-    console.log("Model:", style === 'anime' ? 'pony-diffusion-v6-xl' : 'Photorealistic-NSFW-flux');
+    console.log(
+      "Model:",
+      style === "anime" ? "pony-diffusion-v6-xl" : "Photorealistic-NSFW-flux"
+    );
     console.log("API Key exists:", !!process.env.MODELSLAB_API_KEY);
     console.log("API Key length:", process.env.MODELSLAB_API_KEY?.length);
 
     let requestBody;
-    
-    if (style === 'anime') {
+
+    if (style === "anime") {
       // Anime style configuration
       requestBody = {
         key: process.env.MODELSLAB_API_KEY,
         model_id: "pony-diffusion-v6-xl",
-        version: "13",
         prompt: prompt,
-        negative_prompt: negative_prompt || "bad anatomy, extra limbs, watermark, lowres, blurry, deformed, ugly, mutated hands, poorly drawn face, text, low resolution, overexposed, underexposed, censored, clothing, cartoonish, bored expression, closed eyes, pain",
+        negative_prompt:
+          "score_6, score_5, score_4, worst quality, low quality, normal quality, bad anatomy, extra limbs, watermark, lowres, blurry, deformed, ugly, mutated hands, poorly drawn face, text, overexposed, underexposed, censored, clothing, monochrome, grayscale",
         width: String(width),
         height: String(height),
         samples: String(samples),
-        num_inference_steps: 24,
+        num_inference_steps: 20,
         safety_checker: "false",
         enhance_prompt: "yes",
-        guidance_scale: 6,
-        scheduler: "EulerAncestralDiscreteScheduler",
-        clip_skip: 2,
+        guidance_scale: 2.5,
+        scheduler: "DPMSolverSinglestepScheduler, KarrasVeScheduler",
+        clip_skip: 1,
         use_karras_sigmas: "yes",
         tomesd: "yes",
         seed: seed || null,
@@ -142,7 +145,9 @@ export async function handler(event) {
         key: process.env.MODELSLAB_API_KEY,
         model_id: "fluxdev",
         prompt: prompt,
-        negative_prompt: negative_prompt || "bad anatomy, extra limbs, watermark, lowres, blurry, deformed, ugly, mutated hands, poorly drawn face, text, low resolution, overexposed, underexposed, censored, clothing",
+        negative_prompt:
+          negative_prompt ||
+          "bad anatomy, extra limbs, watermark, lowres, blurry, deformed, ugly, mutated hands, poorly drawn face, text, low resolution, overexposed, underexposed, censored, clothing",
         width: String(width),
         height: String(height),
         samples: String(samples),
@@ -151,7 +156,7 @@ export async function handler(event) {
         enhance_prompt: "yes",
         guidance_scale: 7,
         scheduler: "UniPCMultistepScheduler",
-         "use_karras_sigmas": "yes",
+        use_karras_sigmas: "yes",
         lora: "Photorealistic-NSFW-flux",
         lora_strength: 6.0,
         tomesd: "yes",
@@ -210,10 +215,10 @@ export async function handler(event) {
       console.log("ETA:", result.eta, "seconds");
       console.log("Fetch URL:", result.fetch_result);
       console.log("Future links:", result.future_links);
-      
+
       // Check if image URL is already available
       const imageUrl = result.meta?.output?.[0] || result.future_links?.[0];
-      
+
       // Always return processing status to show ETA, but include URL if available
       return {
         statusCode: 202, // Accepted
@@ -227,7 +232,6 @@ export async function handler(event) {
           message: `Image is being generated. ETA: ${result.eta || 2} seconds`,
         }),
       };
-
     }
 
     // For success status, return image URLs
