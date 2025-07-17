@@ -140,7 +140,7 @@ export async function handler(event) {
       // Realism style configuration
       requestBody = {
         key: process.env.MODELSLAB_API_KEY,
-        model_id: "Photorealistic-NSFW-flux",
+        model_id: "fluxdev",
         prompt: prompt,
         negative_prompt: negative_prompt || "bad anatomy, extra limbs, watermark, lowres, blurry, deformed, ugly, mutated hands, poorly drawn face, text, low resolution, overexposed, underexposed, censored, clothing",
         width: String(width),
@@ -151,6 +151,8 @@ export async function handler(event) {
         enhance_prompt: enhance_prompt ? "yes" : "no",
         guidance_scale: 1.5,
         scheduler: "LCMScheduler",
+        lora: "Photorealistic-NSFW-flux",
+        lora_strength: 6.0,
         tomesd: "yes",
         seed: seed || null,
       };
