@@ -106,6 +106,10 @@ function AppContent() {
       }
       setMessages(prev => [...prev, processingMessage])
       
+      // Track when we started for minimum display time
+      const startTime = Date.now()
+      const minimumDisplayTime = 2000 // Show for at least 2 seconds
+      
       try {
         // Use mapped prompt for image generation
         const backendPrompt = getMappedPrompt(messageContent, 'image')
@@ -174,7 +178,22 @@ function AppContent() {
             throw error
           }
         } else {
-          // Immediate result - replace processing message
+          // Immediate result - ensure minimum display time
+          const elapsedTime = Date.now() - startTime
+          const remainingTime = Math.max(0, minimumDisplayTime - elapsedTime)
+          
+          if (remainingTime > 0) {
+            // Show a quick countdown if we need to wait
+            setMessages(prev => prev.map(msg => 
+              msg.id === processingMessage.id 
+                ? { ...msg, content: `Generating your image... Almost ready!` }
+                : msg
+            ))
+            
+            await new Promise(resolve => setTimeout(resolve, remainingTime))
+          }
+          
+          // Now show the result
           const finalImageUrl = result.images?.[0] || result.imageUrl
           console.log('Setting image URL in message:', finalImageUrl)
           
