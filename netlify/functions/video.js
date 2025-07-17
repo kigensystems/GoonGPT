@@ -2,7 +2,9 @@
 import { createVideoStatus } from './utils/supabase.js';
 import { videoRateLimiter } from './utils/rateLimiter.js';
 
-export default async function handler(req) {
+export async function handler(req) {
+  console.log('Video generation function called');
+  console.log('Request method:', req.httpMethod);
   // Apply rate limiting
   const rateLimitResponse = await videoRateLimiter(req);
   if (rateLimitResponse) {
@@ -29,14 +31,16 @@ export default async function handler(req) {
   }
 
   // Handle preflight OPTIONS request
-  if (req.method === 'OPTIONS') {
+  if (req.httpMethod === 'OPTIONS') {
+    console.log('Handling OPTIONS preflight request');
     return new Response('', {
       status: 200,
       headers
     });
   }
 
-  if (req.method !== 'POST') {
+  if (req.httpMethod !== 'POST') {
+    console.log('Method not allowed:', req.httpMethod);
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
       headers
@@ -44,7 +48,10 @@ export default async function handler(req) {
   }
 
   try {
-    const { init_image, prompt, output_type, negative_prompt, num_frames, fps } = await req.json();
+    console.log('Parsing request body');
+    const body = JSON.parse(req.body);
+    const { init_image, prompt, output_type, negative_prompt, num_frames, fps } = body;
+    console.log('Request params:', { prompt, output_type, num_frames, fps, hasInitImage: !!init_image });
 
     if (!init_image || !prompt) {
       return new Response(JSON.stringify({ error: 'init_image and prompt are required' }), {
