@@ -1,24 +1,28 @@
 ## Current Issues 🔴
 
-### Image Generation Issues
-- [ ] **Images not displaying** - Broken image icon showing despite successful generation
-  - API returns image URLs correctly
-  - Possible CORS or R2 bucket access issue
-  - Need to check browser DevTools for specific error
-- [ ] **Model configuration issues** - Multiple model changes without stability
-  - Started with pyros-nsfw-sdxl
-  - Changed to fluxdev  
-  - Changed to wai-nsfw-illustrious-sdxl
-  - Duplicate negative_prompt in request body
-  - Need to settle on best performing model
 
-### Local Development Issues
-- [ ] **Netlify Dev not working properly** - MIME type errors on port 8888
-  - Vite/Netlify Dev conflict
-  - Currently using production API for local development
-  - Need proper local function testing setup
 
 ## Today's Completed Work ✅
+
+### Rate Limiting Fix
+- [x] **Fixed severe token fetching rate limiting (429 errors)**
+  - Reduced polling intervals from 2s/5s to 30s across all components
+  - Added visibility detection to pause polling when tab is hidden
+  - Implemented exponential backoff for 429 responses
+  - UserDropdown now only polls when dropdown is open
+  - Reduced request rate from 44/min to 6/min (well under 36/min limit)
+
+### UI/UX Updates
+- [x] **Implemented Anime/Realism toggle for image generation**
+  - Created ImageInput component with dropdown selector
+  - Anime mode uses wai-nsfw-illustrious-sdxl model (1024x1024)
+  - Realism mode uses fluxdev with Photorealistic-NSFW-flux LoRA (1280x720)
+  - Integrated toggle throughout UI with proper state management
+- [x] **Updated pricing page**
+  - Changed from SOL to USD pricing ($50 Standard, $100 Premium)
+  - Added launch announcement banner (7/21 with 5000 credit bonus)
+  - Changed buttons to "Coming Soon" state
+  - Updated FAQ with payment options (BTC, ETH, SOL, USDC)
 
 ### Image Generation Improvements
 - [x] **Fixed image generation API** - Removed test block that was preventing real calls
@@ -47,6 +51,7 @@
   - fluxdev with uncensored-flux-lora
   - pyros-nsfw-sdxl with multi-lora (add_detail + orgasm_face)
   - wai-nsfw-illustrious-sdxl (current)
+  - fluxdev with Photorealistic-NSFW-flux LoRA (for realism mode)
 - [x] **Improved prompt mappings** - Enhanced NSFW prompts for better results
 
 ### Local Development Setup
