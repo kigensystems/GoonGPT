@@ -34,20 +34,6 @@ export async function handler(event) {
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json',
   };
-  
-  // Temporary test - return immediately to see if function is called
-  if (event.httpMethod === 'POST' && event.path === '/.netlify/functions/image') {
-    console.log('TEST: Function is being called!');
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ 
-        test: true, 
-        message: 'Function is working',
-        timestamp: new Date().toISOString()
-      })
-    };
-  }
 
   // Handle preflight
   if (event.httpMethod === 'OPTIONS') {
@@ -80,33 +66,39 @@ export async function handler(event) {
       };
     }
 
-    console.log('Generating image with Photorealistic-NSFW-flux model');
+    console.log('Generating image with flux model');
     console.log('Prompt:', prompt);
     console.log('API Key exists:', !!process.env.MODELSLAB_API_KEY);
     console.log('API Key length:', process.env.MODELSLAB_API_KEY?.length);
 
-    // ModelsLab API call for text2img with Photorealistic-NSFW-flux model
+    // ModelsLab API call for text2img with flux model
     const requestBody = {
       key: process.env.MODELSLAB_API_KEY,
-      model_id: 'Photorealistic-NSFW-flux',
+      model_id: 'flux',
       prompt: prompt,
-      negative_prompt: negative_prompt || 'blurry, deformed, ugly, mutated hands, extra limbs, poorly drawn face, bad anatomy, watermark, text, low resolution, underexposed, censored, clothing',
       width: String(width),
       height: String(height),
-      samples: samples,
-      num_inference_steps: 30,
+      samples: String(samples),
+      num_inference_steps: "20",
       safety_checker: 'no',
       guidance_scale: 7.5,
       seed: seed || null,
-      base64: false,
+      tomesd: 'yes',
+      use_karras_sigmas: 'yes',
+      vae: null,
+      lora_strength: null,
+      lora_model: null,
+      multi_lingual: 'no',
+      panorama: 'no',
+      self_attention: 'no',
+      upscale: 'no',
+      clip_skip: "2",
+      base64: 'no',
+      scheduler: 'UniPCMultistepScheduler',
       webhook: null,
-      track_id: null
+      track_id: null,
+      temp: 'no'
     };
-
-    // Add optional parameters if provided
-    if (enhance_style) {
-      requestBody.enhance_style = enhance_style;
-    }
 
     console.log('Request body:', JSON.stringify(requestBody, null, 2));
 
