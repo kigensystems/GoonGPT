@@ -191,34 +191,20 @@ export async function handler(event) {
       // Check if image URL is already available
       const imageUrl = result.meta?.output?.[0] || result.future_links?.[0];
       
-      if (imageUrl) {
-        console.log("Image URL already available:", imageUrl);
-        // Return as success since we have the URL
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify({
-            success: true,
-            imageUrl: imageUrl,
-            images: [imageUrl],
-            prompt: prompt,
-            meta: result.meta || {}
-          }),
-        };
-      }
-
-      // Only return processing if no URL available
+      // Always return processing status to show ETA, but include URL if available
       return {
         statusCode: 202, // Accepted
         headers,
         body: JSON.stringify({
           status: "processing",
-          eta: result.eta,
+          eta: result.eta || 2, // Default to 2 seconds if no ETA
           request_id: result.id,
           fetch_result: result.fetch_result,
-          message: `Image is being generated. ETA: ${result.eta} seconds`,
+          imageUrl: imageUrl, // Include URL if already available
+          message: `Image is being generated. ETA: ${result.eta || 2} seconds`,
         }),
       };
+
     }
 
     // For success status, return image URLs

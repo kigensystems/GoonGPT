@@ -129,8 +129,8 @@ function AppContent() {
         )
 
         // Check if we need to poll for the result
-        if (result.status === 'processing' && result.request_id) {
-          const initialEta = result.eta || 30
+        if (result.status === 'processing') {
+          const initialEta = result.eta || 2
           let currentEta = initialEta
           
           // Update message to show it's processing with ETA
@@ -143,39 +143,75 @@ function AppContent() {
               : msg
           ))
 
-          // Poll for the image with ETA updates
-          const pollInterval = setInterval(() => {
-            currentEta = Math.max(0, currentEta - 2) // Decrease by 2 seconds per poll
-            setMessages(prev => prev.map(msg => 
-              msg.id === processingMessage.id 
-                ? { 
-                    ...msg, 
-                    content: currentEta > 0 
-                      ? `Generating your image... ETA: ${currentEta}s`
-                      : `Generating your image... Almost ready`
-                  }
-                : msg
-            ))
-          }, 2000)
+          // If we already have the URL, just show countdown then display
+          if (result.imageUrl) {
+            console.log('Image URL already available, showing countdown:', result.imageUrl)
+            
+            // Show countdown
+            const countdownInterval = setInterval(() => {
+              currentEta = Math.max(0, currentEta - 1)
+              setMessages(prev => prev.map(msg => 
+                msg.id === processingMessage.id 
+                  ? { 
+                      ...msg, 
+                      content: currentEta > 0 
+                        ? `Generating your image... ETA: ${currentEta}s`
+                        : `Generating your image... Almost ready!`
+                    }
+                  : msg
+              ))
+            }, 1000)
 
-          try {
-            const finalResult = await imageClient.pollForImage(result.request_id)
-            clearInterval(pollInterval)
-          
-            // Replace processing message with actual result
+            // Wait for countdown to finish
+            await new Promise(resolve => setTimeout(resolve, initialEta * 1000))
+            clearInterval(countdownInterval)
+            
+            // Show the image
             setMessages(prev => {
               const filtered = prev.filter(msg => msg.id !== processingMessage.id)
               return [...filtered, {
                 id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
                 role: 'assistant',
                 content: 'Here is your generated image:',
-                imageUrl: finalResult.images?.[0] || finalResult.imageUrl,
+                imageUrl: result.imageUrl,
                 timestamp: new Date()
               }]
             })
-          } catch (error) {
-            clearInterval(pollInterval)
-            throw error
+          } else if (result.request_id) {
+            // Need to poll for the image
+            const pollInterval = setInterval(() => {
+              currentEta = Math.max(0, currentEta - 2) // Decrease by 2 seconds per poll
+              setMessages(prev => prev.map(msg => 
+                msg.id === processingMessage.id 
+                  ? { 
+                      ...msg, 
+                      content: currentEta > 0 
+                        ? `Generating your image... ETA: ${currentEta}s`
+                        : `Generating your image... Almost ready`
+                    }
+                  : msg
+              ))
+            }, 2000)
+
+            try {
+              const finalResult = await imageClient.pollForImage(result.request_id)
+              clearInterval(pollInterval)
+            
+              // Replace processing message with actual result
+              setMessages(prev => {
+                const filtered = prev.filter(msg => msg.id !== processingMessage.id)
+                return [...filtered, {
+                  id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
+                  role: 'assistant',
+                  content: 'Here is your generated image:',
+                  imageUrl: finalResult.images?.[0] || finalResult.imageUrl,
+                  timestamp: new Date()
+                }]
+              })
+            } catch (error) {
+              clearInterval(pollInterval)
+              throw error
+            }
           }
         } else {
           // Immediate result - ensure minimum display time
