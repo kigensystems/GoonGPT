@@ -126,8 +126,7 @@ export async function handler(event) {
       width: String(width),
       height: String(height),
       samples: String(samples),
-      negative_prompt:
-        "bad anatomy, extra limbs, watermark, lowres",
+      negative_prompt: "bad anatomy, extra limbs, watermark, lowres",
       lora_model: "add_detail,ahegao_faces_sdxl",
       lora_strength: "0.7,0.8",
 
@@ -135,7 +134,7 @@ export async function handler(event) {
       safety_checker: "false",
       enhance_prompt: "yes",
       guidance_scale: 6,
-      scheduler: "euler a",
+      scheduler: "EulerAncestralDiscreteScheduler",
       clip_skip: 2,
       use_karras_sigmas: "yes",
       tomesd: "yes",
