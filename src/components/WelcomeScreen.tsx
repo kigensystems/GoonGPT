@@ -343,7 +343,7 @@ export function WelcomeScreen({
               <button 
                 onClick={() => {
                   if (!isLoading) {
-                    onSendAsmr("Whisper sweet nothings to me");
+                    onSendAsmr("Edging whispers");
                   }
                 }}
                 disabled={isLoading}
@@ -352,7 +352,7 @@ export function WelcomeScreen({
                 <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
-                <span>Sweet whispers</span>
+                <span>Edging whispers</span>
               </button>
               <button 
                 onClick={() => {
@@ -366,7 +366,7 @@ export function WelcomeScreen({
                 <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                 </svg>
-                <span>Counting slowly</span>
+                <span>Cumming slowly</span>
               </button>
               <button 
                 onClick={() => {
