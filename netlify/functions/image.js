@@ -134,6 +134,7 @@ export async function handler(event) {
         body: JSON.stringify({
           status: 'processing',
           eta: result.eta,
+          request_id: result.id,
           fetch_result: result.fetch_result,
           message: `Image is being generated. ETA: ${result.eta} seconds`
         }),

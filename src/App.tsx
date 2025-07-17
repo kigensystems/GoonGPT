@@ -113,8 +113,8 @@ function AppContent() {
         
         const result = await imageClient.generateImage(
           backendPrompt,
-          512,
-          512,
+          1024,
+          1024,
           {
             negative_prompt: 'low quality, blurry',
             samples: 1,
@@ -124,17 +124,42 @@ function AppContent() {
           }
         )
 
-        // Replace processing message with actual result
-        setMessages(prev => {
-          const filtered = prev.filter(msg => msg.id !== processingMessage.id)
-          return [...filtered, {
-            id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
-            role: 'assistant',
-            content: 'Here is your generated image:',
-            imageUrl: result.images?.[0] || result.imageUrl,
-            timestamp: new Date()
-          }]
-        })
+        // Check if we need to poll for the result
+        if (result.status === 'processing' && result.request_id) {
+          // Update message to show it's processing with ETA
+          setMessages(prev => prev.map(msg => 
+            msg.id === processingMessage.id 
+              ? { ...msg, content: `Generating your image... ETA: ${result.eta || 'unknown'} seconds` }
+              : msg
+          ))
+
+          // Poll for the image
+          const finalResult = await imageClient.pollForImage(result.request_id)
+          
+          // Replace processing message with actual result
+          setMessages(prev => {
+            const filtered = prev.filter(msg => msg.id !== processingMessage.id)
+            return [...filtered, {
+              id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
+              role: 'assistant',
+              content: 'Here is your generated image:',
+              imageUrl: finalResult.images?.[0] || finalResult.imageUrl,
+              timestamp: new Date()
+            }]
+          })
+        } else {
+          // Immediate result - replace processing message
+          setMessages(prev => {
+            const filtered = prev.filter(msg => msg.id !== processingMessage.id)
+            return [...filtered, {
+              id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
+              role: 'assistant',
+              content: 'Here is your generated image:',
+              imageUrl: result.images?.[0] || result.imageUrl,
+              timestamp: new Date()
+            }]
+          })
+        }
       } catch (error) {
         // Replace processing message with error message
         let errorMessage: string;

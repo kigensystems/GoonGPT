@@ -9,6 +9,13 @@ interface ImageGenerationResponse {
   meta: any;
 }
 
+interface ProcessingResponse {
+  status: 'processing';
+  eta: number;
+  request_id: string;
+  message: string;
+}
+
 export class ImageClient {
   private baseUrl: string;
   
@@ -78,19 +85,99 @@ export class ImageClient {
 
       const result = await response.json();
       
-      // ModelsLab API provides instant responses, no polling needed
+      // Handle immediate success
       if (result.success) {
         return result;
-      } else if (result.status === 'processing') {
-        // Handle rare cases where processing might be required
-        throw new Error(`Image is still processing. ETA: ${result.eta || 'unknown'} seconds`);
-      } else {
-        throw new Error(result.details || 'Image generation failed');
+      } 
+      
+      // Handle processing status - return it so caller can poll
+      if (result.status === 'processing') {
+        return result as ProcessingResponse;
       }
+      
+      // Handle errors
+      throw new Error(result.details || result.error || 'Image generation failed');
     } catch (error) {
       console.error('Error generating image:', error);
       throw error;
     }
+  }
+
+  // Fetch a previously generated image by request ID
+  async fetchImage(requestId: string): Promise<any> {
+    try {
+      const response = await fetch(`${this.baseUrl}/.netlify/functions/image-fetch`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          request_id: requestId
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      // Still processing
+      if (result.status === 'processing') {
+        return result;
+      }
+      
+      // Success
+      if (result.success || result.status === 'success') {
+        return {
+          success: true,
+          imageUrl: result.imageUrl,
+          images: result.images || [result.imageUrl]
+        };
+      }
+      
+      // Error
+      throw new Error(result.error || 'Failed to fetch image');
+    } catch (error) {
+      console.error('Error fetching image:', error);
+      throw error;
+    }
+  }
+
+  // Helper method to poll for image completion
+  async pollForImage(
+    requestId: string, 
+    maxAttempts: number = 30,
+    delayMs: number = 2000
+  ): Promise<ImageGenerationResponse> {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const result = await this.fetchImage(requestId);
+        
+        if (result.success) {
+          return result;
+        }
+        
+        // Still processing, wait and try again
+        if (result.status === 'processing') {
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          continue;
+        }
+        
+        // Some other status, throw error
+        throw new Error('Unexpected status: ' + result.status);
+      } catch (error) {
+        // On last attempt, throw the error
+        if (attempt === maxAttempts - 1) {
+          throw error;
+        }
+        // Otherwise, wait and retry
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+    
+    throw new Error('Image generation timed out after ' + (maxAttempts * delayMs / 1000) + ' seconds');
   }
 
 }
