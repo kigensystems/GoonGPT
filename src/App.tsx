@@ -9,7 +9,6 @@ import { getMappedPrompt } from './promptMappings'
 import { UserRegistration } from './components/UserRegistration'
 import { FirefoxWarning } from './components/FirefoxWarning'
 import { UnifiedContainer } from './components/UnifiedContainer'
-import { ErrorBoundary } from './components/ErrorBoundary'
 import { AppHeader } from './components/AppHeader'
 import { WelcomeScreen, Mode } from './components/WelcomeScreen'
 import { PageRouter, useCurrentView } from './components/PageRouter'
@@ -481,22 +480,11 @@ function AppContent() {
 
 function App() {
   return (
-    <ErrorBoundary>
-      <Router>
-        <AuthProvider>
-          <ErrorBoundary fallback={
-            <div className="min-h-screen bg-bg-main flex items-center justify-center">
-              <div className="text-center">
-                <h2 className="text-xl font-semibold text-text-primary mb-2">Authentication Error</h2>
-                <p className="text-text-secondary">Please refresh the page and try again.</p>
-              </div>
-            </div>
-          }>
-            <AppContent />
-          </ErrorBoundary>
-        </AuthProvider>
-      </Router>
-    </ErrorBoundary>
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Router>
   );
 }
 
