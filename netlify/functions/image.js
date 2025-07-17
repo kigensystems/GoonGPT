@@ -121,13 +121,10 @@ export async function handler(event) {
       model_id: "wai-nsfw-illustrious-sdxl",
       version: "13",
       prompt: prompt,
-      negative_prompt:
-        "blurry, deformed, ugly, mutated hands, extra limbs, poorly drawn face, bad anatomy, watermark, text, low resolution, overexposed, underexposed, censored, clothing, cartoonish, anime style, bored expression, closed eyes, pain, watermark",
+      negative_prompt: "bad anatomy, extra limbs, watermark, lowres, blurry, deformed, ugly, mutated hands, poorly drawn face, text, low resolution, overexposed, underexposed, censored, clothing, cartoonish, anime style, bored expression, closed eyes, pain",
       width: String(width),
       height: String(height),
       samples: String(samples),
-      negative_prompt: "bad anatomy, extra limbs, watermark, lowres",
-
       num_inference_steps: 24,
       safety_checker: "false",
       enhance_prompt: "yes",
@@ -190,7 +187,27 @@ export async function handler(event) {
       console.log("ETA:", result.eta, "seconds");
       console.log("Fetch URL:", result.fetch_result);
       console.log("Future links:", result.future_links);
+      
+      // Check if image URL is already available
+      const imageUrl = result.meta?.output?.[0] || result.future_links?.[0];
+      
+      if (imageUrl) {
+        console.log("Image URL already available:", imageUrl);
+        // Return as success since we have the URL
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            imageUrl: imageUrl,
+            images: [imageUrl],
+            prompt: prompt,
+            meta: result.meta || {}
+          }),
+        };
+      }
 
+      // Only return processing if no URL available
       return {
         statusCode: 202, // Accepted
         headers,
