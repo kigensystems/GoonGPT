@@ -13,7 +13,7 @@ export const chatPromptMappings: Record<string, string> = {
 
 export const imagePromptMappings: Record<string, string> = {
   // Image generation mappings - display text → enhanced prompt
-  "hot korean girl gooning": "A young Korean woman in a minimalistic white tank top and black shorts sits on a modern ergonomic chair in a dimly lit room. She has a serene expression as she gently holds a vibrantly colored silicone dildo with intricate ridges. The chair's polished surface reflects her face in soft focus, showing her long dark hair cascading down her back. Her left leg is slightly elevated, creating a diagonal line from her knee to her bent foot on the floor. The room has subtle warm lighting casting shadows across her neck and shoulders. Her hands are steady, with one thumb resting on the base of the dildo. The scene is bathed in a soft glow with golden highlights on her neck and the dildo's surface. Use extreme detail for the texture of her skin, the sheen of the silicone, and the lighting reflections. 8k, high quality, professional, perfect anatomy",
+  "hot korean girl gooning": "An extremely attractive Korean woman sitting in a chair with her legs spread completely naked, she has large breasts, she is touching her clit with her finger 8k, high quality, professional, perfect",
   
   // Update placeholder prompts with actual NSFW content
   "Image prompt placeholder 2": "sexy anime girl, detailed art, high quality, revealing outfit, suggestive pose, digital art, professional illustration, attractive character, detailed anatomy",
