@@ -66,16 +66,17 @@ export async function handler(event) {
       };
     }
 
-    console.log('Generating image with flux model');
+    console.log('Generating image with fluxdev model + uncensored lora');
     console.log('Prompt:', prompt);
     console.log('API Key exists:', !!process.env.MODELSLAB_API_KEY);
     console.log('API Key length:', process.env.MODELSLAB_API_KEY?.length);
 
-    // ModelsLab API call for text2img with flux model
+    // ModelsLab API call for text2img with fluxdev model
     const requestBody = {
       key: process.env.MODELSLAB_API_KEY,
-      model_id: 'flux',
+      model_id: 'fluxdev',
       prompt: prompt,
+      negative_prompt: negative_prompt || 'blurry, deformed, ugly, mutated hands, extra limbs, poorly drawn face, bad anatomy, watermark, text, low resolution, overexposed, underexposed, censored, clothing, cartoonish, anime style, bored expression, closed eyes, pain',
       width: String(width),
       height: String(height),
       samples: String(samples),
@@ -86,8 +87,8 @@ export async function handler(event) {
       tomesd: 'yes',
       use_karras_sigmas: 'yes',
       vae: null,
-      lora_strength: null,
-      lora_model: null,
+      lora_strength: "1.0",
+      lora_model: "uncensored-flux-lora",
       multi_lingual: 'no',
       panorama: 'no',
       self_attention: 'no',
