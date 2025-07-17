@@ -3,6 +3,8 @@
 
 export async function handler(event) {
   console.log('=== IMAGE FETCH FUNCTION START ===');
+  console.log('Timestamp:', new Date().toISOString());
+  console.log('Method:', event.httpMethod);
   
   // Check for required environment variables
   if (!process.env.MODELSLAB_API_KEY) {
@@ -49,9 +51,12 @@ export async function handler(event) {
       };
     }
 
-    console.log('Fetching image with request_id:', request_id);
+    console.log('=== FETCH REQUEST ===');
+    console.log('Request ID:', request_id);
+    console.log('API Key exists:', !!process.env.MODELSLAB_API_KEY);
 
     // ModelsLab API call to fetch image
+    const startTime = Date.now();
     const response = await fetch('https://modelslab.com/api/v6/images/fetch', {
       method: 'POST',
       headers: {
@@ -63,14 +68,22 @@ export async function handler(event) {
       }),
     });
 
+    const responseTime = Date.now() - startTime;
+    console.log(`=== FETCH API RESPONSE (${responseTime}ms) ===`);
+    console.log('Status:', response.status, response.statusText);
+
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('ModelsLab API error:', errorData);
+      console.error('ModelsLab fetch API error:', errorData);
       throw new Error(`ModelsLab API error: ${response.status} ${response.statusText}`);
     }
 
     const result = await response.json();
-    console.log('ModelsLab Fetch Response:', JSON.stringify(result, null, 2));
+    console.log('=== FETCH RESPONSE DATA ===');
+    console.log('Status:', result.status);
+    console.log('ID:', result.id);
+    console.log('Output:', result.output);
+    console.log('Full response:', JSON.stringify(result, null, 2));
     
     // Handle different response types
     if (result.status === 'error') {
@@ -87,6 +100,9 @@ export async function handler(event) {
     
     // Still processing
     if (result.status === 'processing') {
+      console.log('=== STILL PROCESSING ===');
+      console.log('Image generation in progress for request:', request_id);
+      
       return {
         statusCode: 202,
         headers,
@@ -100,6 +116,10 @@ export async function handler(event) {
     // Success - image is ready
     if (result.status === 'success' && result.output) {
       const imageUrl = Array.isArray(result.output) ? result.output[0] : result.output;
+      
+      console.log('=== FETCH SUCCESS ===');
+      console.log('Image ready for request:', request_id);
+      console.log('Image URLs:', result.output);
       
       return {
         statusCode: 200,
