@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { DeepFakeInput } from './DeepFakeInput'
 import { VideoInput } from './VideoInput'
+import { ImageInput } from './ImageInput'
 
 export type Mode = 'chat' | 'image' | 'video' | 'asmr' | 'deepfake'
 
@@ -30,6 +31,10 @@ interface WelcomeScreenProps {
   
   // ASMR props
   onSendAsmr: (text: string) => void
+  
+  // Image props
+  imageStyle: 'anime' | 'realism'
+  onImageStyleChange: (style: 'anime' | 'realism') => void
 }
 
 export function WelcomeScreen({
@@ -51,7 +56,9 @@ export function WelcomeScreen({
   videoDuration,
   onVideoDurationChange,
   onSendVideo,
-  onSendAsmr
+  onSendAsmr,
+  imageStyle,
+  onImageStyleChange
 }: WelcomeScreenProps) {
   return (
     <>
@@ -154,6 +161,15 @@ export function WelcomeScreen({
               setVideoDuration={onVideoDurationChange}
               isLoading={isLoading}
             />
+          ) : mode === 'image' ? (
+            <ImageInput
+              value={input}
+              onChange={onInputChange}
+              onSendMessage={onSendMessage}
+              isLoading={isLoading}
+              imageStyle={imageStyle}
+              setImageStyle={onImageStyleChange}
+            />
           ) : (
             <div className="relative">
               <input
@@ -166,7 +182,7 @@ export function WelcomeScreen({
                     onSendMessage()
                   }
                 }}
-                placeholder={mode === 'image' ? "Describe the image you want to generate" : mode === 'asmr' ? "Enter text to convert to ASMR whispers..." : "Ask anything"}
+                placeholder={mode === 'asmr' ? "Enter text to convert to ASMR whispers..." : "Ask anything"}
                 className="w-full px-6 py-4 pr-16 bg-surface rounded-3xl focus:outline-none focus:ring-2 focus:ring-accent placeholder-text-muted text-lg"
               />
               <button

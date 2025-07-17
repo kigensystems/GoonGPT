@@ -71,6 +71,7 @@ export async function handler(event) {
       seed,
       enhance_prompt = true,
       enhance_style,
+      style = 'anime', // Default to anime style
     } = JSON.parse(event.body);
 
     console.log("=== IMAGE GENERATION REQUEST ===");
@@ -88,6 +89,7 @@ export async function handler(event) {
           samples,
           seed: seed || "random",
           enhance_prompt,
+          style,
         },
         null,
         2
@@ -106,35 +108,53 @@ export async function handler(event) {
     }
 
     console.log("=== MODEL CONFIGURATION ===");
-    console.log("Model: pyros-nsfw-sdxl");
-    console.log(
-      "LoRAs: add_detail (0.6), orgasm_face_for_pyros_nsfw_sdxl (0.8)"
-    );
-    console.log("Inference steps: 30");
-    console.log("Guidance scale: 6.0");
-    console.log("Scheduler: UniPCMultistepScheduler");
+    console.log("Style:", style);
+    console.log("Model:", style === 'anime' ? 'wai-nsfw-illustrious-sdxl' : 'Photorealistic-NSFW-flux');
     console.log("API Key exists:", !!process.env.MODELSLAB_API_KEY);
     console.log("API Key length:", process.env.MODELSLAB_API_KEY?.length);
 
-    const requestBody = {
-      key: process.env.MODELSLAB_API_KEY,
-      model_id: "wai-nsfw-illustrious-sdxl",
-      version: "13",
-      prompt: prompt,
-      negative_prompt: "bad anatomy, extra limbs, watermark, lowres, blurry, deformed, ugly, mutated hands, poorly drawn face, text, low resolution, overexposed, underexposed, censored, clothing, cartoonish, anime style, bored expression, closed eyes, pain",
-      width: String(width),
-      height: String(height),
-      samples: String(samples),
-      num_inference_steps: 24,
-      safety_checker: "false",
-      enhance_prompt: "yes",
-      guidance_scale: 6,
-      scheduler: "EulerAncestralDiscreteScheduler",
-      clip_skip: 2,
-      use_karras_sigmas: "yes",
-      tomesd: "yes",
-      seed: null,
-    };
+    let requestBody;
+    
+    if (style === 'anime') {
+      // Anime style configuration
+      requestBody = {
+        key: process.env.MODELSLAB_API_KEY,
+        model_id: "wai-nsfw-illustrious-sdxl",
+        version: "13",
+        prompt: prompt,
+        negative_prompt: negative_prompt || "bad anatomy, extra limbs, watermark, lowres, blurry, deformed, ugly, mutated hands, poorly drawn face, text, low resolution, overexposed, underexposed, censored, clothing, cartoonish, bored expression, closed eyes, pain",
+        width: String(width),
+        height: String(height),
+        samples: String(samples),
+        num_inference_steps: 24,
+        safety_checker: "false",
+        enhance_prompt: "yes",
+        guidance_scale: 6,
+        scheduler: "EulerAncestralDiscreteScheduler",
+        clip_skip: 2,
+        use_karras_sigmas: "yes",
+        tomesd: "yes",
+        seed: seed || null,
+      };
+    } else {
+      // Realism style configuration
+      requestBody = {
+        key: process.env.MODELSLAB_API_KEY,
+        model_id: "Photorealistic-NSFW-flux",
+        prompt: prompt,
+        negative_prompt: negative_prompt || "bad anatomy, extra limbs, watermark, lowres, blurry, deformed, ugly, mutated hands, poorly drawn face, text, low resolution, overexposed, underexposed, censored, clothing",
+        width: String(width),
+        height: String(height),
+        samples: String(samples),
+        num_inference_steps: 6,
+        safety_checker: "false",
+        enhance_prompt: enhance_prompt ? "yes" : "no",
+        guidance_scale: 1.5,
+        scheduler: "LCMScheduler",
+        tomesd: "yes",
+        seed: seed || null,
+      };
+    }
 
     console.log("=== FULL REQUEST BODY ===");
     console.log(JSON.stringify(requestBody, null, 2));

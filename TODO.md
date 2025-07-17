@@ -30,6 +30,10 @@
   - Shows "ETA: 25s" countdown during generation
   - Minimum 2 second display time for UX
   - No emojis, clean professional display
+- [x] **Fixed ETA countdown not displaying**
+  - Backend now always returns processing status to trigger countdown
+  - Frontend handles immediate URLs with countdown display
+  - Consistent visual feedback for all generations
 - [x] **Fixed processing status with immediate URLs**
   - API sometimes returns "processing" but includes the URL
   - Now detects and uses URL immediately when available

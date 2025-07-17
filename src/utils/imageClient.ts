@@ -47,6 +47,7 @@ export class ImageClient {
       enhance_prompt?: boolean;
       enhance_style?: string;
       wallet_address?: string;
+      style?: 'anime' | 'realism';
     } = {}
   ): Promise<any> {
     try {

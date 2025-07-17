@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, RefObject } from 'react'
 import { ChatInput } from './ChatInput'
+import { ImageInput } from './ImageInput'
 import { VideoInput } from './VideoInput'
 import { DeepFakeInput } from './DeepFakeInput'
 import { Message } from './ChatMessage'
@@ -38,6 +39,9 @@ interface UnifiedContainerProps {
   onDeepfakeFaceImageUpload?: (image: string | null) => void
   onSendDeepfake?: () => void
   
+  // Image specific
+  imageStyle?: 'anime' | 'realism'
+  onImageStyleChange?: (style: 'anime' | 'realism') => void
 }
 
 export function UnifiedContainer({
@@ -59,7 +63,9 @@ export function UnifiedContainer({
   deepfakeFaceImage,
   onDeepfakeBaseImageUpload,
   onDeepfakeFaceImageUpload,
-  onSendDeepfake
+  onSendDeepfake,
+  imageStyle = 'anime',
+  onImageStyleChange
 }: UnifiedContainerProps) {
   const [localMessages, setLocalMessages] = useState<Message[]>(messages)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
@@ -137,13 +143,22 @@ export function UnifiedContainer({
         )}
         
         
-        {mode === 'chat' || mode === 'image' ? (
+        {mode === 'chat' ? (
           <ChatInput
             value={input}
             onChange={setInput}
             onSendMessage={handleSendMessage}
-            placeholder={mode === 'image' ? "Describe the image you want to generate" : "Ask anything"}
+            placeholder="Ask anything"
             isLoading={isLoading}
+          />
+        ) : mode === 'image' ? (
+          <ImageInput
+            value={input}
+            onChange={setInput}
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+            imageStyle={imageStyle}
+            setImageStyle={onImageStyleChange!}
           />
         ) : mode === 'video' ? (
           <VideoInput
