@@ -19,14 +19,28 @@ export function UserDropdown({ user, onLogout }: UserDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [serverData, setServerData] = useState<ServerTokenData | null>(null)
+  const [isVisible, setIsVisible] = useState(true)
   const tokenData = getMockTokenData()
   
   // Mock credits data - in real app this would come from user profile/API
   const creditsBalance = 0 // Default to 0 since subscription system not implemented yet
 
+  // Handle visibility change
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(!document.hidden)
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
+  
   // Fetch server data if authenticated
   useEffect(() => {
     const fetchServerData = async () => {
+      // Only fetch if tab is visible
+      if (!isVisible) return
+      
       if (isAuthenticated()) {
         const data = await getServerTokenData()
         if (data) {
@@ -36,13 +50,13 @@ export function UserDropdown({ user, onLogout }: UserDropdownProps) {
     }
     
     fetchServerData()
-    // Refresh every 5 seconds when dropdown is open
-    const interval = isOpen ? setInterval(fetchServerData, 5000) : undefined
+    // Refresh every 30 seconds when dropdown is open
+    const interval = isOpen ? setInterval(fetchServerData, 30000) : undefined
     
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isOpen])
+  }, [isOpen, isVisible])
 
   // Close dropdown when clicking outside
   useEffect(() => {

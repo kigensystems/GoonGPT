@@ -17,10 +17,23 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
   const [serverData, setServerData] = useState<ServerTokenData | null>(null)
   const [animateBalance, setAnimateBalance] = useState(false)
   const [useServerData, setUseServerData] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  
+  // Handle visibility change
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(!document.hidden)
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
   
   // Refresh data periodically and on updates
   useEffect(() => {
     const refreshData = async () => {
+      // Only refresh if tab is visible
+      if (!isVisible) return
       console.log('🔍 TokenDashboard: Refreshing data, isAuthenticated:', isAuthenticated())
       // Try to get server data if user is authenticated
       if (isAuthenticated()) {
@@ -60,11 +73,11 @@ export function TokenDashboard({ onUpdate }: TokenDashboardProps) {
     // Initial refresh
     refreshData()
     
-    // Set up interval for real-time updates
-    const interval = setInterval(refreshData, 2000) // Check every 2 seconds
+    // Set up interval for periodic updates
+    const interval = setInterval(refreshData, 30000) // Check every 30 seconds
     
     return () => clearInterval(interval)
-  }, [tokenData.balance, tokenData.transactions.length, serverData?.token_balance, onUpdate])
+  }, [tokenData.balance, tokenData.transactions.length, serverData?.token_balance, onUpdate, isVisible])
   
   // Use appropriate data source
   const displayData = useServerData && serverData ? {

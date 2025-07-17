@@ -19,13 +19,8 @@ export const chatPromptMappings: Record<string, string> = {
 
 export const imagePromptMappings: Record<string, string> = {
   // Image generation mappings - display text → enhanced prompt
-  "Korean Girl Gooning":
-    "masterpiece, best quality, stunning Korean woman mid-20s, porcelain skin, long silky black hair, almond eyes rolled back in ecstasy, drooling parted lips, flushed dazed gooning face, (ahegao:1.2), (orgasmic:1.2), athletic curvaceous body, enormous natural breasts heaving, nude, legs spread wide, fingering shaved wet pussy with arousal fluids, body trembling, reclined in modern leather armchair, dimly lit luxurious bedroom, photorealistic hyper-realistic textures, sweat beads, intricate genital details, soft volumetric lighting, high dynamic range, ultra-detailed anatomy, 8k, professional erotic photography",
-  // Update placeholder prompts with actual NSFW content
-  "Anime Gangbang":
-    "sexy anime girl, detailed art, high quality, revealing outfit, suggestive pose, digital art, professional illustration, attractive character, detailed anatomy",
-  "Stepbro":
-    "Photorealistic image of a seductive young stepsister in her late teens, with long wavy blonde hair, innocent blue eyes wide with lust, full pink lips wrapped around her stepbrother's huge throbbing cock, sucking eagerly with saliva dripping down her chin, cheeks hollowed as she deepthroats, tongue swirling around the head, hand gripping the base, detailed veins and glistening precum, her perky breasts exposed and nipples erect, wearing only a skimpy tank top pulled up, kneeling on the bed in a messy bedroom like in taboo stepbro porn videos, hyper-realistic textures, sweat on skin, soft indoor lighting highlighting contours, high dynamic range, ultra-detailed anatomy without distortions, 8k resolution, professional erotic photography style",
+  
+  
 
   // Add more image mappings as needed
   // Keep display text SFW but backend prompts can be more explicit

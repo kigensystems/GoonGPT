@@ -20,6 +20,7 @@ export function EarnTokensPage({ onNavigateToMode, onNeedRegistration }: EarnTok
   const [refreshKey, setRefreshKey] = useState(0)
   const [serverData, setServerData] = useState<ServerTokenData | null>(null)
   const [useServerData, setUseServerData] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   
   // Force refresh of dashboard and server data
   const handleEarnSuccess = () => {
@@ -46,13 +47,27 @@ export function EarnTokensPage({ onNavigateToMode, onNeedRegistration }: EarnTok
     }
   }
   
+  // Handle visibility change
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(!document.hidden)
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
+  
   // Initial data fetch and periodic refresh
   useEffect(() => {
     refreshServerData()
-    // Refresh every 30 seconds instead of 2 seconds
-    const interval = setInterval(refreshServerData, 30000)
+    // Refresh every 30 seconds when tab is visible
+    const interval = setInterval(() => {
+      if (isVisible) {
+        refreshServerData()
+      }
+    }, 30000)
     return () => clearInterval(interval)
-  }, [isAuthenticated])
+  }, [isAuthenticated, isVisible])
   
   // Actions that navigate to specific modes
   const handleChatAction = () => {

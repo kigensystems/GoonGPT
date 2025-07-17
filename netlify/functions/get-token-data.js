@@ -6,7 +6,7 @@ import { createRateLimiter } from './utils/rateLimiter.js';
 // Create rate limiter for token data fetching
 const getTokenDataRateLimit = createRateLimiter({
   windowMs: 300000, // 5 minutes
-  maxRequests: 120, // 120 requests per 5 minutes
+  maxRequests: 180, // 180 requests per 5 minutes (36 per minute)
   message: 'Too many token data requests. Please wait a moment.'
 });
 

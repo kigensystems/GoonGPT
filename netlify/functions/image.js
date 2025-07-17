@@ -109,7 +109,7 @@ export async function handler(event) {
 
     console.log("=== MODEL CONFIGURATION ===");
     console.log("Style:", style);
-    console.log("Model:", style === 'anime' ? 'wai-nsfw-illustrious-sdxl' : 'Photorealistic-NSFW-flux');
+    console.log("Model:", style === 'anime' ? 'pony-diffusion-v6-xl' : 'Photorealistic-NSFW-flux');
     console.log("API Key exists:", !!process.env.MODELSLAB_API_KEY);
     console.log("API Key length:", process.env.MODELSLAB_API_KEY?.length);
 
@@ -119,7 +119,7 @@ export async function handler(event) {
       // Anime style configuration
       requestBody = {
         key: process.env.MODELSLAB_API_KEY,
-        model_id: "wai-nsfw-illustrious-sdxl",
+        model_id: "pony-diffusion-v6-xl",
         version: "13",
         prompt: prompt,
         negative_prompt: negative_prompt || "bad anatomy, extra limbs, watermark, lowres, blurry, deformed, ugly, mutated hands, poorly drawn face, text, low resolution, overexposed, underexposed, censored, clothing, cartoonish, bored expression, closed eyes, pain",

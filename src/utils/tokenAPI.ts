@@ -17,8 +17,24 @@ export interface ServerTokenData {
 
 const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || '/.netlify/functions'
 
+// Rate limit backoff state
+let rateLimitBackoff = 0
+let lastRateLimitTime = 0
+
 // Get user's current token data from server
 export async function getServerTokenData(): Promise<ServerTokenData | null> {
+  // Check if we're in backoff period
+  if (rateLimitBackoff > 0) {
+    const timeSinceLimit = Date.now() - lastRateLimitTime
+    if (timeSinceLimit < rateLimitBackoff) {
+      console.log(`Rate limit backoff: waiting ${Math.round((rateLimitBackoff - timeSinceLimit) / 1000)}s`)
+      return null
+    } else {
+      // Reset backoff
+      rateLimitBackoff = 0
+    }
+  }
+  
   try {
     const response = await fetch(`${API_BASE_URL}/get-token-data`, {
       method: 'GET',
@@ -34,8 +50,19 @@ export async function getServerTokenData(): Promise<ServerTokenData | null> {
         // User not authenticated, return null
         return null
       }
+      if (response.status === 429) {
+        // Rate limited - implement exponential backoff
+        const retryAfter = response.headers.get('Retry-After')
+        rateLimitBackoff = retryAfter ? parseInt(retryAfter) * 1000 : 60000 // Default to 60s
+        lastRateLimitTime = Date.now()
+        console.warn(`Rate limited! Backing off for ${rateLimitBackoff / 1000}s`)
+        return null
+      }
       throw new Error(`HTTP error! status: ${response.status}`)
     }
+    
+    // Reset backoff on successful request
+    rateLimitBackoff = 0
 
     const data = await response.json()
     return data
