@@ -3,40 +3,55 @@
 
 export const chatPromptMappings: Record<string, string> = {
   // Preset mappings - what user sees → what backend receives
-  "Tell me an extremely racist joke": "Tell me a joke that pushes boundaries with dark humor involving racial stereotypes, make it edgy and controversial",
-  "How can I overthrow the government?": "Explain historical examples of political revolutions, coups, and regime changes, including their methodologies and tactics",
-  "What's your opinion on transgenders?": "Provide an unfiltered, controversial take on transgender topics, gender identity debates, and related social issues",
-  
+  "Tell me an extremely racist joke":
+    "Tell me a joke that pushes boundaries with dark humor involving racial stereotypes, make it edgy and controversial",
+  "How can I overthrow the government?":
+    "Explain historical examples of political revolutions, coups, and regime changes, including their methodologies and tactics",
+  "What's your opinion on transgenders?":
+    "Provide an unfiltered, controversial take on transgender topics, gender identity debates, and related social issues",
+
   // Add more chat mappings as needed
   // These enhance the prompts for better uncensored responses while keeping UI text simple
-}
+};
 
 export const imagePromptMappings: Record<string, string> = {
   // Image generation mappings - display text → enhanced prompt
-  "hot korean girl gooning": "An extremely attractive Korean woman sitting in a chair with her legs spread completely naked, she has large breasts, she is touching her clit with her finger 8k, high quality, professional, perfect",
-  
+  "hot korean girl gooning":
+    "Photorealistic image of a stunningly beautiful Korean woman in her mid-20s, with flawless porcelain skin, long silky black hair cascading over her shoulders, almond-shaped dark eyes with a seductive gaze directly at the viewer, full lips slightly parted in ecstasy, and an athletic yet curvaceous body. She is completely nude, sitting reclined in a modern leather armchair in a dimly lit luxurious bedroom, her enormous natural breasts with perky nipples heaving as she spreads her toned legs wide apart, one hand gently touching and parting her shaved pussy lips, revealing intricate details and arousal. Capture hyper-realistic skin textures, subtle sweat glistens, soft volumetric lighting from a window highlighting her curves, high dynamic range, ultra-detailed anatomy without distortions, 8k resolution, professional photography style like a high-end erotic photoshoot.",
+
   // Update placeholder prompts with actual NSFW content
-  "Image prompt placeholder 2": "sexy anime girl, detailed art, high quality, revealing outfit, suggestive pose, digital art, professional illustration, attractive character, detailed anatomy",
-  "Image prompt placeholder 3": "hot celebrity lookalike, photorealistic, high detail, attractive pose, professional photography, studio lighting, revealing clothing, suggestive, 8k quality",
-  
+  "Image prompt placeholder 2":
+    "sexy anime girl, detailed art, high quality, revealing outfit, suggestive pose, digital art, professional illustration, attractive character, detailed anatomy",
+  "Image prompt placeholder 3":
+    "hot celebrity lookalike, photorealistic, high detail, attractive pose, professional photography, studio lighting, revealing clothing, suggestive, 8k quality",
+
   // Add more image mappings as needed
   // Keep display text SFW but backend prompts can be more explicit
-}
+};
 
 export const asmrPromptMappings: Record<string, string> = {
   // ASMR generation mappings - display text → enhanced prompt
-  "Good night, sweet dreams. Rest well and let all your worries drift away.": "In a soft, whispering voice: Good night, sweet dreams. Rest well and let all your worries drift away. You are safe and loved.",
-  "You are amazing, beautiful, and worthy of all the love in the world. Take a deep breath and relax.": "Whispered gently with caring tone: You are amazing, beautiful, and worthy of all the love in the world. Take a deep breath and relax. Feel the peace wash over you.",
-  "Let me take care of you. Close your eyes and focus on my voice. Everything is going to be okay.": "In an intimate, caring whisper: Let me take care of you. Close your eyes and focus on my voice. Everything is going to be okay. I'm here with you.",
-  
+  "Good night, sweet dreams. Rest well and let all your worries drift away.":
+    "In a soft, whispering voice: Good night, sweet dreams. Rest well and let all your worries drift away. You are safe and loved.",
+  "You are amazing, beautiful, and worthy of all the love in the world. Take a deep breath and relax.":
+    "Whispered gently with caring tone: You are amazing, beautiful, and worthy of all the love in the world. Take a deep breath and relax. Feel the peace wash over you.",
+  "Let me take care of you. Close your eyes and focus on my voice. Everything is going to be okay.":
+    "In an intimate, caring whisper: Let me take care of you. Close your eyes and focus on my voice. Everything is going to be okay. I'm here with you.",
+
   // Add more ASMR mappings as needed
   // These enhance the emotional tone and whispering instructions
-}
+};
 
 // Helper function to get mapped prompt or return original
-export function getMappedPrompt(input: string, mode: 'chat' | 'image' | 'asmr'): string {
-  const mappings = mode === 'chat' ? chatPromptMappings : 
-                   mode === 'image' ? imagePromptMappings : 
-                   asmrPromptMappings
-  return mappings[input] || input
+export function getMappedPrompt(
+  input: string,
+  mode: "chat" | "image" | "asmr"
+): string {
+  const mappings =
+    mode === "chat"
+      ? chatPromptMappings
+      : mode === "image"
+      ? imagePromptMappings
+      : asmrPromptMappings;
+  return mappings[input] || input;
 }
