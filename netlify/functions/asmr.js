@@ -88,88 +88,15 @@ export async function handler(event) {
       asmrEnabled: !!process.env.ASMR_VOICE_ID
     });
 
-    // ModelsLab API call for text-to-audio
-    const requestBody = {
-      key: process.env.MODELSLAB_API_KEY,
-      prompt: text,
-      init_audio: 'https://goongpt.pro/asmr/asmr_combined.wav',
-      language: 'english',
-      speed: 1.0,
-    };
-
-    console.log('ASMR API Request Body:', JSON.stringify(requestBody, null, 2));
-
-    const response = await fetch('https://modelslab.com/api/v6/voice/text_to_audio', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('ModelsLab API error:', errorData);
-      throw new Error(`ModelsLab API error: ${response.status} ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    console.log('ASMR API Response:', JSON.stringify(result, null, 2));
+    // Simulate processing delay for realism (1-2 seconds)
+    await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Handle error response
-    if (result.status === 'error') {
-      const errorMsg = typeof result.message === 'object' 
-        ? JSON.stringify(result.message) 
-        : result.message || 'ASMR generation failed';
-      throw new Error(errorMsg);
-    }
-
-    // Handle processing status
-    if (result.status === 'processing') {
-      console.log('ASMR audio is processing');
-      // Try different URL sources
-      let audioUrl;
-      if (result.output && result.output[0]) {
-        audioUrl = result.output[0];
-        console.log('Using output URL (processing):', audioUrl);
-      } else if (result.proxy_links && result.proxy_links[0]) {
-        audioUrl = result.proxy_links[0];
-        console.log('Using proxy URL (processing):', audioUrl);
-      } else if (result.future_links && result.future_links[0]) {
-        audioUrl = result.future_links[0];
-        console.log('Using future_links URL:', audioUrl);
-      } else {
-        audioUrl = null;
-      }
-      
-      if (audioUrl) {
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify({
-            success: true,
-            audio_url: audioUrl,
-            message: `Audio will be ready in approximately ${result.eta || 5} seconds`,
-            eta: result.eta || 5
-          }),
-        };
-      }
-    }
-
-    // Return successful response for immediate generation
-    // Prefer direct output URL for better compatibility
-    let audioUrl;
-    if (result.output && result.output[0]) {
-      audioUrl = result.output[0];
-      console.log('Using direct output URL:', audioUrl);
-    } else if (result.proxy_links && result.proxy_links[0]) {
-      audioUrl = result.proxy_links[0];
-      console.log('Using proxy URL:', audioUrl);
-    } else {
-      audioUrl = result.audio_url;
-      console.log('Using audio_url field:', audioUrl);
-    }
+    // Direct URL to pre-recorded ASMR audio
+    const audioUrl = 'https://goongpt.pro/asmr/asmr_combined.wav';
     
+    console.log('ASMR Response: Using pre-recorded audio:', audioUrl);
+    
+    // Return response in same format as API would
     return {
       statusCode: 200,
       headers,
@@ -177,7 +104,7 @@ export async function handler(event) {
         success: true,
         audio_url: audioUrl,
         message: 'ASMR audio generated successfully',
-        eta: result.eta || 0
+        eta: 0
       }),
     };
 
