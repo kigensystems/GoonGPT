@@ -1,5 +1,5 @@
 // Netlify Function: Image generation endpoint
-// Uses ModelsLab API for fast image generation
+// Uses ModelsLab API with Photorealistic-NSFW-flux model
 
 import { imageRateLimiter } from './utils/rateLimiter.js';
 import { validateImageInput } from './utils/validation.js';
@@ -57,18 +57,22 @@ export async function handler(event) {
       };
     }
 
-    console.log('Generating image with prompt:', prompt);
+    console.log('Generating image with Photorealistic-NSFW-flux model');
+    console.log('Prompt:', prompt);
     console.log('API Key exists:', !!process.env.MODELSLAB_API_KEY);
 
-    // ModelsLab API call for realtime text2img
+    // ModelsLab API call for text2img with Photorealistic-NSFW-flux model
     const requestBody = {
       key: process.env.MODELSLAB_API_KEY,
+      model_id: 'Photorealistic-NSFW-flux',
       prompt: prompt,
-      negative_prompt: negative_prompt,
+      negative_prompt: negative_prompt || 'blurry, deformed, ugly',
       width: String(width),
       height: String(height),
       samples: samples,
-      safety_checker: safety_checker,
+      num_inference_steps: 30,
+      safety_checker: 'no',
+      guidance_scale: 7.5,
       seed: seed || null,
       base64: false,
       webhook: null,
@@ -80,7 +84,7 @@ export async function handler(event) {
       requestBody.enhance_style = enhance_style;
     }
 
-    const response = await fetch('https://modelslab.com/api/v6/realtime/text2img', {
+    const response = await fetch('https://modelslab.com/api/v6/images/text2img', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
