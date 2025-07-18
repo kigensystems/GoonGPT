@@ -111,7 +111,7 @@ export async function handler(event) {
     console.log("Style:", style);
     console.log(
       "Model:",
-      style === "anime" ? "realcartoon-xl-v4" : "Photorealistic-NSFW-flux"
+      style === "anime" ? "realcartoon-xl-v4" : "bigasp-v1"
     );
     console.log("API Key exists:", !!process.env.MODELSLAB_API_KEY);
     console.log("API Key length:", process.env.MODELSLAB_API_KEY?.length);
@@ -139,26 +139,31 @@ export async function handler(event) {
         seed: seed || null,
       };
     } else {
-      // Realism style configuration
+      // Realism style configuration using bigASP v1
+      // Automatically enhance prompt with Danbooru tags for optimal quality
+      const enhancedPrompt = `score_8_up, photo (medium), nsfw, ultra realistic, high detail, ${prompt}`;
+      const enhancedNegative = `score_1, score_2, ${negative_prompt ? negative_prompt + ', ' : ''}ugly, deformed, bad anatomy, extra limbs, blurry, low quality, watermark, signature, child, underage, overexposed, underexposed`;
+      
       requestBody = {
         key: process.env.MODELSLAB_API_KEY,
-        model_id: "fluxdev",
-        prompt: prompt,
-        negative_prompt:
-          negative_prompt ||
-          "bad anatomy, extra limbs, watermark, lowres, blurry, deformed, ugly, mutated hands, poorly drawn face, text, low resolution, overexposed, underexposed, censored, clothing",
+        model_id: "bigasp-v1",
+        prompt: enhancedPrompt,
+        negative_prompt: enhancedNegative,
         width: String(width),
         height: String(height),
         samples: String(samples),
-        num_inference_steps: 24,
+        num_inference_steps: 40,
         safety_checker: "false",
+        safety_checker_type: "black",
         enhance_prompt: "yes",
-        guidance_scale: 7,
+        enhance_style: "nsfw",
+        guidance_scale: 8.0,
         scheduler: "UniPCMultistepScheduler",
         use_karras_sigmas: "yes",
-        lora: "Photorealistic-NSFW-flux",
-        lora_strength: 6.0,
         tomesd: "yes",
+        self_attention: "yes",
+        upscale: 1,
+        clip_skip: 1,
         seed: seed || null,
       };
     }
