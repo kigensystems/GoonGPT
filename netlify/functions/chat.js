@@ -51,7 +51,7 @@ export async function handler(event) {
   }
 
   try {
-    const { messages, model = 'ModelsLab/Llama-3.1-70b-Uncensored-Dare', temperature = 0.3, max_tokens = 250, stream = false } = JSON.parse(event.body);
+    const { messages, model = 'ModelsLab/Llama-3.1-8b-Uncensored-Dare', temperature = 0.4, max_tokens = 180, stream = true } = JSON.parse(event.body);
     
     // Validate input
     const validation = validateChatInput(messages);
@@ -67,12 +67,12 @@ export async function handler(event) {
 
     // ModelsLab API call for chat completions (OpenAI-compatible endpoint)
     const requestBody = {
-      model: model || 'ModelsLab/Llama-3.1-70b-Uncensored-Dare',
+      model: model || 'ModelsLab/Llama-3.1-8b-Uncensored-Dare',
       messages: messages,
       temperature: temperature,
       max_tokens: max_tokens,
-      repetition_penalty: 1.2,
-      top_p: 0.9,
+      repetition_penalty: 1.1,
+      top_p: 0.92,
       stream: stream
     };
 

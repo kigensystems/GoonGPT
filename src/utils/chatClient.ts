@@ -59,7 +59,7 @@ export class ChatClient {
         },
         body: JSON.stringify({ 
           messages,
-          model: options.model || 'ModelsLab/Llama-3.1-70b-Uncensored-Dare',
+          model: options.model || 'ModelsLab/Llama-3.1-8b-Uncensored-Dare',
           temperature: options.temperature || 0.7,
           max_tokens: options.max_tokens || 1000,
           stream: options.stream || false,
