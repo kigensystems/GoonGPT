@@ -48,8 +48,6 @@ export class ChatClient {
       wallet_address?: string;
     } = {}
   ): Promise<ChatCompletionResponse> {
-    console.log('[ChatClient] Sending request at:', new Date().toISOString());
-    const startTime = Date.now();
     
     try {
       const response = await fetch(`${this.baseUrl}/.netlify/functions/chat`, {
@@ -67,8 +65,6 @@ export class ChatClient {
         }),
       });
 
-      const responseTime = Date.now() - startTime;
-      console.log(`[ChatClient] Response received in ${responseTime}ms with status: ${response.status}`);
 
       if (!response.ok) {
         let errorData;
@@ -112,11 +108,6 @@ export class ChatClient {
       }
 
       const result = await response.json();
-      console.log('[ChatClient] Success:', { 
-        hasChoices: !!result.choices,
-        choiceCount: result.choices?.length,
-        success: result.success 
-      });
       
       if (result.success) {
         return result;
@@ -124,8 +115,7 @@ export class ChatClient {
         throw new Error(result.details || 'Chat completion failed');
       }
     } catch (error) {
-      const totalTime = Date.now() - startTime;
-      console.error('[ChatClient] Error after', totalTime + 'ms:', {
+      console.error('[ChatClient] Error:', {
         error: error,
         message: (error as Error).message,
         stack: (error as Error).stack

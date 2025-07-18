@@ -11,11 +11,6 @@ export async function handler(event) {
     return rateLimitResponse;
   }
   // Check for required environment variables
-  console.log('Environment check:', {
-    hasKey: !!process.env.MODELSLAB_API_KEY,
-    keyLength: process.env.MODELSLAB_API_KEY?.length,
-    nodeEnv: process.env.NODE_ENV
-  });
   
   if (!process.env.MODELSLAB_API_KEY) {
     console.error('MODELSLAB_API_KEY is not set');
@@ -63,7 +58,6 @@ export async function handler(event) {
       };
     }
 
-    console.log('Chat completion request:', { model, temperature, max_tokens, messageCount: messages.length });
 
     // ModelsLab API call for chat completions (OpenAI-compatible endpoint)
     const requestBody = {
@@ -76,8 +70,6 @@ export async function handler(event) {
       stream: stream
     };
 
-    console.log('Calling ModelsLab API at:', new Date().toISOString());
-    const startTime = Date.now();
     
     const response = await fetch('https://modelslab.com/api/uncensored-chat/v1/chat/completions', {
       method: 'POST',
@@ -88,22 +80,18 @@ export async function handler(event) {
       body: JSON.stringify(requestBody),
     });
 
-    const responseTime = Date.now() - startTime;
-    console.log(`ModelsLab API responded in ${responseTime}ms with status: ${response.status}`);
 
     if (!response.ok) {
       const errorData = await response.text();
       console.error('ModelsLab API error:', {
         status: response.status,
         statusText: response.statusText,
-        responseTime: responseTime,
         errorData: errorData
       });
       throw new Error(`ModelsLab API error: ${response.status} ${response.statusText}`);
     }
 
     const result = await response.json();
-    console.log('API Response:', JSON.stringify(result, null, 2));
     
     // Handle error response
     if (result.status === 'error') {

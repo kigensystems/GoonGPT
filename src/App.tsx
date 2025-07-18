@@ -281,7 +281,6 @@ function AppContent() {
       try {
         // Use mapped prompt for chat if available
         const backendPrompt = getMappedPrompt(messageContent, 'chat')
-        console.log('Chat prompt mapping:', { original: messageContent, mapped: backendPrompt })
         
         const response = await chatClient.chat(
           backendPrompt,
