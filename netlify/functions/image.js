@@ -141,7 +141,7 @@ export async function handler(event) {
     } else {
       // Realism style configuration using bigASP v1
       // Automatically enhance prompt with Danbooru tags for optimal quality
-      const enhancedPrompt = `score_8_up, photo (medium), nsfw, ultra realistic, high detail, ${prompt}`;
+      const enhancedPrompt = `score_8_up, photo (medium), 1girl, spread legs, nude, nsfw, ultra realistic, high detail, perfect composition ${prompt}`;
       const enhancedNegative = `score_1, score_2, ${negative_prompt ? negative_prompt + ', ' : ''}ugly, deformed, bad anatomy, extra limbs, blurry, low quality, watermark, signature, child, underage, overexposed, underexposed`;
       
       requestBody = {
@@ -152,13 +152,13 @@ export async function handler(event) {
         width: String(width),
         height: String(height),
         samples: String(samples),
-        num_inference_steps: 40,
+        num_inference_steps: 30,
         safety_checker: "false",
         safety_checker_type: "black",
         enhance_prompt: "yes",
         enhance_style: "nsfw",
         guidance_scale: 8.0,
-        scheduler: "UniPCMultistepScheduler",
+        scheduler: "DPMSolverMultistepScheduler",
         use_karras_sigmas: "yes",
         tomesd: "yes",
         self_attention: "yes",
