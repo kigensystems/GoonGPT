@@ -36,7 +36,7 @@ export function TokenDataProvider({ children }: { children: React.ReactNode }) {
   const refreshData = useCallback(async () => {
     // Check cooldown
     if (lastFetch && Date.now() - lastFetch.getTime() < FETCH_COOLDOWN) {
-      console.log('TokenDataContext: Skipping fetch due to cooldown')
+      // Skipping fetch due to cooldown
       return
     }
 
@@ -49,7 +49,7 @@ export function TokenDataProvider({ children }: { children: React.ReactNode }) {
     setError(null)
     
     try {
-      console.log('TokenDataContext: Fetching server data')
+      // Fetching server data
       const data = await getServerTokenData()
       if (data) {
         setServerData(data)

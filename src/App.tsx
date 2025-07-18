@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { BrowserRouter as Router, useNavigate } from 'react-router-dom'
 import { imageClient } from './utils/imageClient'
 import { chatClient } from './utils/chatClient'
@@ -35,9 +35,9 @@ function AppContent() {
   const [isProcessing, setIsProcessing] = useState(false) // Immediate protection
   
   // Debug: Log messages state changes
-  useEffect(() => {
-    console.log('App messages state changed:', messages.length, messages)
-  }, [messages])
+  // useEffect(() => {
+  //   console.log('App messages state changed:', messages.length, messages)
+  // }, [messages])
   const [mode, setMode] = useState<Mode>('chat')
   const [showRegistration, setShowRegistration] = useState(false)
   const [registrationWallet, setRegistrationWallet] = useState('')
@@ -57,11 +57,11 @@ function AppContent() {
 
   const sendMessage = async (content?: string) => {
     const messageContent = content || input
-    console.log('sendMessage called!', { mode, messageContent, isLoading, isProcessing })
+    // console.log('sendMessage called!', { mode, messageContent, isLoading, isProcessing })
     
     // IMMEDIATE protection - don't wait for React re-render
     if (isProcessing || isLoading) {
-      console.log('BLOCKED: Already processing')
+      // BLOCKED: Already processing
       return;
     }
     setIsProcessing(true) // Immediate synchronous block
@@ -117,7 +117,7 @@ function AppContent() {
       try {
         // Use mapped prompt for image generation
         const backendPrompt = getMappedPrompt(messageContent, 'image')
-        console.log('Image prompt mapping:', { original: messageContent, mapped: backendPrompt })
+        // Image prompt mapping
         
         const result = await imageClient.generateImage(
           backendPrompt,
@@ -148,41 +148,8 @@ function AppContent() {
               : msg
           ))
 
-          // If we already have the URL, just show countdown then display
-          if (result.imageUrl) {
-            console.log('Image URL already available, showing countdown:', result.imageUrl)
-            
-            // Show countdown
-            const countdownInterval = setInterval(() => {
-              currentEta = Math.max(0, currentEta - 1)
-              setMessages(prev => prev.map(msg => 
-                msg.id === processingMessage.id 
-                  ? { 
-                      ...msg, 
-                      content: currentEta > 0 
-                        ? `Generating your image... ETA: ${currentEta}s`
-                        : `Generating your image... Almost ready!`
-                    }
-                  : msg
-              ))
-            }, 1000)
-
-            // Wait for countdown to finish
-            await new Promise(resolve => setTimeout(resolve, initialEta * 1000))
-            clearInterval(countdownInterval)
-            
-            // Show the image
-            setMessages(prev => {
-              const filtered = prev.filter(msg => msg.id !== processingMessage.id)
-              return [...filtered, {
-                id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
-                role: 'assistant',
-                content: 'Here is your generated image:',
-                imageUrl: result.imageUrl,
-                timestamp: new Date()
-              }]
-            })
-          } else if (result.request_id) {
+          // Always poll for the image when status is processing
+          if (result.request_id) {
             // Need to poll for the image
             const pollInterval = setInterval(() => {
               currentEta = Math.max(0, currentEta - 2) // Decrease by 2 seconds per poll
@@ -236,7 +203,7 @@ function AppContent() {
           
           // Now show the result
           const finalImageUrl = result.images?.[0] || result.imageUrl
-          console.log('Setting image URL in message:', finalImageUrl)
+          // Setting image URL in message
           
           setMessages(prev => {
             const filtered = prev.filter(msg => msg.id !== processingMessage.id)
@@ -247,7 +214,7 @@ function AppContent() {
               imageUrl: finalImageUrl,
               timestamp: new Date()
             }
-            console.log('New message with image:', newMessage)
+            // New message with image
             return [...filtered, newMessage]
           })
         }
@@ -366,7 +333,7 @@ function AppContent() {
         }
       )
 
-      console.log('Video generation result:', result)
+      // Video generation result logged
 
       const assistantMessage: Message = {
         id: `${Date.now() + 1}-${Math.random().toString(36).substr(2, 9)}`,
@@ -415,15 +382,15 @@ function AppContent() {
     setIsLoading(true)
 
     try {
-      console.log('Generating ASMR audio for text:', text)
+      // Generating ASMR audio
       
       // Use mapped prompt for ASMR generation
       const backendPrompt = getMappedPrompt(text, 'asmr')
-      console.log('ASMR prompt mapping:', { original: text, mapped: backendPrompt })
+      // ASMR prompt mapping
       
       const result = await asmrClient.generateAudio(backendPrompt, user?.wallet_address)
       
-      console.log('ASMR generation result:', result)
+      // ASMR generation result
       
       if (result.success && result.audio_url) {
         const assistantMessage: Message = {

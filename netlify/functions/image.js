@@ -5,20 +5,11 @@ import { imageRateLimiter } from "./utils/rateLimiter.js";
 import { validateImageInput } from "./utils/validation.js";
 
 export async function handler(event) {
-  console.log("=== IMAGE FUNCTION START ===");
-  console.log(
-    "Event received:",
-    JSON.stringify(
-      {
-        httpMethod: event.httpMethod,
-        path: event.path,
-        headers: event.headers,
-        bodyLength: event.body?.length,
-      },
-      null,
-      2
-    )
-  );
+  console.log("\n========================================");
+  console.log("=== IMAGE GENERATION FUNCTION START ===");
+  console.log("========================================");
+  console.log("Purpose: Generate images using ModelsLab API");
+  console.log("Models available: realcartoon-xl-v4 (anime), bigasp-v1 (realism)");
 
   // Apply rate limiting
   const rateLimitResponse = await imageRateLimiter(event);
@@ -76,25 +67,15 @@ export async function handler(event) {
 
     console.log("=== IMAGE GENERATION REQUEST ===");
     console.log("Timestamp:", new Date().toISOString());
-    console.log(
-      "Request body:",
-      JSON.stringify(
-        {
-          prompt: prompt.substring(0, 100) + (prompt.length > 100 ? "..." : ""),
-          negative_prompt: negative_prompt
-            ? negative_prompt.substring(0, 50) + "..."
-            : "none",
-          width,
-          height,
-          samples,
-          seed: seed || "random",
-          enhance_prompt,
-          style,
-        },
-        null,
-        2
-      )
-    );
+    console.log("\n--- USER INPUT ---");
+    console.log("Style selected:", style);
+    console.log("User's prompt:", prompt);
+    console.log("User's negative prompt:", negative_prompt || "(none provided)");
+    console.log("Image dimensions:", `${width}x${height}`);
+    console.log("Number of images:", samples);
+    console.log("Seed:", seed || "random");
+    console.log("Frontend enhance_prompt setting:", enhance_prompt);
+    console.log("Frontend enhance_style setting:", enhance_style || "(not provided)");
 
     // Validate input
     const validation = validateImageInput(prompt, { width, height });
@@ -120,6 +101,11 @@ export async function handler(event) {
 
     if (style === "anime") {
       // Anime style configuration
+      console.log("\n=== ANIME STYLE SELECTED ===");
+      console.log("Using model: realcartoon-xl-v4");
+      console.log("User's original prompt:", prompt);
+      console.log("No automatic prompt enhancement for anime style");
+      
       requestBody = {
         key: process.env.MODELSLAB_API_KEY,
         model_id: "realcartoon-xl-v4",
@@ -140,9 +126,24 @@ export async function handler(event) {
       };
     } else {
       // Realism style configuration using bigASP v1
+      console.log("\n=== REALISM STYLE SELECTED ===");
+      console.log("Using model: bigasp-v1 (optimized for NSFW photorealistic content)");
+      console.log("\n--- PROMPT ENHANCEMENT PROCESS ---");
+      console.log("User's original prompt:", prompt);
+      
       // Automatically enhance prompt with Danbooru tags for optimal quality
       const enhancedPrompt = `score_8_up, photo (medium), 1girl, spread legs, nude, nsfw, ultra realistic, high detail, perfect composition ${prompt}`;
+      console.log("\nAutomatic tags added (invisible to user):");
+      console.log("  - Quality tags: score_8_up, photo (medium)");
+      console.log("  - Content tags: 1girl, spread legs, nude, nsfw");
+      console.log("  - Style tags: ultra realistic, high detail, perfect composition");
+      console.log("\nFinal enhanced prompt sent to API:", enhancedPrompt);
+      
       const enhancedNegative = `score_1, score_2, ${negative_prompt ? negative_prompt + ', ' : ''}ugly, deformed, bad anatomy, extra limbs, blurry, low quality, watermark, signature, child, underage, overexposed, underexposed`;
+      console.log("\nNegative prompt enhancement:");
+      console.log("  - Added quality filters: score_1, score_2");
+      console.log("  - User's negative prompt:", negative_prompt || "(none)");
+      console.log("  - Final negative prompt:", enhancedNegative);
       
       requestBody = {
         key: process.env.MODELSLAB_API_KEY,
@@ -155,8 +156,8 @@ export async function handler(event) {
         num_inference_steps: 30,
         safety_checker: "false",
         safety_checker_type: "black",
-        enhance_prompt: "yes",
-        enhance_style: "nsfw",
+        enhance_prompt: "yes", // ModelsLab's AI will further enhance the prompt
+        enhance_style: "nsfw", // Tells ModelsLab to optimize for NSFW content
         guidance_scale: 8.0,
         scheduler: "DPMSolverMultistepScheduler",
         use_karras_sigmas: "yes",
@@ -168,8 +169,15 @@ export async function handler(event) {
       };
     }
 
-    console.log("=== FULL REQUEST BODY ===");
+    console.log("\n=== FULL REQUEST BODY ===");
+    console.log("This is what we're sending to ModelsLab API:");
     console.log(JSON.stringify(requestBody, null, 2));
+    console.log("\n=== KEY PARAMETERS EXPLAINED ===");
+    console.log("- enhance_prompt: When 'yes', ModelsLab's AI will add more details to improve quality");
+    console.log("- enhance_style: Tells ModelsLab what style to optimize for (e.g., 'nsfw' for adult content)");
+    console.log("- num_inference_steps: More steps = better quality but slower (30-40 is optimal)");
+    console.log("- guidance_scale: How closely to follow the prompt (8.0 = strong adherence)");
+    console.log("- safety_checker: Set to 'false' to allow NSFW content");
 
     const startTime = Date.now();
     const response = await fetch(
@@ -220,10 +228,12 @@ export async function handler(event) {
       console.log("Fetch URL:", result.fetch_result);
       console.log("Future links:", result.future_links);
 
-      // Check if image URL is already available (NOT future_links - those aren't ready yet)
-      const imageUrl = result.meta?.output?.[0];
-
-      // Always return processing status to show ETA, but include URL if available
+      // Don't include the URL yet - it's not ready even if provided
+      // The image needs to be fetched later when actually ready
+      console.log("\n=== IMAGE NOT READY YET ===");
+      console.log("ModelsLab returns URLs immediately but images need time to generate");
+      console.log("We'll poll for the image when it's actually ready");
+      
       return {
         statusCode: 202, // Accepted
         headers,
@@ -232,7 +242,7 @@ export async function handler(event) {
           eta: result.eta || 2, // Default to 2 seconds if no ETA
           request_id: result.id,
           fetch_result: result.fetch_result,
-          imageUrl: imageUrl, // Include URL if already available
+          // Don't include imageUrl here - it's not ready yet
           message: `Image is being generated. ETA: ${result.eta || 2} seconds`,
         }),
       };

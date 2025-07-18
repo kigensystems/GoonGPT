@@ -31,7 +31,7 @@ export class ImageClient {
       this.baseUrl = '';
     }
     
-    console.log('ImageClient using baseUrl:', this.baseUrl || 'relative (production)');
+    // ImageClient using baseUrl
   }
 
   // Image generation using ModelsLab API
@@ -95,17 +95,17 @@ export class ImageClient {
       }
 
       const result = await response.json();
-      console.log('Image generation response:', result);
+      // Image generation response received
       
       // Handle immediate success
       if (result.success) {
-        console.log('Image generated successfully:', result.imageUrl);
+        // Image generated successfully
         return result;
       } 
       
       // Handle processing status - return it so caller can poll
       if (result.status === 'processing') {
-        console.log('Image is processing, request_id:', result.request_id, 'ETA:', result.eta);
+        // Image is processing
         return result as ProcessingResponse;
       }
       
@@ -165,21 +165,21 @@ export class ImageClient {
     maxAttempts: number = 30,
     delayMs: number = 2000
   ): Promise<ImageGenerationResponse> {
-    console.log(`Starting to poll for image, request_id: ${requestId}`);
+    // Starting to poll for image
     
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
-        console.log(`Polling attempt ${attempt + 1}/${maxAttempts}`);
+        // Polling attempt
         const result = await this.fetchImage(requestId);
         
         if (result.success) {
-          console.log('Image ready after', attempt + 1, 'attempts');
+          // Image ready
           return result;
         }
         
         // Still processing, wait and try again
         if (result.status === 'processing') {
-          console.log(`Still processing, waiting ${delayMs}ms before retry...`);
+          // Still processing, waiting before retry
           await new Promise(resolve => setTimeout(resolve, delayMs));
           continue;
         }
@@ -187,7 +187,7 @@ export class ImageClient {
         // Some other status, throw error
         throw new Error('Unexpected status: ' + result.status);
       } catch (error) {
-        console.error(`Poll attempt ${attempt + 1} failed:`, error);
+        // Poll attempt failed
         // On last attempt, throw the error
         if (attempt === maxAttempts - 1) {
           throw error;
