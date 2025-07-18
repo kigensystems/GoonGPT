@@ -215,8 +215,8 @@ export async function handler(event) {
       console.log("Fetch URL:", result.fetch_result);
       console.log("Future links:", result.future_links);
 
-      // Check if image URL is already available
-      const imageUrl = result.meta?.output?.[0] || result.future_links?.[0];
+      // Check if image URL is already available (NOT future_links - those aren't ready yet)
+      const imageUrl = result.meta?.output?.[0];
 
       // Always return processing status to show ETA, but include URL if available
       return {
