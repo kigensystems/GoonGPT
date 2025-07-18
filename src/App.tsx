@@ -135,7 +135,7 @@ function AppContent() {
 
         // Check if we need to poll for the result
         if (result.status === 'processing') {
-          const initialEta = result.eta || 2
+          const initialEta = Math.round(result.eta) || 2
           let currentEta = initialEta
           
           // Update message to show it's processing with ETA

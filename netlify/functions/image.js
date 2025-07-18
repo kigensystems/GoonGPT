@@ -239,11 +239,11 @@ export async function handler(event) {
         headers,
         body: JSON.stringify({
           status: "processing",
-          eta: result.eta || 2, // Default to 2 seconds if no ETA
+          eta: Math.round(result.eta) || 2, // Round to whole seconds
           request_id: result.id,
           fetch_result: result.fetch_result,
           // Don't include imageUrl here - it's not ready yet
-          message: `Image is being generated. ETA: ${result.eta || 2} seconds`,
+          message: `Image is being generated. ETA: ${Math.round(result.eta) || 2} seconds`,
         }),
       };
     }
