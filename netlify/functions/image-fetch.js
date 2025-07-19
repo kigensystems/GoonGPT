@@ -55,18 +55,27 @@ export async function handler(event) {
     console.log('Request ID:', request_id);
     console.log('API Key exists:', !!process.env.MODELSLAB_API_KEY);
 
-    // ModelsLab API call to fetch image
+    // ModelsLab API call to fetch image with timeout protection
     const startTime = Date.now();
-    const response = await fetch('https://modelslab.com/api/v6/images/fetch', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        key: process.env.MODELSLAB_API_KEY,
-        request_id: request_id
-      }),
-    });
+    
+    // Create an AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
+    
+    try {
+      const response = await fetch('https://modelslab.com/api/v6/images/fetch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          key: process.env.MODELSLAB_API_KEY,
+          request_id: request_id
+        }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
 
     const responseTime = Date.now() - startTime;
     console.log(`=== FETCH API RESPONSE (${responseTime}ms) ===`);
@@ -135,9 +144,43 @@ export async function handler(event) {
     
     // Handle unexpected response
     throw new Error('Unexpected response format from ModelsLab API');
+    
+    } catch (fetchError) {
+      // Handle timeout specifically
+      if (fetchError.name === 'AbortError') {
+        console.log('=== FETCH TIMEOUT ===');
+        console.log('ModelsLab API is taking too long, returning processing status');
+        
+        // Return processing status instead of error
+        return {
+          statusCode: 202,
+          headers,
+          body: JSON.stringify({
+            status: 'processing',
+            message: 'Image is still being generated (API timeout)'
+          }),
+        };
+      }
+      
+      // Re-throw other fetch errors
+      throw fetchError;
+    }
 
   } catch (error) {
     console.error('Image fetch error:', error);
+    
+    // Return processing status for timeout errors
+    if (error.name === 'AbortError' || error.message?.includes('timeout')) {
+      return {
+        statusCode: 202,
+        headers,
+        body: JSON.stringify({
+          status: 'processing',
+          message: 'Image is still being generated'
+        }),
+      };
+    }
+    
     return {
       statusCode: 500,
       headers,

@@ -131,7 +131,20 @@ export class ImageClient {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          // Handle non-JSON responses (like 504 Gateway Timeout)
+          if (response.status === 504) {
+            // Return processing status for 504 errors
+            return {
+              status: 'processing',
+              message: 'Service is busy, continuing to process'
+            } as any;
+          }
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
@@ -163,14 +176,20 @@ export class ImageClient {
   async pollForImage(
     requestId: string, 
     maxAttempts: number = 30,
-    delayMs: number = 2000
+    delayMs: number = 2000,
+    remainingEta: number = 0
   ): Promise<ImageGenerationResponse> {
     // Starting to poll for image
+    let consecutiveErrors = 0;
+    const maxConsecutiveErrors = 3;
     
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         // Polling attempt
         const result = await this.fetchImage(requestId);
+        
+        // Reset error counter on successful response
+        consecutiveErrors = 0;
         
         if (result.success) {
           // Image ready
@@ -179,20 +198,45 @@ export class ImageClient {
         
         // Still processing, wait and try again
         if (result.status === 'processing') {
-          // Still processing, waiting before retry
-          await new Promise(resolve => setTimeout(resolve, delayMs));
+          // Adaptive delay based on remaining time
+          let currentDelay = delayMs;
+          if (remainingEta > 30) {
+            currentDelay = 10000; // 10 seconds if lots of time left
+          } else if (remainingEta > 15) {
+            currentDelay = 5000; // 5 seconds if moderate time left
+          } else {
+            currentDelay = 2000; // 2 seconds when close to ready
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, currentDelay));
+          if (remainingEta > 0) remainingEta -= currentDelay / 1000;
           continue;
         }
         
         // Some other status, throw error
         throw new Error('Unexpected status: ' + result.status);
-      } catch (error) {
-        // Poll attempt failed
-        // On last attempt, throw the error
+      } catch (error: any) {
+        // Handle 504 Gateway Timeout specifically
+        if (error.message?.includes('504') || error.message?.includes('Gateway Timeout')) {
+          console.error('Gateway timeout during polling, will retry...');
+          consecutiveErrors++;
+          
+          // If too many consecutive timeouts, fail
+          if (consecutiveErrors >= maxConsecutiveErrors) {
+            throw new Error('Multiple gateway timeouts. The service may be overloaded. Please try again later.');
+          }
+          
+          // Wait longer after timeout
+          await new Promise(resolve => setTimeout(resolve, 10000)); // 10 second wait after timeout
+          continue;
+        }
+        
+        // Other errors
         if (attempt === maxAttempts - 1) {
           throw error;
         }
-        // Otherwise, wait and retry
+        
+        // Wait and retry
         await new Promise(resolve => setTimeout(resolve, delayMs));
       }
     }

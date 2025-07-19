@@ -16,6 +16,8 @@ export const chatPromptMappings: Record<string, string> = {
 };
 
 export const imagePromptMappings: Record<string, string> = {
+  "Korean girl gooning":
+  "A highly detailed, realistic image of a stunning young Korean woman with flawless fair skin, long silky black hair cascading over her shoulders, delicate almond-shaped eyes half-closed in ecstasy, full lips parted in a moan, sitting slouched in a plush leather armchair in a dimly lit bedroom. Her legs are spread wide apart, knees bent and feet planted on the floor, exposing her shaved, glistening wet pussy as she masturbates vigorously with one hand, fingers plunging deep inside while her other hand grips the armrest. Voluptuous body with perky medium breasts, erect nipples, curvy hips and a big round ass spilling over the chair edges. Intense gooning expression: face flushed red, sweat beads on her skin, body trembling in prolonged arousal. Ultra-realistic anatomy, intricate genital details, vaginal fluids visible, high dynamic range lighting casting soft shadows, photorealistic style, 8k resolution, masterpiece quality, (explicit NSFW:1.3), (masturbation pose:1.2), (Korean beauty:1.1), (legs spread wide:1.2), (big ass emphasis:1.4) – optimized for bigaspv1 model.",
   // Image generation mappings - display text → enhanced prompt
   // Add more image mappings as needed
   // Keep display text SFW but backend prompts can be more explicit
